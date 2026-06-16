@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+/*
+  Design tokens for the "Workshop" direction (warm dark + Rust red).
+  Exposed as Tailwind theme vars so they become utilities:
+  e.g. bg-page, bg-panel, text-ink, text-body, text-accent, border-line-3.
+*/
+@theme {
+  --color-page: #16130f;
+  --color-panel: #211d18;
+  --color-tile: #1d1914;
+  --color-chip: #1a1712;
+  --color-chip-inactive: #1b1712;
+
+  --color-accent: #e33b26;
+
+  --color-ink: #ece7df;
+  --color-ink-bright: #f1e9dc;
+  --color-body: #c4baac;
+  --color-body-2: #d6cdbf;
+  --color-body-3: #cabfb0;
+
+  --color-muted: #9a9082;
+  --color-muted-2: #8f8576;
+  --color-muted-3: #7c7264;
+  --color-muted-4: #6a6053;
+
+  --color-line: #2a251f;
+  --color-line-2: #2f2a23;
+  --color-line-3: #38322a;
+  --color-line-4: #443d34;
+  --color-line-hover: #4a4239;
+
+  --animate-dot-pulse: dot-pulse 2.4s ease-in-out infinite;
+}
+
+/* Map the next/font CSS variables onto Tailwind font utilities. */
+@theme inline {
+  --font-display: var(--font-space);
+  --font-body: var(--font-hanken);
+  --font-mono: var(--font-jet);
+}
+
+@keyframes dot-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-page);
+  color: var(--color-ink);
+  font-family: var(--font-hanken), system-ui, sans-serif;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgba(227, 59, 38, 0.32);
+}

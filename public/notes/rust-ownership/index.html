@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ownership and the Borrow Checker · MeowyTheDev companion guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@1&family=Caveat:wght@500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink:#1c1e22; --soft:#43474e; --muted:#888d96; --line:#e3e4e8;
+  --rust:#c8542a; --code-bg:#f5f5f4; --code-fg:#24292e;
+  --sans:"Bricolage Grotesque",system-ui,-apple-system,sans-serif;
+  --serif:"Instrument Serif",Georgia,serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:#e9e9ec;color:var(--ink);font-family:var(--sans);}
+.accent{font-family:var(--serif);font-style:italic;color:var(--rust);font-weight:400;}
+.doc{max-width:182mm;margin:8mm auto;padding:16mm;background:#fff;box-shadow:0 4px 24px rgba(0,0,0,0.18);}
+
+.cover{position:relative;min-height:240mm;display:flex;flex-direction:column;justify-content:center;break-after:page;}
+.divider{break-before:page;padding-top:6mm;}
+.appendix{break-before:page;padding-top:4mm;}
+.scene{margin:0 0 9mm;}
+.scene.quote{break-before:page;padding-top:8mm;}
+.slide,.body pre,.body table,.body blockquote{break-inside:avoid;}
+.body h3{break-after:avoid;}
+
+.book-chip{display:inline-block;font-family:var(--mono);font-size:8pt;letter-spacing:0.02em;color:var(--soft);background:#fff;border:1px solid var(--line);padding:3px 9px;border-radius:5px;white-space:nowrap;}
+.scene-chip{margin-bottom:3mm;}
+.slide{display:block;width:100%;max-width:100%;border-radius:8px;border:1px solid var(--line);}
+
+.body h3{font-size:19pt;font-weight:700;color:#16181d;margin:0 0 3mm;line-height:1.15;letter-spacing:-0.01em;}
+.body p{font-size:11pt;line-height:1.62;color:var(--soft);margin:0 0 3mm;}
+.body p strong,.body li strong{color:var(--ink);font-weight:700;}
+.body em{font-family:var(--serif);font-style:italic;color:var(--ink);}
+.body ul,.body ol{margin:3mm 0;padding-left:6mm;}
+.body li{margin:0 0 2mm;line-height:1.55;font-size:11pt;color:var(--soft);}
+.body code{font-family:var(--mono);font-size:0.86em;background:var(--code-bg);padding:0.08em 0.32em;border-radius:4px;color:#9a3a18;}
+.body pre{background:var(--code-bg);color:var(--code-fg);border:1px solid var(--line);border-radius:8px;padding:4mm 5mm;white-space:pre-wrap;overflow-wrap:break-word;font-family:var(--mono);font-size:9.5pt;line-height:1.5;margin:4mm 0;}
+.body pre code{background:none;padding:0;color:inherit;font-size:inherit;}
+.body table{width:100%;border-collapse:collapse;margin:4mm 0;font-size:10pt;}
+.body th{text-align:left;background:#f3f3f4;color:var(--ink);font-family:var(--mono);font-size:8pt;text-transform:uppercase;letter-spacing:0.02em;padding:2.4mm 3mm;border:1px solid var(--line);}
+.body td{padding:2.4mm 3mm;border:1px solid var(--line);vertical-align:top;color:var(--soft);overflow-wrap:break-word;}
+.body blockquote{margin:5mm 0 0;background:#f7f7f6;border-left:3px solid var(--rust);border-radius:0 6px 6px 0;padding:3.5mm 5mm;font-size:11pt;color:var(--ink);}
+.body blockquote p{margin:0;color:var(--ink);} .body blockquote strong{color:#16181d;}
+
+.cover-eyebrow{font-family:var(--mono);font-size:9.5pt;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);}
+.cover-title{font-size:40pt;line-height:1.06;font-weight:800;color:#16181d;margin:6mm 0 0;letter-spacing:-0.01em;padding-right:34mm;}
+.cover-tagline{font-family:var(--serif);font-style:italic;font-size:18pt;color:var(--soft);margin:7mm 0 0;max-width:150mm;line-height:1.4;}
+.cover-chip{margin-top:14mm;align-self:flex-start;font-family:var(--mono);font-size:9.5pt;color:var(--soft);background:#fff;border:1px solid var(--line);padding:6px 12px;border-radius:6px;}
+.cover-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);padding-top:5mm;font-size:9pt;color:var(--muted);}
+.cover-foot .ep{font-family:var(--mono);font-weight:700;color:var(--rust);letter-spacing:0.1em;}
+.cover-foot-r{font-family:var(--mono);font-size:8.5pt;color:var(--muted);}
+.cover-num{position:absolute;top:13mm;right:0;font-family:var(--mono);font-weight:800;font-size:54pt;color:#dadbe0;}
+
+.divider-head{display:flex;align-items:center;gap:14px;margin-bottom:4mm;}
+.divider .kicker{font-family:var(--mono);font-size:9pt;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);}
+.divider-title{font-size:30pt;font-weight:800;color:#16181d;margin:0;letter-spacing:-0.01em;}
+.divider-intro{margin-top:5mm;} .divider-intro p{font-size:11.5pt;}
+
+.ap-title{font-size:26pt;font-weight:800;color:#16181d;margin:0 0 2mm;}
+.ap-sub{font-size:11pt;color:var(--soft);max-width:150mm;margin:0 0 5mm;}
+.ck-table{width:100%;border-collapse:collapse;font-size:10pt;}
+.ck-table th{text-align:left;background:#f3f3f4;color:var(--ink);font-family:var(--mono);font-size:8pt;text-transform:uppercase;letter-spacing:0.03em;padding:2.6mm 3mm;border:1px solid var(--line);}
+.ck-scene{font-weight:700;color:#16181d;width:40%;}
+.ck-table td{padding:2.6mm 3mm;border:1px solid var(--line);color:var(--soft);vertical-align:top;overflow-wrap:break-word;}
+.ap-foot{margin-top:7mm;font-size:10pt;background:#f7f7f6;border:1px solid var(--line);border-radius:8px;padding:4mm 5mm;line-height:1.7;}
+
+/* "Save as PDF" button: screen only */
+.save-pdf{position:fixed;right:18px;bottom:18px;z-index:50;font-family:var(--sans);font-size:13px;font-weight:700;color:#fff;background:var(--rust);border:none;border-radius:8px;padding:11px 16px;box-shadow:0 3px 12px rgba(0,0,0,0.25);cursor:pointer;}
+.save-pdf:hover{background:#b0461f;}
+/* running header/footer: print only (repeat on every printed page) */
+.print-running{display:none;}
+
+@page{size:A4;margin:16mm 14mm 14mm;}
+@media print{
+  html,body{background:#fff;}
+  .doc{max-width:none;margin:0;padding:0;background:#fff;box-shadow:none;}
+  .save-pdf{display:none !important;}
+  .print-running{display:flex;position:fixed;left:0;right:0;align-items:center;justify-content:space-between;font-size:8pt;color:var(--soft);font-family:var(--mono);}
+  .print-running.top{top:6mm;} .print-running.bot{bottom:6mm;}
+  .print-running .brand{display:flex;align-items:center;gap:6px;font-family:var(--sans);font-weight:700;color:var(--ink);}
+  .print-running .xh{display:flex;align-items:center;gap:5px;}
+  .print-running .muted{color:var(--muted);}
+}
+
+/* frosted-glass zoom panel: screen only, hidden in print */
+.zoom-panel{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:60;display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:16px;background:rgba(255,255,255,0.55);-webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blur(14px) saturate(1.3);border:1px solid rgba(255,255,255,0.7);box-shadow:0 10px 30px rgba(28,30,34,0.18),inset 0 1px 0 rgba(255,255,255,0.65);font-family:var(--sans);}
+.zoom-panel button{width:40px;height:40px;border:none;cursor:pointer;border-radius:11px;background:rgba(255,255,255,0.5);color:var(--ink);font-size:19px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;transition:background .15s,transform .1s;}
+.zoom-panel button:hover{background:rgba(255,255,255,0.95);}
+.zoom-panel button:active{transform:scale(0.93);}
+.zoom-level{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--soft);text-align:center;padding:3px 0;cursor:pointer;user-select:none;letter-spacing:0.02em;border-radius:8px;}
+.zoom-level:hover{color:var(--rust);background:rgba(255,255,255,0.5);}
+.zoom-mbar-bg{display:none;}
+/* phones: sticky bottom toolbar holding zoom (left) + Save as PDF (right) */
+@media (max-width:640px){.zoom-mbar-bg{display:block;position:fixed;left:0;right:0;bottom:0;height:58px;background:rgba(255,255,255,0.55);-webkit-backdrop-filter:blur(16px) saturate(1.4);backdrop-filter:blur(16px) saturate(1.4);border-top:1px solid rgba(255,255,255,0.7);box-shadow:0 -8px 30px rgba(28,30,34,0.12);z-index:59;}.zoom-panel{left:14px;right:auto;top:auto;bottom:10px;transform:none;flex-direction:row-reverse;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;border:none;box-shadow:none;padding:0;}.zoom-panel button{width:38px;height:38px;background:rgba(0,0,0,0.05);color:var(--ink);}.zoom-panel button:hover{background:rgba(0,0,0,0.1);}.zoom-level{color:var(--soft);}.zoom-level:hover{color:var(--rust);background:transparent;}.save-pdf{right:14px !important;bottom:10px !important;z-index:60 !important;}body{padding-bottom:70px;}}
+@media print{.zoom-panel{display:none !important;}.doc{zoom:1 !important;width:auto !important;}}
+
+/* notes-mobile-css: screen-only mobile reflow, print styles left untouched */
+@media screen and (max-width: 640px) {
+  html, body { background: #fff; }
+  .doc { max-width: 100%; margin: 0; padding: 22px 16px; box-shadow: none; }
+  .cover { min-height: auto; padding: 6px 0 22px; }
+  .cover-title { font-size: 30pt; padding-right: 0; }
+  .cover-tagline { font-size: 15pt; }
+  .cover-num { font-size: 38pt; top: 6px; }
+  .divider-title { font-size: 24pt; }
+  .body h3 { font-size: 17pt; }
+  .body p, .body li { font-size: 12pt; }
+  .body pre { font-size: 8.5pt; padding: 3mm 3.5mm; }
+  .ap-title { font-size: 22pt; }
+}
+</style>
+<link rel="icon" type="image/png" href="/icon" />
+</head>
+<body>
+<div class="print-running top"><span class="brand"><svg viewBox="0 0 28 20" width="18" height="13" aria-hidden="true"><rect width="28" height="20" rx="5" fill="#FF0033"/><path d="M11 6l7 4-7 4z" fill="#fff"/></svg>MeowyTheDev</span><span class="muted">RUST FROM ZERO · EP.02</span></div>
+<div class="print-running bot"><span class="xh"><svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="#2b1d12" d="M18.9 2H22l-7.6 8.7L23.3 22h-6.9l-5.4-7-6.2 7H1.7l8.1-9.3L1 2h7l4.9 6.5z"/></svg>@me256ow</span><span class="muted">companion guide</span></div>
+<main class="doc">
+<section class="cover">
+      <div class="cover-eyebrow">MeowyTheDev <span class="dot">·</span> Rust from Zero</div>
+      <h1 class="cover-title">Ownership and the <span class="accent">Borrow</span> Checker</h1>
+      <p class="cover-tagline">every value has one owner. that one idea is the whole language.</p>
+      <div class="cover-chip">The Rust Programming Language <span class="dot">·</span> Chapter 4</div>
+      <div class="cover-foot"><span class="ep">EP.02</span><span class="cover-foot-r">companion guide · watch on the Rust from Zero playlist</span></div>
+      <div class="cover-num">02</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §4.1 What is Ownership</span></div><div class="body"><h3>Why ownership?</h3>
+<img class="slide" src="img/SceneOwnershipHook.webp" alt="" /><p>If you&#39;ve heard anything about Rust, you&#39;ve heard about ownership. It&#39;s the one idea the whole language is built on, and the part that scares people off. Good news: it&#39;s a handful of rules, and once they click, the rest of Rust follows.</p>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §4.1 What is Ownership</span></div><div class="body"><h3>What is ownership?</h3>
+<img class="slide" src="img/SceneWhatIsOwnership.webp" alt="" /><p>Ownership is just how Rust manages memory. Every value has a clear owner, and the compiler checks the rules while you write the code, not while it runs.</p>
+<p>Most languages pick one of two strategies. Rust picks a third:</p>
+<table>
+<thead>
+<tr>
+<th>Strategy</th>
+<th>The trade</th>
+<th>Examples</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Garbage collection</td>
+<td>easy and safe, but slower and less control</td>
+<td>Java, Python, JS</td>
+</tr>
+<tr>
+<td>Manual memory</td>
+<td>fast with full control, but error-prone</td>
+<td>C, C++</td>
+</tr>
+<tr>
+<td><strong>Ownership</strong></td>
+<td>fast, safe, full control. costs a learning curve</td>
+<td>Rust</td>
+</tr>
+</tbody></table>
+<p>You get the speed of manual memory with the safety of a garbage collector. The price is the learning curve you&#39;re paying right now.</p>
+<blockquote>
+<p><strong>Remember:</strong> ownership = the speed of manual, the safety of GC. the learning curve is the trade.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-rust">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Where data lives</h2><span class="book-chip">Book · §4.1</span></div>
+      <img class="slide" src="img/SceneChapter01.webp" alt="Where data lives chapter divider" />
+      <div class="body divider-intro"><p>Stack, heap, and the bridge between them. Which home your data lives in decides almost everything about ownership.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §4.1 What is Ownership</span></div><div class="body"><h3>Stack vs heap</h3>
+<img class="slide" src="img/SceneStackVsHeap.webp" alt="" /><p>Your program keeps memory in two places, and they behave very differently.</p>
+<ul>
+<li><strong>The stack</strong> is a stack of plates. You push values on top and pop them off the top, last in first out. It holds small things whose size is known when you write the code: numbers, booleans, simple structs. Fast, because the position is fixed.</li>
+<li><strong>The heap</strong> is the messy room. The allocator finds free space and hands back a pointer. The pointer sits on the stack, the data sits on the heap. It holds things that can grow while the program runs: text, lists, anything whose size you don&#39;t know up front.</li>
+</ul>
+<p>The part that matters for ownership:</p>
+<ul>
+<li>Stack data is cleaned up automatically when its scope ends.</li>
+<li>Heap data needs an owner to clean it up. That is the entire reason ownership exists.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> small + known size? stack. big or growing? heap.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-teal">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">The three rules</h2><span class="book-chip">Book · §4.1</span></div>
+      <img class="slide" src="img/SceneChapter02.webp" alt="The three rules chapter divider" />
+      <div class="body divider-intro"><p>Every value has one owner. That&#39;s the whole game. Three short rules, and everything else in Rust is the compiler enforcing them.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §4.1 What is Ownership</span></div><div class="body"><h3>The three rules</h3>
+<img class="slide" src="img/SceneThreeRules.webp" alt="" /><p>If you remember nothing else from this episode, remember these. They&#39;re what the compiler actually checks.</p>
+<ol>
+<li><strong>Every value has one owner.</strong> An owner is just the variable that holds the value.</li>
+<li><strong>Only one owner at a time.</strong> A value can move from one variable to another, and ownership moves with it. Never two owners at once.</li>
+<li><strong>When the owner goes out of scope, the value is dropped.</strong> &quot;Dropped&quot; means Rust runs the cleanup and frees any heap memory, automatically. No garbage collector, no manual <code>free</code>.</li>
+</ol>
+<p>You&#39;ve already seen all three. The stack-versus-heap cleanup was rule three working quietly. Now the rules have names.</p>
+<blockquote>
+<p><strong>Remember:</strong> one owner. always. dropped when it goes out of scope.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-rustDk">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Move, copy, hand off</h2><span class="book-chip">Book · §4.1</span></div>
+      <img class="slide" src="img/SceneChapter03.webp" alt="Move, copy, hand off chapter divider" />
+      <div class="body divider-intro"><p>What happens to the data when you reassign it, or pass it to a function. Sometimes it moves. Sometimes it copies.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §4.1 What is Ownership</span></div><div class="body"><h3>It moved</h3>
+<img class="slide" src="img/SceneMoveSemantics.webp" alt="" /><p>A <code>String</code> lives on the heap: the letters on the heap, a pointer to them on the stack. Watch what happens when you assign it to another variable.</p>
+<pre><code class="language-rust">let cat_name = String::from(&quot;Meowy&quot;);
+let tag = cat_name; // move!
+
+println!(&quot;{cat_name}&quot;); // cat_name is gone
+println!(&quot;{tag}&quot;);      // tag owns it now
+</code></pre>
+<ul>
+<li>In most languages, <code>let tag = cat_name</code> would copy. In Rust it&#39;s a <strong>move</strong>: ownership transfers from <code>cat_name</code> to <code>tag</code>.</li>
+<li>The heap data isn&#39;t copied, only the pointer on the stack moves over.</li>
+<li>Use <code>cat_name</code> after the move and the compiler stops you, at compile time, before the program runs. <code>tag</code> works, it&#39;s the new owner.</li>
+</ul>
+<p>Moves rule out two classic bugs for free: <strong>double-free</strong> (freeing the same memory twice) and <strong>use-after-free</strong> (reading memory after it&#39;s freed). One owner at a time, so neither can happen.</p>
+<blockquote>
+<p><strong>Remember:</strong> ownership transfers. the old name is gone.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §4.1 What is Ownership</span></div><div class="body"><h3>Two escape hatches</h3>
+<img class="slide" src="img/SceneCloneVsCopy.webp" alt="" /><p>The move broke <code>cat_name</code>. What if you need both? Two ways out, depending on where the data lives.</p>
+<p><strong>Clone</strong> makes a deep copy of the heap data. You call it by hand, so the cost is visible:</p>
+<pre><code class="language-rust">let cat_name = String::from(&quot;Meowy&quot;);
+let tag = cat_name.clone();
+
+println!(&quot;{cat_name}&quot;); // still works
+println!(&quot;{tag}&quot;);      // its own copy
+</code></pre>
+<p><strong>Copy</strong> is for stack-only data. Small fixed-size values are cheap to duplicate, so Rust just copies the bits, no <code>.clone()</code> needed:</p>
+<pre><code class="language-rust">let lives = 9;
+let spare = lives;
+
+println!(&quot;{lives}&quot;); // works
+println!(&quot;{spare}&quot;); // works
+</code></pre>
+<p>The <code>Copy</code> types are anything purely on the stack: all integer and float types, <code>bool</code>, <code>char</code>, and tuples where every piece is also <code>Copy</code>.</p>
+<blockquote>
+<p><strong>Remember:</strong> stack types copy. heap types move, or <code>.clone()</code> on purpose.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §4.1 What is Ownership</span></div><div class="body"><h3>Across the function boundary</h3>
+<img class="slide" src="img/SceneOwnershipFunctions.webp" alt="" /><p>Moves aren&#39;t just about <code>let</code>. They happen when you pass a value to a function too.</p>
+<pre><code class="language-rust">fn say_hello(name: String) -&gt; String {
+    println!(&quot;hi, {name}!&quot;);
+    name
+}
+
+let kitten = String::from(&quot;Whiskers&quot;);
+let back_again = say_hello(kitten); // back_again owns it
+</code></pre>
+<ul>
+<li>Calling <code>say_hello(kitten)</code> <strong>moves</strong> <code>kitten</code> into the function&#39;s <code>name</code> parameter. Same mechanic as before.</li>
+<li>Use <code>kitten</code> after the call? Compile error.</li>
+<li>But the function <strong>returns</strong> the <code>String</code>, so ownership transfers back out. <code>back_again</code> is the new owner.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> pass in, the caller loses it. return it, the caller gets it back.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-rust">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Borrow, don't take</h2><span class="book-chip">Book · §4.2</span></div>
+      <img class="slide" src="img/SceneChapter04.webp" alt="Borrow, don't take chapter divider" />
+      <div class="body divider-intro"><p>Use a value without taking ownership of it. That&#39;s what references are for.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §4.2 References and Borrowing</span></div><div class="body"><h3>Borrow, don&#39;t take</h3>
+<img class="slide" src="img/SceneReferences.webp" alt="" /><p>Sometimes a function needs to read or change a value, but you want to keep ownership in the caller. Moving would lose it. Cloning would be wasteful. Pass a <strong>reference</strong> instead.</p>
+<p>A shared reference (<code>&amp;</code>) is read-only:</p>
+<pre><code class="language-rust">fn count_letters(name: &amp;String) -&gt; usize {
+    name.len()
+}
+
+let cat_name = String::from(&quot;Meowy&quot;);
+let n = count_letters(&amp;cat_name); // cat_name still owned by the caller
+</code></pre>
+<p>A mutable reference (<code>&amp;mut</code>) can change the value:</p>
+<pre><code class="language-rust">fn add_excitement(name: &amp;mut String) {
+    name.push_str(&quot;!&quot;);
+}
+
+let mut cat_name = String::from(&quot;Meowy&quot;);
+add_excitement(&amp;mut cat_name); // now &quot;Meowy!&quot;
+</code></pre>
+<ul>
+<li><strong><code>&amp;</code> shared:</strong> read-only. Many readers can share the same value at once, because none of them changes it.</li>
+<li><strong><code>&amp;mut</code> mutable:</strong> read and write, but only one at a time. No sharing.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> <code>&amp;</code> to read, <code>&amp;mut</code> to change. the caller still owns it.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §4.2 References and Borrowing</span></div><div class="body"><h3>The two borrow rules</h3>
+<img class="slide" src="img/SceneBorrowRules.webp" alt="" /><p>The borrow checker enforces reference safety with just two rules. Learn these and most borrow errors start to make sense.</p>
+<p><strong>Rule 1: one <code>&amp;mut</code>, or many <code>&amp;</code>. Never both.</strong></p>
+<pre><code class="language-rust">&amp;x, &amp;x, &amp;x       // ok: many readers
+&amp;mut x           // ok: one writer
+&amp;x + &amp;mut x      // no
+&amp;mut x + &amp;mut x  // no
+</code></pre>
+<p>This stops two writers clashing, or a reader seeing a half-finished change.</p>
+<p><strong>Rule 2: references must always be valid.</strong> A reference to something that&#39;s gone is a dangling reference, and Rust won&#39;t let you make one:</p>
+<pre><code class="language-rust">let saved;
+{
+    let cat_age = 9;
+    saved = &amp;cat_age;
+}  // cat_age dies here
+println!(&quot;{saved}&quot;);  // won&#39;t compile
+</code></pre>
+<blockquote>
+<p><strong>Remember:</strong> learn these two and 90% of borrow errors make sense.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-teal">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Slicing into data</h2><span class="book-chip">Book · §4.3</span></div>
+      <img class="slide" src="img/SceneChapter05.webp" alt="Slicing into data chapter divider" />
+      <div class="body divider-intro"><p>Look at part of a thing without taking it. Slices are references with bounds.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §4.3 The Slice Type</span></div><div class="body"><h3>A slice of the whole</h3>
+<img class="slide" src="img/SceneSlices.webp" alt="" /><p>Sometimes you only want part of a value, not the whole thing. That&#39;s a slice: a reference to a range.</p>
+<pre><code class="language-rust">let cat_name = String::from(&quot;Meowy Whiskers&quot;);
+let first = &amp;cat_name[0..5];   // &quot;Meowy&quot;
+let last = &amp;cat_name[6..14];   // &quot;Whiskers&quot;
+
+let pets = [&quot;Meowy&quot;, &quot;Whiskers&quot;, &quot;Bagel&quot;];
+let two = &amp;pets[0..2];         // [&quot;Meowy&quot;, &quot;Whiskers&quot;]
+</code></pre>
+<ul>
+<li>A slice is a <strong>reference</strong>, not a copy. Two indices: where it starts, where it ends.</li>
+<li>The same <code>&amp;x[start..end]</code> syntax works on arrays too.</li>
+<li>Slices follow the borrow rules: because they point into the original, the original can&#39;t disappear while the slice is alive.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> a slice = <code>&amp;</code> plus bounds. a window into the data.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §4.3 The Slice Type</span></div><div class="body"><h3>Pick the right string type</h3>
+<img class="slide" src="img/SceneStringVsStr.webp" alt="" /><p>What type should a function take for a string parameter? Quick refresher: <code>String</code> is the owned, growable, heap type. <code>&amp;str</code> is a reference to string data (a slice).</p>
+<p>Take <code>&amp;str</code> and you accept both:</p>
+<pre><code class="language-rust">fn flexible(name: &amp;str) {
+    println!(&quot;meet {name}!&quot;);
+}
+
+let owned = String::from(&quot;Meowy&quot;);
+flexible(&amp;owned);     // a String reference works
+flexible(&quot;Whiskers&quot;); // a &amp;str literal works directly
+</code></pre>
+<p>Take <code>&amp;String</code> and you lock yourself in:</p>
+<pre><code class="language-rust">fn strict(name: &amp;String) {
+    println!(&quot;meet {name}!&quot;);
+}
+
+strict(&amp;owned);     // ok
+strict(&quot;Whiskers&quot;); // won&#39;t compile: a literal isn&#39;t an owned String
+</code></pre>
+<p>Need an owned <code>String</code> later? Convert with <code>String::from</code>, <code>.to_string()</code>, or <code>.to_owned()</code>. All three do the same thing.</p>
+<blockquote>
+<p><strong>Remember:</strong> take <code>&amp;str</code> to read. take <code>String</code> only when you need to own it.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-rustDk">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Intro to lifetimes</h2><span class="book-chip">Book · §10.3 (preview)</span></div>
+      <img class="slide" src="img/SceneChapter06.webp" alt="Intro to lifetimes chapter divider" />
+      <div class="body divider-intro"><p>Just the basics here. The full deep dive is episode 06. For now: a lifetime is how long a reference is allowed to stick around.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · lifetime preview (full in §10.3)</span></div><div class="body"><h3>What&#39;s a lifetime?</h3>
+<img class="slide" src="img/SceneLifetimesTeaser.webp" alt="" /><p>Remember rule two, references must always be valid? That rule has a name: a <strong>lifetime</strong>. Every reference has one, and it&#39;s the span of code where the reference is allowed to exist.</p>
+<pre><code class="language-rust">{
+    let cat_name = String::from(&quot;Meowy&quot;);
+    let label = &amp;cat_name;
+}
+</code></pre>
+<ul>
+<li><code>cat_name</code> is born, <code>label</code> borrows it, and both go out of scope at the closing brace.</li>
+<li><code>label</code> can&#39;t live past <code>cat_name</code>. Same idea as the dangling reference from the borrow checker, now it has a name.</li>
+</ul>
+<p>Sometimes Rust can&#39;t work the relationship out on its own, so you label it:</p>
+<pre><code class="language-rust">fn pick&lt;&#39;a&gt;(name: &amp;&#39;a str) -&gt; &amp;&#39;a str
+</code></pre>
+<p><code>&#39;a</code> is just a name. Here it says the input and the output share the same lifetime. Most of the time Rust figures this out for you. Episode 06 covers writing them by hand.</p>
+<blockquote>
+<p><strong>Remember:</strong> a lifetime = how long a reference is allowed to live.</p>
+</blockquote>
+</div></section>
+<section class="scene quote"><img class="slide" src="img/ScenePullQuote.webp" alt="Pull quote" /><div class="body"><p>The whole episode in three words:</p>
+<blockquote>
+<p>One owner. Always. Everything else in Rust follows from this.</p>
+</blockquote>
+</div></section>
+<section class="appendix">
+      <h2 class="ap-title">Cheatsheet <span class="accent">recap</span></h2>
+      <p class="ap-sub">One line per idea, in order. Skim this when you just need the reminder.</p>
+      <table class="ck-table"><thead><tr><th>Idea</th><th>Remember</th></tr></thead><tbody><tr><td class="ck-scene">What is ownership?</td><td class="ck-text">ownership = the speed of manual, the safety of GC. the learning curve is the trade.</td></tr>
+<tr><td class="ck-scene">Stack vs heap</td><td class="ck-text">small + known size? stack. big or growing? heap.</td></tr>
+<tr><td class="ck-scene">The three rules</td><td class="ck-text">one owner. always. dropped when it goes out of scope.</td></tr>
+<tr><td class="ck-scene">It moved</td><td class="ck-text">ownership transfers. the old name is gone.</td></tr>
+<tr><td class="ck-scene">Two escape hatches</td><td class="ck-text">stack types copy. heap types move, or <code>.clone()</code> on purpose.</td></tr>
+<tr><td class="ck-scene">Across the function boundary</td><td class="ck-text">pass in, the caller loses it. return it, the caller gets it back.</td></tr>
+<tr><td class="ck-scene">Borrow, don't take</td><td class="ck-text"><code>&amp;</code> to read, <code>&amp;mut</code> to change. the caller still owns it.</td></tr>
+<tr><td class="ck-scene">The two borrow rules</td><td class="ck-text">learn these two and 90% of borrow errors make sense.</td></tr>
+<tr><td class="ck-scene">A slice of the whole</td><td class="ck-text">a slice = <code>&amp;</code> plus bounds. a window into the data.</td></tr>
+<tr><td class="ck-scene">Pick the right string type</td><td class="ck-text">take <code>&amp;str</code> to read. take <code>String</code> only when you need to own it.</td></tr>
+<tr><td class="ck-scene">What's a lifetime?</td><td class="ck-text">a lifetime = how long a reference is allowed to live.</td></tr></tbody></table>
+      <div class="ap-foot"><strong>Maps to:</strong> The Rust Programming Language, Chapter 4.<br/><strong>Practice:</strong> Rustlings <code>06_move_semantics</code>, <code>04_primitive_types</code>.</div>
+    </section>
+</main>
+<button class="save-pdf" onclick="window.print()">Save as PDF</button>
+
+<div class="zoom-mbar-bg" aria-hidden="true"></div>
+<div class="zoom-panel" data-zoom-panel aria-label="Zoom controls">
+  <button type="button" class="zoom-in" aria-label="Zoom in" title="Zoom in">+</button>
+  <div class="zoom-level" role="button" tabindex="0" title="Reset zoom" aria-label="Reset zoom">100%</div>
+  <button type="button" class="zoom-out" aria-label="Zoom out" title="Zoom out">−</button>
+</div>
+<script>
+(function(){
+  var doc=document.querySelector('.doc');
+  var panel=document.querySelector('[data-zoom-panel]');
+  if(!doc||!panel)return;
+  var label=panel.querySelector('.zoom-level');
+  var KEY='rfz_notes_zoom',MIN=0.5,MAX=2,STEP=0.1,z=1;
+  try{var s=parseFloat(localStorage.getItem(KEY));if(s>=MIN&&s<=MAX)z=s;}catch(e){}
+  function clamp(v){return Math.min(MAX,Math.max(MIN,Math.round(v*100)/100));}
+  function isMobile(){return window.matchMedia&&window.matchMedia('(max-width:640px)').matches;}
+  function apply(){var m=isMobile()&&z!==1;doc.style.zoom=z;doc.style.width=m?('calc(100% / '+z+')'):'';doc.style.maxWidth=m?'none':'';label.textContent=Math.round(z*100)+'%';try{localStorage.setItem(KEY,String(z));}catch(e){}}
+  panel.querySelector('.zoom-in').addEventListener('click',function(){z=clamp(z+STEP);apply();});
+  panel.querySelector('.zoom-out').addEventListener('click',function(){z=clamp(z-STEP);apply();});
+  function reset(){z=1;apply();}
+  label.addEventListener('click',reset);
+  label.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();reset();}});
+  window.addEventListener('resize',apply);
+  apply();
+})();
+</script>
+</body>
+</html>

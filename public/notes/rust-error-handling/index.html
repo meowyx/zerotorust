@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Errors Are Values · MeowyTheDev companion guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@1&family=Caveat:wght@500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink:#1c1e22; --soft:#43474e; --muted:#888d96; --line:#e3e4e8;
+  --rust:#c8542a; --code-bg:#f5f5f4; --code-fg:#24292e;
+  --sans:"Bricolage Grotesque",system-ui,-apple-system,sans-serif;
+  --serif:"Instrument Serif",Georgia,serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:#e9e9ec;color:var(--ink);font-family:var(--sans);}
+.accent{font-family:var(--serif);font-style:italic;color:var(--rust);font-weight:400;}
+.doc{max-width:182mm;margin:8mm auto;padding:16mm;background:#fff;box-shadow:0 4px 24px rgba(0,0,0,0.18);}
+
+.cover{position:relative;min-height:240mm;display:flex;flex-direction:column;justify-content:center;break-after:page;}
+.divider{break-before:page;padding-top:6mm;}
+.appendix{break-before:page;padding-top:4mm;}
+.scene{margin:0 0 9mm;}
+.scene.quote{break-before:page;padding-top:8mm;}
+.slide,.body pre,.body table,.body blockquote{break-inside:avoid;}
+.body h3{break-after:avoid;}
+
+.book-chip{display:inline-block;font-family:var(--mono);font-size:8pt;letter-spacing:0.02em;color:var(--soft);background:#fff;border:1px solid var(--line);padding:3px 9px;border-radius:5px;white-space:nowrap;}
+.scene-chip{margin-bottom:3mm;}
+.slide{display:block;width:100%;max-width:100%;border-radius:8px;border:1px solid var(--line);}
+
+.body h3{font-size:19pt;font-weight:700;color:#16181d;margin:0 0 3mm;line-height:1.15;letter-spacing:-0.01em;}
+.body p{font-size:11pt;line-height:1.62;color:var(--soft);margin:0 0 3mm;}
+.body p strong,.body li strong{color:var(--ink);font-weight:700;}
+.body em{font-family:var(--serif);font-style:italic;color:var(--ink);}
+.body ul,.body ol{margin:3mm 0;padding-left:6mm;}
+.body li{margin:0 0 2mm;line-height:1.55;font-size:11pt;color:var(--soft);}
+.body code{font-family:var(--mono);font-size:0.86em;background:var(--code-bg);padding:0.08em 0.32em;border-radius:4px;color:#9a3a18;}
+.body pre{background:var(--code-bg);color:var(--code-fg);border:1px solid var(--line);border-radius:8px;padding:4mm 5mm;white-space:pre-wrap;overflow-wrap:break-word;font-family:var(--mono);font-size:9.5pt;line-height:1.5;margin:4mm 0;}
+.body pre code{background:none;padding:0;color:inherit;font-size:inherit;}
+.body table{width:100%;border-collapse:collapse;margin:4mm 0;font-size:10pt;}
+.body th{text-align:left;background:#f3f3f4;color:var(--ink);font-family:var(--mono);font-size:8pt;text-transform:uppercase;letter-spacing:0.02em;padding:2.4mm 3mm;border:1px solid var(--line);}
+.body td{padding:2.4mm 3mm;border:1px solid var(--line);vertical-align:top;color:var(--soft);overflow-wrap:break-word;}
+.body blockquote{margin:5mm 0 0;background:#f7f7f6;border-left:3px solid var(--rust);border-radius:0 6px 6px 0;padding:3.5mm 5mm;font-size:11pt;color:var(--ink);}
+.body blockquote p{margin:0;color:var(--ink);} .body blockquote strong{color:#16181d;}
+
+.cover-eyebrow{font-family:var(--mono);font-size:9.5pt;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);}
+.cover-title{font-size:40pt;line-height:1.06;font-weight:800;color:#16181d;margin:6mm 0 0;letter-spacing:-0.01em;padding-right:34mm;}
+.cover-tagline{font-family:var(--serif);font-style:italic;font-size:18pt;color:var(--soft);margin:7mm 0 0;max-width:150mm;line-height:1.4;}
+.cover-chip{margin-top:14mm;align-self:flex-start;font-family:var(--mono);font-size:9.5pt;color:var(--soft);background:#fff;border:1px solid var(--line);padding:6px 12px;border-radius:6px;}
+.cover-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);padding-top:5mm;font-size:9pt;color:var(--muted);}
+.cover-foot .ep{font-family:var(--mono);font-weight:700;color:var(--rust);letter-spacing:0.1em;}
+.cover-foot-r{font-family:var(--mono);font-size:8.5pt;color:var(--muted);}
+.cover-num{position:absolute;top:13mm;right:0;font-family:var(--mono);font-weight:800;font-size:54pt;color:#dadbe0;}
+
+.divider-head{display:flex;align-items:center;gap:14px;margin-bottom:4mm;}
+.divider .kicker{font-family:var(--mono);font-size:9pt;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);}
+.divider-title{font-size:30pt;font-weight:800;color:#16181d;margin:0;letter-spacing:-0.01em;}
+.divider-intro{margin-top:5mm;} .divider-intro p{font-size:11.5pt;}
+
+.ap-title{font-size:26pt;font-weight:800;color:#16181d;margin:0 0 2mm;}
+.ap-sub{font-size:11pt;color:var(--soft);max-width:150mm;margin:0 0 5mm;}
+.ck-table{width:100%;border-collapse:collapse;font-size:10pt;}
+.ck-table th{text-align:left;background:#f3f3f4;color:var(--ink);font-family:var(--mono);font-size:8pt;text-transform:uppercase;letter-spacing:0.03em;padding:2.6mm 3mm;border:1px solid var(--line);}
+.ck-scene{font-weight:700;color:#16181d;width:40%;}
+.ck-table td{padding:2.6mm 3mm;border:1px solid var(--line);color:var(--soft);vertical-align:top;overflow-wrap:break-word;}
+.ap-foot{margin-top:7mm;font-size:10pt;background:#f7f7f6;border:1px solid var(--line);border-radius:8px;padding:4mm 5mm;line-height:1.7;}
+
+/* "Save as PDF" button: screen only */
+.save-pdf{position:fixed;right:18px;bottom:18px;z-index:50;font-family:var(--sans);font-size:13px;font-weight:700;color:#fff;background:var(--rust);border:none;border-radius:8px;padding:11px 16px;box-shadow:0 3px 12px rgba(0,0,0,0.25);cursor:pointer;}
+.save-pdf:hover{background:#b0461f;}
+/* running header/footer: print only (repeat on every printed page) */
+.print-running{display:none;}
+
+@page{size:A4;margin:16mm 14mm 14mm;}
+@media print{
+  html,body{background:#fff;}
+  .doc{max-width:none;margin:0;padding:0;background:#fff;box-shadow:none;}
+  .save-pdf{display:none !important;}
+  .print-running{display:flex;position:fixed;left:0;right:0;align-items:center;justify-content:space-between;font-size:8pt;color:var(--soft);font-family:var(--mono);}
+  .print-running.top{top:6mm;} .print-running.bot{bottom:6mm;}
+  .print-running .brand{display:flex;align-items:center;gap:6px;font-family:var(--sans);font-weight:700;color:var(--ink);}
+  .print-running .xh{display:flex;align-items:center;gap:5px;}
+  .print-running .muted{color:var(--muted);}
+}
+
+/* frosted-glass zoom panel: screen only, hidden in print */
+.zoom-panel{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:60;display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:16px;background:rgba(255,255,255,0.55);-webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blur(14px) saturate(1.3);border:1px solid rgba(255,255,255,0.7);box-shadow:0 10px 30px rgba(28,30,34,0.18),inset 0 1px 0 rgba(255,255,255,0.65);font-family:var(--sans);}
+.zoom-panel button{width:40px;height:40px;border:none;cursor:pointer;border-radius:11px;background:rgba(255,255,255,0.5);color:var(--ink);font-size:19px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;transition:background .15s,transform .1s;}
+.zoom-panel button:hover{background:rgba(255,255,255,0.95);}
+.zoom-panel button:active{transform:scale(0.93);}
+.zoom-level{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--soft);text-align:center;padding:3px 0;cursor:pointer;user-select:none;letter-spacing:0.02em;border-radius:8px;}
+.zoom-level:hover{color:var(--rust);background:rgba(255,255,255,0.5);}
+.zoom-mbar-bg{display:none;}
+/* phones: sticky bottom toolbar holding zoom (left) + Save as PDF (right) */
+@media (max-width:640px){.zoom-mbar-bg{display:block;position:fixed;left:0;right:0;bottom:0;height:58px;background:rgba(255,255,255,0.55);-webkit-backdrop-filter:blur(16px) saturate(1.4);backdrop-filter:blur(16px) saturate(1.4);border-top:1px solid rgba(255,255,255,0.7);box-shadow:0 -8px 30px rgba(28,30,34,0.12);z-index:59;}.zoom-panel{left:14px;right:auto;top:auto;bottom:10px;transform:none;flex-direction:row-reverse;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;border:none;box-shadow:none;padding:0;}.zoom-panel button{width:38px;height:38px;background:rgba(0,0,0,0.05);color:var(--ink);}.zoom-panel button:hover{background:rgba(0,0,0,0.1);}.zoom-level{color:var(--soft);}.zoom-level:hover{color:var(--rust);background:transparent;}.save-pdf{right:14px !important;bottom:10px !important;z-index:60 !important;}body{padding-bottom:70px;}}
+@media print{.zoom-panel{display:none !important;}.doc{zoom:1 !important;width:auto !important;}}
+
+/* notes-mobile-css: screen-only mobile reflow, print styles left untouched */
+@media screen and (max-width: 640px) {
+  html, body { background: #fff; }
+  .doc { max-width: 100%; margin: 0; padding: 22px 16px; box-shadow: none; }
+  .cover { min-height: auto; padding: 6px 0 22px; }
+  .cover-title { font-size: 30pt; padding-right: 0; }
+  .cover-tagline { font-size: 15pt; }
+  .cover-num { font-size: 38pt; top: 6px; }
+  .divider-title { font-size: 24pt; }
+  .body h3 { font-size: 17pt; }
+  .body p, .body li { font-size: 12pt; }
+  .body pre { font-size: 8.5pt; padding: 3mm 3.5mm; }
+  .ap-title { font-size: 22pt; }
+}
+</style>
+<link rel="icon" type="image/png" href="/icon" />
+</head>
+<body>
+<div class="print-running top"><span class="brand"><svg viewBox="0 0 28 20" width="18" height="13" aria-hidden="true"><rect width="28" height="20" rx="5" fill="#FF0033"/><path d="M11 6l7 4-7 4z" fill="#fff"/></svg>MeowyTheDev</span><span class="muted">RUST FROM ZERO · EP.05</span></div>
+<div class="print-running bot"><span class="xh"><svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="#2b1d12" d="M18.9 2H22l-7.6 8.7L23.3 22h-6.9l-5.4-7-6.2 7H1.7l8.1-9.3L1 2h7l4.9 6.5z"/></svg>@me256ow</span><span class="muted">companion guide</span></div>
+<main class="doc">
+<section class="cover">
+      <div class="cover-eyebrow">MeowyTheDev <span class="dot">·</span> Rust from Zero</div>
+      <h1 class="cover-title">Errors Are <span class="accent">Values</span></h1>
+      <p class="cover-tagline">panic for bugs. Result for the world. errors are data you handle.</p>
+      <div class="cover-chip">The Rust Programming Language <span class="dot">·</span> Chapter 9</div>
+      <div class="cover-foot"><span class="ep">EP.05</span><span class="cover-foot-r">companion guide · watch on the Rust from Zero playlist</span></div>
+      <div class="cover-num">05</div>
+    </section>
+<section class="divider tone-rust">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">panic!</h2><span class="book-chip">Book · §9.1</span></div>
+      <img class="slide" src="img/SceneChapter01.webp" alt="panic! chapter divider" />
+      <div class="body divider-intro"><p>When failing loudly is the only honest move. A panic means your code is wrong.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §9.1 Unrecoverable Errors</span></div><div class="body"><h3>Two kinds of failure</h3>
+<img class="slide" src="img/ScenePanicVsResult.webp" alt="" /><p>Rust splits failure into two kinds, and which one you pick is the whole skill.</p>
+<ul>
+<li><strong><code>panic!</code> means the code is wrong.</strong> You indexed past the end, or unwrapped a <code>None</code>. The thread unwinds and the program stops. There&#39;s nothing to recover, the bug is yours to fix.</li>
+<li><strong><code>Result&lt;T, E&gt;</code> means something might fail for a reason you expected.</strong> A file might not open, text might not parse. That&#39;s not a bug, that&#39;s the world. Rust hands you the failure as a value and lets you decide.</li>
+</ul>
+<pre><code class="language-rust">panic!(&quot;index out of range&quot;)
+
+fn load_cat(p: &amp;Path) -&gt; Result&lt;Cat, LoadError&gt;
+// caller decides what to do
+</code></pre>
+<blockquote>
+<p><strong>Remember:</strong> if a user can hit it, it&#39;s Result. if it means the code is wrong, it&#39;s panic.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §9.1 Unrecoverable Errors</span></div><div class="body"><h3>What triggers a panic</h3>
+<img class="slide" src="img/ScenePanicFamily.webp" alt="" /><p>A handful of things fire a panic, and they&#39;re worth knowing on sight:</p>
+<pre><code class="language-rust">vec[99]         // index past the end
+opt.unwrap()    // unwrap on None
+a + b           // debug-mode overflow
+assert!(cond)   // invariant failed
+panic!()        // and todo!, unimplemented!, unreachable!
+</code></pre>
+<p>Every one of these means the code is wrong. There&#39;s nothing to catch, there&#39;s something to fix.</p>
+<blockquote>
+<p><strong>Remember:</strong> every one of these means a bug. fix the code.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §9.1 Unrecoverable Errors</span></div><div class="body"><h3>When a panic fires</h3>
+<img class="slide" src="img/ScenePanicUnwind.webp" alt="" /><p>A panic can wind the program down two ways:</p>
+<ul>
+<li><strong>Unwind (the default).</strong> Walk back up the stack, run every destructor, exit cleanly.</li>
+<li><strong>Abort (opt in).</strong> Stop immediately and let the OS reclaim the memory. It&#39;s a build setting, covered in the Cargo episode.</li>
+</ul>
+<p>When a panic prints, it points at the line and tells you to set a backtrace:</p>
+<pre><code class="language-text">src/main.rs:12:14
+index out of bounds: len 3, idx 9
+note: run with RUST_BACKTRACE=1 to see the stack
+</code></pre>
+<p>Do that, and you get the full chain of calls that led to the crash. Usually how you find the line that&#39;s actually wrong.</p>
+<blockquote>
+<p><strong>Remember:</strong> set <code>RUST_BACKTRACE=1</code> to see the line that crashed.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §9.3 To panic! or Not</span></div><div class="body"><h3>When a panic is right</h3>
+<img class="slide" src="img/SceneWhenToPanic.webp" alt="" /><p>A panic is the right call more often than you&#39;d think.</p>
+<table>
+<thead>
+<tr>
+<th>Panic is OK</th>
+<th>Return a Result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>you wrote a bug</td>
+<td>the world might fail</td>
+</tr>
+<tr>
+<td>prototypes, tests, broken invariants</td>
+<td>user input, files, network, parsing</td>
+</tr>
+<tr>
+<td>stop and fix the code</td>
+<td>give the caller a chance</td>
+</tr>
+</tbody></table>
+<p>Anywhere outside code you control, a user, a file, a network, return a <code>Result</code>.</p>
+<blockquote>
+<p><strong>Remember:</strong> panic on bugs. Result on expected failure.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §9.3 To panic! or Not</span></div><div class="body"><h3>The newtype trick</h3>
+<img class="slide" src="img/SceneNewtypeTrick.webp" alt="" /><p>Here&#39;s a place panics belong: enforcing your own rules. Wrap a value in a tiny type, and make the only way to build it go through a checked constructor:</p>
+<pre><code class="language-rust">pub struct Guess(i32);
+
+impl Guess {
+  pub fn new(n: i32) -&gt; Result&lt;Self, &amp;&#39;static str&gt; {
+    if !(1..=100).contains(&amp;n) {
+      return Err(&quot;out of range&quot;);
+    }
+    Ok(Guess(n))
+  }
+}
+</code></pre>
+<ul>
+<li>The only way to make a <code>Guess</code> is <code>new</code>, which returns a <code>Result</code>, so a bad value can&#39;t construct one.</li>
+<li>You check the rule once. Every function downstream that takes a <code>Guess</code> can trust it. No more range checks scattered around.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> check at the door. trust everywhere after.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-teal">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Result&lt;T, E&gt;</h2><span class="book-chip">Book · §9.2</span></div>
+      <img class="slide" src="img/SceneChapter02.webp" alt="Result&lt;T, E&gt; chapter divider" />
+      <div class="body divider-intro"><p>The type that carries failure as data. Two arms, both required.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §9.2 Recoverable Errors</span></div><div class="body"><h3>Reading a Result</h3>
+<img class="slide" src="img/SceneResultAnatomy.webp" alt="" /><p><code>Result</code> is an enum with two variants, and the compiler makes you handle both:</p>
+<pre><code class="language-rust">enum Result&lt;T, E&gt; { Ok(T), Err(E) }
+
+match load_cat(path) {
+    Ok(cat) =&gt; greet(&amp;cat),
+    Err(e) =&gt; log(e),
+}
+</code></pre>
+<ul>
+<li><strong><code>Ok(T)</code></strong> holds the value you wanted (here, a <code>Cat</code>). <strong><code>Err(E)</code></strong> holds the error (a <code>LoadError</code>).</li>
+<li>If you only handle the happy path, the code doesn&#39;t compile. The failure is right there in the type, impossible to ignore.</li>
+</ul>
+<p>You can look closer at an error too, matching on its <code>kind</code>:</p>
+<pre><code class="language-rust">match err.kind() {
+    ErrorKind::NotFound =&gt; ...,
+    ErrorKind::PermissionDenied =&gt; ...,
+    _ =&gt; ...,
+}
+</code></pre>
+<blockquote>
+<p><strong>Remember:</strong> two arms, both required. the compiler checks you handled both.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §9.2 Recoverable Errors</span></div><div class="body"><h3>Handle it without match</h3>
+<img class="slide" src="img/SceneResultCombinators.webp" alt="" /><p>Matching every time gets noisy. <code>Result</code> comes with shortcuts:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>.map(f)</code></td>
+<td>transform <code>Ok</code>, leave <code>Err</code></td>
+</tr>
+<tr>
+<td><code>.map_err(f)</code></td>
+<td>transform <code>Err</code>, leave <code>Ok</code></td>
+</tr>
+<tr>
+<td><code>.and_then(f)</code></td>
+<td>chain another step that can fail</td>
+</tr>
+<tr>
+<td><code>.unwrap_or(v)</code></td>
+<td>a value if it&#39;s <code>Err</code></td>
+</tr>
+<tr>
+<td><code>.unwrap_or_else(f)</code></td>
+<td>default computed lazily</td>
+</tr>
+<tr>
+<td><code>.unwrap_or_default()</code></td>
+<td>the type&#39;s natural default</td>
+</tr>
+<tr>
+<td><code>.ok_or(e)</code></td>
+<td>turn an <code>Option</code> into a <code>Result</code></td>
+</tr>
+</tbody></table>
+<p>Reach for these when the logic is a one-liner. Reach for <code>match</code> when it isn&#39;t.</p>
+<blockquote>
+<p><strong>Remember:</strong> match when it&#39;s complex. combinators when it&#39;s a one-liner.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §9.2 Recoverable Errors</span></div><div class="body"><h3>Option vs Result</h3>
+<img class="slide" src="img/SceneOptionVsResult.webp" alt="" /><p>Both say &quot;this might not be a plain value.&quot; The difference is whether you care why.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><code>Option&lt;T&gt;</code></th>
+<th><code>Result&lt;T, E&gt;</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>variants</td>
+<td><code>Some</code> / <code>None</code></td>
+<td><code>Ok</code> / <code>Err</code></td>
+</tr>
+<tr>
+<td>models</td>
+<td>might be missing</td>
+<td>might fail</td>
+</tr>
+<tr>
+<td>the bad case</td>
+<td>says nothing</td>
+<td>carries a reason</td>
+</tr>
+</tbody></table>
+<p>You can move between them, and <code>?</code> works on both:</p>
+<pre><code class="language-rust">result.ok()        // Result -&gt; Option (drop the error)
+option.ok_or(e)    // Option -&gt; Result (supply an error)
+</code></pre>
+<blockquote>
+<p><strong>Remember:</strong> None says nothing. Err says why.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-rustDk">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">The ? operator</h2><span class="book-chip">Book · §9.2</span></div>
+      <img class="slide" src="img/SceneChapter03.webp" alt="The ? operator chapter divider" />
+      <div class="body divider-intro"><p>One character that does all the wiring.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §9.2 Recoverable Errors</span></div><div class="body"><h3>The ? operator</h3>
+<img class="slide" src="img/SceneQuestionMark.webp" alt="" /><p>Propagating errors by hand is exhausting: match, return, repeat on every call.</p>
+<pre><code class="language-rust">// without ?
+fn load_cat() -&gt; Result&lt;Cat, LoadError&gt; {
+  let f = match open(path) {
+    Ok(f) =&gt; f,
+    Err(e) =&gt; return Err(e),
+  };
+  let s = match read(f) {
+    Ok(s) =&gt; s,
+    Err(e) =&gt; return Err(e),
+  };
+  parse(s)
+}
+</code></pre>
+<p>The <code>?</code> operator collapses all of it:</p>
+<pre><code class="language-rust">// with ?
+fn load_cat() -&gt; Result&lt;Cat, LoadError&gt; {
+  let f = open(path)?;
+  let s = read(f)?;
+  parse(s)
+}
+</code></pre>
+<p>Put <code>?</code> after a call that returns a <code>Result</code>. If it&#39;s <code>Ok</code>, you get the value. If it&#39;s <code>Err</code>, the function returns that error right there.</p>
+<blockquote>
+<p><strong>Remember:</strong> <code>?</code> = if Err, return it. if Ok, unwrap it.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §9.2 Recoverable Errors</span></div><div class="body"><h3>What ? really does</h3>
+<img class="slide" src="img/SceneQuestionMechanics.webp" alt="" /><p>The <code>?</code> is two things: an early return, plus a quiet conversion.</p>
+<pre><code class="language-rust">// you write
+let f = open(path)?;
+
+// it expands to
+match open(path) {
+    Ok(v) =&gt; v,
+    Err(e) =&gt; return Err(e.into()),
+}
+</code></pre>
+<ul>
+<li>On the way out, it calls <code>From</code> to <strong>convert</strong> the error. An <code>io::Error</code> or a <code>ParseIntError</code> becomes your <code>LoadError</code>, so one return type unifies many error sources.</li>
+<li><code>?</code> works on <code>Option</code> too: <code>None</code> short-circuits like <code>Err</code>.</li>
+<li>It works in <code>main</code>, if <code>main</code> returns a <code>Result</code>:</li>
+</ul>
+<pre><code class="language-rust">fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+    let cat = load_cat(&quot;meowy.txt&quot;.as_ref())?;
+    Ok(())
+}
+</code></pre>
+<blockquote>
+<p><strong>Remember:</strong> <code>?</code> early-returns and converts the error.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-rust">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">unwrap and expect</h2><span class="book-chip">Book · §9.3</span></div>
+      <img class="slide" src="img/SceneChapter04.webp" alt="unwrap and expect chapter divider" />
+      <div class="body divider-intro"><p>The shortcuts. And when they lie.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §9.3 To panic! or Not</span></div><div class="body"><h3>The escape hatches</h3>
+<img class="slide" src="img/SceneUnwrapExpect.webp" alt="" /><pre><code class="language-rust">let cat = load_cat(path).unwrap();
+let cat = load_cat(path).expect(&quot;cat profile missing&quot;);
+</code></pre>
+<ul>
+<li><strong><code>unwrap</code></strong> gives the value, or panics with no context.</li>
+<li><strong><code>expect</code></strong> does the same but with a message you wrote. Always prefer it, the reason is what saves you later.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Honest when</th>
+<th>A lie when</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>prototypes, tests</td>
+<td>user input, files</td>
+</tr>
+<tr>
+<td>cases where <code>Err</code> truly can&#39;t happen</td>
+<td>networks, parsing</td>
+</tr>
+</tbody></table>
+<p><code>unwrap</code> on a file the user chose isn&#39;t a shortcut, it&#39;s a crash waiting for a bad day. Return a <code>Result</code>.</p>
+<blockquote>
+<p><strong>Remember:</strong> <code>expect</code> is <code>unwrap</code> with a reason. use it when <code>Err</code> can&#39;t happen.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-teal">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Custom errors</h2><span class="book-chip">Book · §9.2</span></div>
+      <img class="slide" src="img/SceneChapter05.webp" alt="Custom errors chapter divider" />
+      <div class="body divider-intro"><p>Name every way your code can fail. One type, every failure mode.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §9.2 Recoverable Errors</span></div><div class="body"><h3>Roll your own</h3>
+<img class="slide" src="img/SceneCustomErrorsByHand.webp" alt="" /><p>Once a function can fail more than one way, make one enum that names each:</p>
+<pre><code class="language-rust">enum LoadError {
+    Io(io::Error),
+    Parse(ParseIntError),
+}
+
+impl Display for LoadError { /* human message */ }
+impl std::error::Error for LoadError {}
+
+impl From&lt;io::Error&gt; for LoadError { /* ... */ }
+impl From&lt;ParseIntError&gt; for LoadError { /* ... */ }
+</code></pre>
+<ul>
+<li><strong>One variant per failure mode</strong> (here: the file I/O, and the parse).</li>
+<li><strong><code>Display</code></strong> is the human-readable message callers see.</li>
+<li><strong><code>Error</code></strong> lets your type slot into the rest of the ecosystem.</li>
+<li><strong><code>From</code></strong> is the piece that makes <code>?</code> work: it converts each underlying error into yours, automatically.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> one type. every failure mode. <code>From</code> makes <code>?</code> convert.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §9.2 Recoverable Errors</span></div><div class="body"><h3>Let the crate write it</h3>
+<img class="slide" src="img/SceneCustomErrorsLibs.webp" alt="" /><p>Writing <code>Display</code> and <code>From</code> by hand gets repetitive, so most people reach for a crate:</p>
+<pre><code class="language-rust">#[derive(thiserror::Error, Debug)]
+enum LoadError {
+  #[error(&quot;io: {0}&quot;)]
+  Io(#[from] io::Error),
+  #[error(&quot;parse: {0}&quot;)]
+  Parse(#[from] ParseIntError),
+}
+
+// or just box anything:
+fn load_cat() -&gt; Result&lt;Cat, Box&lt;dyn Error&gt;&gt; { ... }
+</code></pre>
+<ul>
+<li><strong><code>thiserror</code></strong> generates <code>Display</code> and <code>From</code> from one derive, plus a message string and <code>#[from]</code> per variant.</li>
+<li><strong><code>Box&lt;dyn Error&gt;</code></strong> is the quick path: any error flows up, but callers lose the ability to match on specifics.</li>
+</ul>
+<p>The rule most people settle on: <strong>thiserror for libraries</strong> (callers want to match your variants), <strong>anyhow for applications</strong> (you just want errors to bubble up with context).</p>
+<blockquote>
+<p><strong>Remember:</strong> thiserror for libraries. anyhow for apps.</p>
+</blockquote>
+</div></section>
+<section class="scene quote"><img class="slide" src="img/ScenePullQuote.webp" alt="Pull quote" /><div class="body"><p>The one idea to keep:</p>
+<blockquote>
+<p>Errors are not exceptions. They are values. Handle them like data.</p>
+</blockquote>
+</div></section>
+<section class="appendix">
+      <h2 class="ap-title">Cheatsheet <span class="accent">recap</span></h2>
+      <p class="ap-sub">One line per idea, in order. Skim this when you just need the reminder.</p>
+      <table class="ck-table"><thead><tr><th>Idea</th><th>Remember</th></tr></thead><tbody><tr><td class="ck-scene">Two kinds of failure</td><td class="ck-text">if a user can hit it, it's Result. if it means the code is wrong, it's panic.</td></tr>
+<tr><td class="ck-scene">What triggers a panic</td><td class="ck-text">every one of these means a bug. fix the code.</td></tr>
+<tr><td class="ck-scene">When a panic fires</td><td class="ck-text">set <code>RUST_BACKTRACE=1</code> to see the line that crashed.</td></tr>
+<tr><td class="ck-scene">When a panic is right</td><td class="ck-text">panic on bugs. Result on expected failure.</td></tr>
+<tr><td class="ck-scene">The newtype trick</td><td class="ck-text">check at the door. trust everywhere after.</td></tr>
+<tr><td class="ck-scene">Reading a Result</td><td class="ck-text">two arms, both required. the compiler checks you handled both.</td></tr>
+<tr><td class="ck-scene">Handle it without match</td><td class="ck-text">match when it's complex. combinators when it's a one-liner.</td></tr>
+<tr><td class="ck-scene">Option vs Result</td><td class="ck-text">None says nothing. Err says why.</td></tr>
+<tr><td class="ck-scene">The ? operator</td><td class="ck-text"><code>?</code> = if Err, return it. if Ok, unwrap it.</td></tr>
+<tr><td class="ck-scene">What ? really does</td><td class="ck-text"><code>?</code> early-returns and converts the error.</td></tr>
+<tr><td class="ck-scene">The escape hatches</td><td class="ck-text"><code>expect</code> is <code>unwrap</code> with a reason. use it when <code>Err</code> can't happen.</td></tr>
+<tr><td class="ck-scene">Roll your own</td><td class="ck-text">one type. every failure mode. <code>From</code> makes <code>?</code> convert.</td></tr>
+<tr><td class="ck-scene">Let the crate write it</td><td class="ck-text">thiserror for libraries. anyhow for apps.</td></tr></tbody></table>
+      <div class="ap-foot"><strong>Maps to:</strong> The Rust Programming Language, Chapter 9.<br/><strong>Practice:</strong> Rustlings <code>13_error_handling</code>, <code>23_conversions</code>.</div>
+    </section>
+</main>
+<button class="save-pdf" onclick="window.print()">Save as PDF</button>
+
+<div class="zoom-mbar-bg" aria-hidden="true"></div>
+<div class="zoom-panel" data-zoom-panel aria-label="Zoom controls">
+  <button type="button" class="zoom-in" aria-label="Zoom in" title="Zoom in">+</button>
+  <div class="zoom-level" role="button" tabindex="0" title="Reset zoom" aria-label="Reset zoom">100%</div>
+  <button type="button" class="zoom-out" aria-label="Zoom out" title="Zoom out">−</button>
+</div>
+<script>
+(function(){
+  var doc=document.querySelector('.doc');
+  var panel=document.querySelector('[data-zoom-panel]');
+  if(!doc||!panel)return;
+  var label=panel.querySelector('.zoom-level');
+  var KEY='rfz_notes_zoom',MIN=0.5,MAX=2,STEP=0.1,z=1;
+  try{var s=parseFloat(localStorage.getItem(KEY));if(s>=MIN&&s<=MAX)z=s;}catch(e){}
+  function clamp(v){return Math.min(MAX,Math.max(MIN,Math.round(v*100)/100));}
+  function isMobile(){return window.matchMedia&&window.matchMedia('(max-width:640px)').matches;}
+  function apply(){var m=isMobile()&&z!==1;doc.style.zoom=z;doc.style.width=m?('calc(100% / '+z+')'):'';doc.style.maxWidth=m?'none':'';label.textContent=Math.round(z*100)+'%';try{localStorage.setItem(KEY,String(z));}catch(e){}}
+  panel.querySelector('.zoom-in').addEventListener('click',function(){z=clamp(z+STEP);apply();});
+  panel.querySelector('.zoom-out').addEventListener('click',function(){z=clamp(z-STEP);apply();});
+  function reset(){z=1;apply();}
+  label.addEventListener('click',reset);
+  label.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();reset();}});
+  window.addEventListener('resize',apply);
+  apply();
+})();
+</script>
+</body>
+</html>

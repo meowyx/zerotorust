@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Rust, from zero · MeowyTheDev companion guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@1&family=Caveat:wght@500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink:#1c1e22; --soft:#43474e; --muted:#888d96; --line:#e3e4e8;
+  --rust:#c8542a; --code-bg:#f5f5f4; --code-fg:#24292e;
+  --sans:"Bricolage Grotesque",system-ui,-apple-system,sans-serif;
+  --serif:"Instrument Serif",Georgia,serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:#e9e9ec;color:var(--ink);font-family:var(--sans);}
+.accent{font-family:var(--serif);font-style:italic;color:var(--rust);font-weight:400;}
+.doc{max-width:182mm;margin:8mm auto;padding:16mm;background:#fff;box-shadow:0 4px 24px rgba(0,0,0,0.18);}
+
+.cover{position:relative;min-height:240mm;display:flex;flex-direction:column;justify-content:center;break-after:page;}
+.divider{break-before:page;padding-top:6mm;}
+.appendix{break-before:page;padding-top:4mm;}
+.scene{margin:0 0 9mm;}
+.scene.quote{break-before:page;padding-top:8mm;}
+.slide,.body pre,.body table,.body blockquote{break-inside:avoid;}
+.body h3{break-after:avoid;}
+
+.book-chip{display:inline-block;font-family:var(--mono);font-size:8pt;letter-spacing:0.02em;color:var(--soft);background:#fff;border:1px solid var(--line);padding:3px 9px;border-radius:5px;white-space:nowrap;}
+.scene-chip{margin-bottom:3mm;}
+.slide{display:block;width:100%;max-width:100%;border-radius:8px;border:1px solid var(--line);}
+
+.body h3{font-size:19pt;font-weight:700;color:#16181d;margin:0 0 3mm;line-height:1.15;letter-spacing:-0.01em;}
+.body p{font-size:11pt;line-height:1.62;color:var(--soft);margin:0 0 3mm;}
+.body p strong,.body li strong{color:var(--ink);font-weight:700;}
+.body em{font-family:var(--serif);font-style:italic;color:var(--ink);}
+.body ul,.body ol{margin:3mm 0;padding-left:6mm;}
+.body li{margin:0 0 2mm;line-height:1.55;font-size:11pt;color:var(--soft);}
+.body code{font-family:var(--mono);font-size:0.86em;background:var(--code-bg);padding:0.08em 0.32em;border-radius:4px;color:#9a3a18;}
+.body pre{background:var(--code-bg);color:var(--code-fg);border:1px solid var(--line);border-radius:8px;padding:4mm 5mm;white-space:pre-wrap;overflow-wrap:break-word;font-family:var(--mono);font-size:9.5pt;line-height:1.5;margin:4mm 0;}
+.body pre code{background:none;padding:0;color:inherit;font-size:inherit;}
+.body table{width:100%;border-collapse:collapse;margin:4mm 0;font-size:10pt;}
+.body th{text-align:left;background:#f3f3f4;color:var(--ink);font-family:var(--mono);font-size:8pt;text-transform:uppercase;letter-spacing:0.02em;padding:2.4mm 3mm;border:1px solid var(--line);}
+.body td{padding:2.4mm 3mm;border:1px solid var(--line);vertical-align:top;color:var(--soft);overflow-wrap:break-word;}
+.body blockquote{margin:5mm 0 0;background:#f7f7f6;border-left:3px solid var(--rust);border-radius:0 6px 6px 0;padding:3.5mm 5mm;font-size:11pt;color:var(--ink);}
+.body blockquote p{margin:0;color:var(--ink);} .body blockquote strong{color:#16181d;}
+
+.cover-eyebrow{font-family:var(--mono);font-size:9.5pt;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);}
+.cover-title{font-size:40pt;line-height:1.06;font-weight:800;color:#16181d;margin:6mm 0 0;letter-spacing:-0.01em;padding-right:34mm;}
+.cover-tagline{font-family:var(--serif);font-style:italic;font-size:18pt;color:var(--soft);margin:7mm 0 0;max-width:150mm;line-height:1.4;}
+.cover-chip{margin-top:14mm;align-self:flex-start;font-family:var(--mono);font-size:9.5pt;color:var(--soft);background:#fff;border:1px solid var(--line);padding:6px 12px;border-radius:6px;}
+.cover-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);padding-top:5mm;font-size:9pt;color:var(--muted);}
+.cover-foot .ep{font-family:var(--mono);font-weight:700;color:var(--rust);letter-spacing:0.1em;}
+.cover-foot-r{font-family:var(--mono);font-size:8.5pt;color:var(--muted);}
+.cover-num{position:absolute;top:13mm;right:0;font-family:var(--mono);font-weight:800;font-size:54pt;color:#dadbe0;}
+
+.divider-head{display:flex;align-items:center;gap:14px;margin-bottom:4mm;}
+.divider .kicker{font-family:var(--mono);font-size:9pt;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);}
+.divider-title{font-size:30pt;font-weight:800;color:#16181d;margin:0;letter-spacing:-0.01em;}
+.divider-intro{margin-top:5mm;} .divider-intro p{font-size:11.5pt;}
+
+.ap-title{font-size:26pt;font-weight:800;color:#16181d;margin:0 0 2mm;}
+.ap-sub{font-size:11pt;color:var(--soft);max-width:150mm;margin:0 0 5mm;}
+.ck-table{width:100%;border-collapse:collapse;font-size:10pt;}
+.ck-table th{text-align:left;background:#f3f3f4;color:var(--ink);font-family:var(--mono);font-size:8pt;text-transform:uppercase;letter-spacing:0.03em;padding:2.6mm 3mm;border:1px solid var(--line);}
+.ck-scene{font-weight:700;color:#16181d;width:40%;}
+.ck-table td{padding:2.6mm 3mm;border:1px solid var(--line);color:var(--soft);vertical-align:top;overflow-wrap:break-word;}
+.ap-foot{margin-top:7mm;font-size:10pt;background:#f7f7f6;border:1px solid var(--line);border-radius:8px;padding:4mm 5mm;line-height:1.7;}
+
+/* "Save as PDF" button: screen only */
+.save-pdf{position:fixed;right:18px;bottom:18px;z-index:50;font-family:var(--sans);font-size:13px;font-weight:700;color:#fff;background:var(--rust);border:none;border-radius:8px;padding:11px 16px;box-shadow:0 3px 12px rgba(0,0,0,0.25);cursor:pointer;}
+.save-pdf:hover{background:#b0461f;}
+/* running header/footer: print only (repeat on every printed page) */
+.print-running{display:none;}
+
+@page{size:A4;margin:16mm 14mm 14mm;}
+@media print{
+  html,body{background:#fff;}
+  .doc{max-width:none;margin:0;padding:0;background:#fff;box-shadow:none;}
+  .save-pdf{display:none !important;}
+  .print-running{display:flex;position:fixed;left:0;right:0;align-items:center;justify-content:space-between;font-size:8pt;color:var(--soft);font-family:var(--mono);}
+  .print-running.top{top:6mm;} .print-running.bot{bottom:6mm;}
+  .print-running .brand{display:flex;align-items:center;gap:6px;font-family:var(--sans);font-weight:700;color:var(--ink);}
+  .print-running .xh{display:flex;align-items:center;gap:5px;}
+  .print-running .muted{color:var(--muted);}
+}
+
+/* frosted-glass zoom panel: screen only, hidden in print */
+.zoom-panel{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:60;display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:16px;background:rgba(255,255,255,0.55);-webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blur(14px) saturate(1.3);border:1px solid rgba(255,255,255,0.7);box-shadow:0 10px 30px rgba(28,30,34,0.18),inset 0 1px 0 rgba(255,255,255,0.65);font-family:var(--sans);}
+.zoom-panel button{width:40px;height:40px;border:none;cursor:pointer;border-radius:11px;background:rgba(255,255,255,0.5);color:var(--ink);font-size:19px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;transition:background .15s,transform .1s;}
+.zoom-panel button:hover{background:rgba(255,255,255,0.95);}
+.zoom-panel button:active{transform:scale(0.93);}
+.zoom-level{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--soft);text-align:center;padding:3px 0;cursor:pointer;user-select:none;letter-spacing:0.02em;border-radius:8px;}
+.zoom-level:hover{color:var(--rust);background:rgba(255,255,255,0.5);}
+.zoom-mbar-bg{display:none;}
+/* phones: sticky bottom toolbar holding zoom (left) + Save as PDF (right) */
+@media (max-width:640px){.zoom-mbar-bg{display:block;position:fixed;left:0;right:0;bottom:0;height:58px;background:rgba(255,255,255,0.55);-webkit-backdrop-filter:blur(16px) saturate(1.4);backdrop-filter:blur(16px) saturate(1.4);border-top:1px solid rgba(255,255,255,0.7);box-shadow:0 -8px 30px rgba(28,30,34,0.12);z-index:59;}.zoom-panel{left:14px;right:auto;top:auto;bottom:10px;transform:none;flex-direction:row-reverse;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;border:none;box-shadow:none;padding:0;}.zoom-panel button{width:38px;height:38px;background:rgba(0,0,0,0.05);color:var(--ink);}.zoom-panel button:hover{background:rgba(0,0,0,0.1);}.zoom-level{color:var(--soft);}.zoom-level:hover{color:var(--rust);background:transparent;}.save-pdf{right:14px !important;bottom:10px !important;z-index:60 !important;}body{padding-bottom:70px;}}
+@media print{.zoom-panel{display:none !important;}.doc{zoom:1 !important;width:auto !important;}}
+
+/* notes-mobile-css: screen-only mobile reflow, print styles left untouched */
+@media screen and (max-width: 640px) {
+  html, body { background: #fff; }
+  .doc { max-width: 100%; margin: 0; padding: 22px 16px; box-shadow: none; }
+  .cover { min-height: auto; padding: 6px 0 22px; }
+  .cover-title { font-size: 30pt; padding-right: 0; }
+  .cover-tagline { font-size: 15pt; }
+  .cover-num { font-size: 38pt; top: 6px; }
+  .divider-title { font-size: 24pt; }
+  .body h3 { font-size: 17pt; }
+  .body p, .body li { font-size: 12pt; }
+  .body pre { font-size: 8.5pt; padding: 3mm 3.5mm; }
+  .ap-title { font-size: 22pt; }
+}
+</style>
+<link rel="icon" type="image/png" href="/icon" />
+</head>
+<body>
+<div class="print-running top"><span class="brand"><svg viewBox="0 0 28 20" width="18" height="13" aria-hidden="true"><rect width="28" height="20" rx="5" fill="#FF0033"/><path d="M11 6l7 4-7 4z" fill="#fff"/></svg>MeowyTheDev</span><span class="muted">RUST FROM ZERO · EP.01</span></div>
+<div class="print-running bot"><span class="xh"><svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="#2b1d12" d="M18.9 2H22l-7.6 8.7L23.3 22h-6.9l-5.4-7-6.2 7H1.7l8.1-9.3L1 2h7l4.9 6.5z"/></svg>@me256ow</span><span class="muted">companion guide</span></div>
+<main class="doc">
+<section class="cover">
+      <div class="cover-eyebrow">MeowyTheDev <span class="dot">·</span> Rust from Zero</div>
+      <h1 class="cover-title">Rust, from <span class="accent">zero</span></h1>
+      <p class="cover-tagline">install to control flow, in one go. no systems background needed.</p>
+      <div class="cover-chip">The Rust Programming Language <span class="dot">·</span> Chapters 1-3</div>
+      <div class="cover-foot"><span class="ep">EP.01</span><span class="cover-foot-r">companion guide · watch on the Rust from Zero playlist</span></div>
+      <div class="cover-num">01</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 1-3 (why Rust)</span></div><div class="body"><h3>Why Rust?</h3>
+<img class="slide" src="img/Scene3ThreeReasons.webp" alt="" /><p>Rust is the fastest-growing language around, and JetBrains called it the future of programming. Three reasons hold that up:</p>
+<ol>
+<li><strong>Memory safety.</strong> Rust catches whole categories of bugs at compile time, the kind other languages catch at three a.m. in production.</li>
+<li><strong>Fearless concurrency.</strong> You can write multi-threaded code, and the compiler proves it&#39;s free of data races before it runs.</li>
+<li><strong>Real performance.</strong> As fast as C++, with guardrails on. No garbage-collector pauses, no surprises.</li>
+</ol>
+<blockquote>
+<p><strong>Remember:</strong> safe, fearless, and as fast as C++.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-rust">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Setup</h2><span class="book-chip">Book · Ch 1</span></div>
+      <img class="slide" src="img/SceneChapter01.webp" alt="Setup chapter divider" />
+      <div class="body divider-intro"><p>Where every Rust journey starts. One line, that&#39;s it.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 1 Getting Started</span></div><div class="body"><h3>Install Rust</h3>
+<img class="slide" src="img/Scene4Install.webp" alt="" /><p>Installing Rust is one command. Open a terminal, paste, hit enter:</p>
+<pre><code class="language-bash">curl --proto &#39;=https&#39; --tlsv1.2 -sSf https://sh.rustup.rs | sh
+</code></pre>
+<p>That sets up <code>rustup</code>, the official installer. Confirm it worked:</p>
+<pre><code class="language-bash">rustc --version
+# rustc 1.83.0
+</code></pre>
+<blockquote>
+<p><strong>Remember:</strong> one line. that&#39;s it.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 1 Getting Started</span></div><div class="body"><h3>cargo new vs cargo init</h3>
+<img class="slide" src="img/Scene5CargoNewVsInit.webp" alt="" /><p>Cargo is Rust&#39;s build tool and package manager. Two ways to start a project:</p>
+<pre><code class="language-bash">cargo new myapp                    # creates a fresh folder
+cd existing-folder &amp;&amp; cargo init   # drops Cargo into a folder you have
+</code></pre>
+<p>Same files come out either way (<code>Cargo.toml</code>, <code>src/main.rs</code>, <code>.gitignore</code>). Different starting point.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Use it when</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>cargo new myapp</code></td>
+<td>starting fresh, give it a name</td>
+</tr>
+<tr>
+<td><code>cargo init</code></td>
+<td>adding Cargo to a folder you already have</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>Remember:</strong> new starts fresh. init drops into a folder you already have.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 1 Getting Started</span></div><div class="body"><h3>What cargo gives you</h3>
+<img class="slide" src="img/Scene6ProjectStructure.webp" alt="" /><p>Five files, each with one job:</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Cargo.toml</code></td>
+<td>project metadata: name, version, dependencies. the file you edit</td>
+</tr>
+<tr>
+<td><code>Cargo.lock</code></td>
+<td>pins exact versions. auto-generated, don&#39;t hand-edit</td>
+</tr>
+<tr>
+<td><code>src/main.rs</code></td>
+<td>where you write Rust (<code>main.rs</code> for binaries, <code>lib.rs</code> for libraries)</td>
+</tr>
+<tr>
+<td><code>target/</code></td>
+<td>compiled output and build cache. always gitignored, can be huge</td>
+</tr>
+<tr>
+<td><code>.gitignore</code></td>
+<td>cargo seeds it with <code>/target</code></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>Remember:</strong> five files, each with one job.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-teal">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">First Program</h2><span class="book-chip">Book · Ch 1-2</span></div>
+      <img class="slide" src="img/SceneChapter02.webp" alt="First Program chapter divider" />
+      <div class="body divider-intro"><p>From zero to hello, world.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 2 First Program</span></div><div class="body"><h3>Hello, world</h3>
+<img class="slide" src="img/Scene7HelloWorld.webp" alt="" /><pre><code class="language-rust">fn main() {
+    println!(&quot;Hello, world!&quot;);
+}
+</code></pre>
+<p>Run <code>cargo new hello</code>, open <code>main.rs</code>, and there&#39;s the classic. Then:</p>
+<pre><code class="language-bash">cargo run
+# Compiling hello v0.1.0
+# Hello, world!
+</code></pre>
+<p>Cargo compiles your code and runs it. From zero to running in thirty seconds.</p>
+<blockquote>
+<p><strong>Remember:</strong> <code>cargo run</code> compiles and runs in one step.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 2 First Program</span></div><div class="body"><h3>fn main, piece by piece</h3>
+<img class="slide" src="img/Scene8FnMainDeepDive.webp" alt="" /><pre><code class="language-rust">fn main() {
+    println!(&quot;Hello, world!&quot;);
+}
+</code></pre>
+<ul>
+<li><strong><code>fn</code></strong> is the function keyword. Every function starts here.</li>
+<li><strong><code>main</code></strong> is the entry point. Rust runs it first, and every binary needs exactly one.</li>
+<li><strong><code>()</code></strong> means <code>main</code> takes no arguments.</li>
+<li><strong><code>{ }</code></strong> is the body, the code that runs when called.</li>
+<li><strong><code>println!</code></strong> is a <em>macro</em>. The <code>!</code> is how Rust marks a macro, not a regular function. Macros expand at compile time.</li>
+<li><strong><code>&quot;...&quot;</code></strong> is a string literal, the text that gets printed.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> the <code>!</code> means it&#39;s a macro, not a function.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-rustDk">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Variables and mutability</h2><span class="book-chip">Book · §3.1</span></div>
+      <img class="slide" src="img/SceneChapter03.webp" alt="Variables and mutability chapter divider" />
+      <div class="body divider-intro"><p>A thing once set, stays set. Unless you opt out.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §3.1 Variables</span></div><div class="body"><h3>Variables and let</h3>
+<img class="slide" src="img/Scene9Variables.webp" alt="" /><pre><code class="language-rust">let x = 5;              // Rust infers i32
+let y: i32 = 42;        // or annotate the type
+let name = &quot;Rust&quot;;
+const ONE_HOUR: u32 = 60 * 60;
+</code></pre>
+<ul>
+<li><strong><code>let</code></strong> binds a value to a name. Rust infers the type from the value (<code>i32</code> is the default integer).</li>
+<li>Annotate with <code>: type</code> when you want to be specific.</li>
+<li><strong><code>const</code></strong> needs a type, uses <code>SCREAMING_SNAKE_CASE</code>, and is evaluated at compile time.</li>
+</ul>
+<p><strong>Shadowing:</strong> use <code>let</code> again with the same name to make a brand-new binding, handy for changing type:</p>
+<pre><code class="language-rust">let spaces = &quot;   &quot;;
+let spaces = spaces.len(); // now a number
+</code></pre>
+<blockquote>
+<p><strong>Remember:</strong> <code>let</code> binds. variables are immutable by default.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §3.1 Mutability</span></div><div class="body"><h3>mut vs shadowing</h3>
+<img class="slide" src="img/Scene10Mutability.webp" alt="" /><p>Variables are immutable by default. Try to reassign and the compiler refuses:</p>
+<pre><code class="language-rust">let x = 5;
+x = 6;       // error
+let mut x = 5;
+x = 6;       // ok
+</code></pre>
+<p>But <code>mut</code> and shadowing are not the same thing:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>keeps the type?</th>
+<th>what it does</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>mut</code></td>
+<td>yes</td>
+<td>change the value, not what it <em>is</em></td>
+</tr>
+<tr>
+<td><code>let</code> shadowing</td>
+<td>no</td>
+<td>same name, brand-new binding, fresh type</td>
+</tr>
+</tbody></table>
+<pre><code class="language-rust">let mut s = &quot;hi&quot;;
+s = s.len();          // error: mut can&#39;t change the type
+let s = &quot;hi&quot;;
+let s = s.len();      // ok: shadowing can
+</code></pre>
+<blockquote>
+<p><strong>Remember:</strong> need a new type? use let. need a new value, same type? use mut.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-rust">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Data types</h2><span class="book-chip">Book · §3.2</span></div>
+      <img class="slide" src="img/SceneChapter04.webp" alt="Data types chapter divider" />
+      <div class="body divider-intro"><p>Where does your data actually live? Ints, floats, strings, structs.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §3.2 Scalar Types</span></div><div class="body"><h3>Scalar types</h3>
+<img class="slide" src="img/SceneScalarTypes.webp" alt="" /><p>Scalar types hold a single value. Five flavors:</p>
+<pre><code class="language-rust">let count: i32 = 42;
+let big: u64 = 2_000_000_000;
+let pi: f64 = 3.14;
+let active: bool = true;
+let cat: char = &#39;😻&#39;;
+</code></pre>
+<ul>
+<li><strong><code>i32</code></strong> is the default integer (32-bit signed, fastest on most CPUs). Unsigned types like <code>u64</code> are zero or positive only.</li>
+<li><strong><code>f64</code></strong> is the default float.</li>
+<li><strong><code>bool</code></strong> is <code>true</code>/<code>false</code>, one byte. No truthy ints, be explicit.</li>
+<li><strong><code>char</code></strong> is a single Unicode scalar, four bytes, single quotes. Emoji works.</li>
+</ul>
+<p>Integers come in six sizes (<code>i8</code>..<code>i128</code>, plus <code>isize</code>/<code>usize</code>), signed and unsigned. If unsure, use <code>i32</code>. Literals: decimal <code>98_222</code>, hex <code>0xff</code>, octal <code>0o77</code>, binary <code>0b1111_0000</code>, byte <code>b&#39;A&#39;</code>.</p>
+<blockquote>
+<p><strong>Remember:</strong> if you&#39;re not sure which integer, use <code>i32</code>.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §3.2 Compound Types</span></div><div class="body"><h3>Tuples and arrays</h3>
+<img class="slide" src="img/SceneCompoundTypes.webp" alt="" /><p>Compound types group values into one. Two flavors, very different:</p>
+<pre><code class="language-rust">// tuple: mixed types, fixed length
+let pair: (i32, f64) = (10, 6.4);
+let (x, y) = pair;     // destructure
+let first = pair.0;    // 10
+
+// array: same type, fixed length
+let nums: [i32; 5] = [1, 2, 3, 4, 5];
+let zeros = [0; 10];   // ten zeros
+let item = nums[0];    // 1
+</code></pre>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Tuple</th>
+<th>Array</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>types</td>
+<td>can differ</td>
+<td>all the same</td>
+</tr>
+<tr>
+<td>access</td>
+<td><code>.0</code>, <code>.1</code>, or destructure</td>
+<td><code>nums[0]</code> (zero-indexed)</td>
+</tr>
+<tr>
+<td>note</td>
+<td><code>()</code> is the &quot;unit&quot;</td>
+<td>out-of-bounds panics</td>
+</tr>
+</tbody></table>
+<p>Both are fixed at compile time. Need to grow it? That&#39;s a <code>Vec</code> (chapter 8).</p>
+<blockquote>
+<p><strong>Remember:</strong> mixed types by position? tuple. same type you index into? array.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 5 (struct teaser)</span></div><div class="body"><h3>Your first struct</h3>
+<img class="slide" src="img/ScenePersonStruct.webp" alt="" /><p>A struct is your custom shape for related data:</p>
+<pre><code class="language-rust">struct Person {
+  name: String,
+  age: u32,
+  cat: bool,
+}
+
+let meowy = Person {
+  name: String::from(&quot;Meowy&quot;),
+  age: 27,
+  cat: true,
+};
+</code></pre>
+<ul>
+<li>Define it with <code>struct</code> and a <code>PascalCase</code> name. List each field as <code>name: type</code>.</li>
+<li>Make an instance with the type name and curly braces, filling <strong>every</strong> field. Access fields with a dot: <code>meowy.name</code>.</li>
+<li><code>name</code> uses <code>String::from</code> because the field wants an owned <code>String</code>, not a <code>&amp;str</code> literal.</li>
+</ul>
+<p>There&#39;s much more (methods, tuple structs, enums), but that&#39;s chapter 5, episode 03.</p>
+<blockquote>
+<p><strong>Remember:</strong> a struct bundles related fields into your own type.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-teal">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Functions and flow</h2><span class="book-chip">Book · §3.3-3.5</span></div>
+      <img class="slide" src="img/SceneChapter05.webp" alt="Functions and flow chapter divider" />
+      <div class="body divider-intro"><p>Branches, loops, and a place to put logic. if, else, match.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §3.3 Functions</span></div><div class="body"><h3>Functions</h3>
+<img class="slide" src="img/Scene12Functions.webp" alt="" /><pre><code class="language-rust">fn greet(name: &amp;str) {
+    println!(&quot;hi, {name}!&quot;);
+}
+
+fn plus_one(x: i32) -&gt; i32 {
+    x + 1 // no semicolon -&gt; this is returned
+}
+
+let n = plus_one(5); // 6
+</code></pre>
+<ul>
+<li><code>fn</code> declares a function, parens for parameters, <code>snake_case</code> by convention.</li>
+<li><strong>Parameters always need an explicit type.</strong> Rust never infers them.</li>
+<li><strong>Return types use <code>-&gt;</code>.</strong> The last expression with <strong>no semicolon</strong> is the return value.</li>
+<li><strong>The gotcha:</strong> add a semicolon and the expression becomes a statement, which returns <code>()</code> (nothing), and the function won&#39;t compile.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> last expression, no semicolon, is the return. watch that semicolon.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §3.4 Comments</span></div><div class="body"><h3>Comments</h3>
+<img class="slide" src="img/Scene13Comments.webp" alt="" /><p>Five prefixes, each one job:</p>
+<pre><code class="language-rust">// a line comment
+//
+// repeat // for multi-line, the Rust idiom
+
+/// outer doc comment, attached to the next item (cargo doc renders it)
+
+//! inner doc comment, for the file or module itself
+</code></pre>
+<ul>
+<li><code>//</code> is a line comment. Repeat it for multi-line (cleaner git diffs than <code>/* */</code>).</li>
+<li><code>///</code> is an outer doc comment, attached to the item below, turned into a docs website by <code>cargo doc</code>.</li>
+<li><code>//!</code> documents the file or module itself.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> <code>//</code> notes, <code>///</code> docs the next item, <code>//!</code> docs the file.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §3.5 Control Flow</span></div><div class="body"><h3>if and else</h3>
+<img class="slide" src="img/Scene14IfElse.webp" alt="" /><pre><code class="language-rust">let n = 3;
+if n &lt; 5 {
+    println!(&quot;small&quot;);
+} else {
+    println!(&quot;big&quot;);
+}
+</code></pre>
+<ul>
+<li><strong>No parens</strong> around the condition (unlike C/Java/JS).</li>
+<li>The condition <strong>must be a <code>bool</code></strong>. Rust won&#39;t auto-convert an int, so write <code>n &gt; 0</code>.</li>
+<li><strong><code>if</code> is an expression</strong>, it can return a value:</li>
+</ul>
+<pre><code class="language-rust">let label = if n &gt; 0 { &quot;+&quot; } else { &quot;-&quot; };
+</code></pre>
+<p>Both arms must return the same type. For more cases, chain <code>else if</code>, top to bottom. If the chain gets long, reach for <code>match</code>.</p>
+<blockquote>
+<p><strong>Remember:</strong> no parens, must be a bool, and <code>if</code> returns a value.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §3.5 Loops</span></div><div class="body"><h3>Loops</h3>
+<img class="slide" src="img/Scene15Loops.webp" alt="" /><p>Three loop types:</p>
+<pre><code class="language-rust">loop {                       // runs forever until you break
+    if done { break; }
+}
+let result = loop {
+    counter += 1;
+    if counter == 10 { break counter * 2; } // break can return a value
+};
+
+while n &gt; 0 { n -= 1; }      // checks a condition each time
+
+for x in arr { ... }         // walks a collection or range
+for n in (1..4).rev() { ... }
+</code></pre>
+<ul>
+<li><strong><code>loop</code></strong> runs until you <code>break</code>, and <code>break</code> can return a value.</li>
+<li><strong><code>while</code></strong> checks a condition before each pass.</li>
+<li><strong><code>for</code></strong> walks a range or collection. Safest (no off-by-one) and usually fastest. When in doubt, reach for <code>for</code>.</li>
+</ul>
+<p>Label nested loops to target the right one:</p>
+<pre><code class="language-rust">&#39;outer: loop {
+    loop { break &#39;outer; }
+}
+</code></pre>
+<blockquote>
+<p><strong>Remember:</strong> loop, while, for. when in doubt, <code>for</code>.</p>
+</blockquote>
+</div></section>
+<section class="scene quote"><img class="slide" src="img/ScenePullQuote.webp" alt="Pull quote" /><div class="body"><p>The one thing to carry into every Rust file:</p>
+<blockquote>
+<p>The compiler is your friend. It catches bugs before they ever run. That&#39;s the Rust difference.</p>
+</blockquote>
+</div></section>
+<section class="appendix">
+      <h2 class="ap-title">Cheatsheet <span class="accent">recap</span></h2>
+      <p class="ap-sub">One line per idea, in order. Skim this when you just need the reminder.</p>
+      <table class="ck-table"><thead><tr><th>Idea</th><th>Remember</th></tr></thead><tbody><tr><td class="ck-scene">Why Rust?</td><td class="ck-text">safe, fearless, and as fast as C++.</td></tr>
+<tr><td class="ck-scene">Install Rust</td><td class="ck-text">one line. that's it.</td></tr>
+<tr><td class="ck-scene">cargo new vs cargo init</td><td class="ck-text">new starts fresh. init drops into a folder you already have.</td></tr>
+<tr><td class="ck-scene">What cargo gives you</td><td class="ck-text">five files, each with one job.</td></tr>
+<tr><td class="ck-scene">Hello, world</td><td class="ck-text"><code>cargo run</code> compiles and runs in one step.</td></tr>
+<tr><td class="ck-scene">fn main, piece by piece</td><td class="ck-text">the <code>!</code> means it's a macro, not a function.</td></tr>
+<tr><td class="ck-scene">Variables and let</td><td class="ck-text"><code>let</code> binds. variables are immutable by default.</td></tr>
+<tr><td class="ck-scene">mut vs shadowing</td><td class="ck-text">need a new type? use let. need a new value, same type? use mut.</td></tr>
+<tr><td class="ck-scene">Scalar types</td><td class="ck-text">if you're not sure which integer, use <code>i32</code>.</td></tr>
+<tr><td class="ck-scene">Tuples and arrays</td><td class="ck-text">mixed types by position? tuple. same type you index into? array.</td></tr>
+<tr><td class="ck-scene">Your first struct</td><td class="ck-text">a struct bundles related fields into your own type.</td></tr>
+<tr><td class="ck-scene">Functions</td><td class="ck-text">last expression, no semicolon, is the return. watch that semicolon.</td></tr>
+<tr><td class="ck-scene">Comments</td><td class="ck-text"><code>//</code> notes, <code>///</code> docs the next item, <code>//!</code> docs the file.</td></tr>
+<tr><td class="ck-scene">if and else</td><td class="ck-text">no parens, must be a bool, and <code>if</code> returns a value.</td></tr>
+<tr><td class="ck-scene">Loops</td><td class="ck-text">loop, while, for. when in doubt, <code>for</code>.</td></tr></tbody></table>
+      <div class="ap-foot"><strong>Maps to:</strong> The Rust Programming Language, Chapters 1-3.<br/><strong>Practice:</strong> Rustlings <code>00_intro</code>, <code>01_variables</code>, <code>02_functions</code>, <code>03_if</code>, <code>04_primitive_types</code>.</div>
+    </section>
+</main>
+<button class="save-pdf" onclick="window.print()">Save as PDF</button>
+
+<div class="zoom-mbar-bg" aria-hidden="true"></div>
+<div class="zoom-panel" data-zoom-panel aria-label="Zoom controls">
+  <button type="button" class="zoom-in" aria-label="Zoom in" title="Zoom in">+</button>
+  <div class="zoom-level" role="button" tabindex="0" title="Reset zoom" aria-label="Reset zoom">100%</div>
+  <button type="button" class="zoom-out" aria-label="Zoom out" title="Zoom out">−</button>
+</div>
+<script>
+(function(){
+  var doc=document.querySelector('.doc');
+  var panel=document.querySelector('[data-zoom-panel]');
+  if(!doc||!panel)return;
+  var label=panel.querySelector('.zoom-level');
+  var KEY='rfz_notes_zoom',MIN=0.5,MAX=2,STEP=0.1,z=1;
+  try{var s=parseFloat(localStorage.getItem(KEY));if(s>=MIN&&s<=MAX)z=s;}catch(e){}
+  function clamp(v){return Math.min(MAX,Math.max(MIN,Math.round(v*100)/100));}
+  function isMobile(){return window.matchMedia&&window.matchMedia('(max-width:640px)').matches;}
+  function apply(){var m=isMobile()&&z!==1;doc.style.zoom=z;doc.style.width=m?('calc(100% / '+z+')'):'';doc.style.maxWidth=m?'none':'';label.textContent=Math.round(z*100)+'%';try{localStorage.setItem(KEY,String(z));}catch(e){}}
+  panel.querySelector('.zoom-in').addEventListener('click',function(){z=clamp(z+STEP);apply();});
+  panel.querySelector('.zoom-out').addEventListener('click',function(){z=clamp(z-STEP);apply();});
+  function reset(){z=1;apply();}
+  label.addEventListener('click',reset);
+  label.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();reset();}});
+  window.addEventListener('resize',apply);
+  apply();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,615 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Structs, Enums, and Match · MeowyTheDev companion guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@1&family=Caveat:wght@500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink:#1c1e22; --soft:#43474e; --muted:#888d96; --line:#e3e4e8;
+  --rust:#c8542a; --code-bg:#f5f5f4; --code-fg:#24292e;
+  --sans:"Bricolage Grotesque",system-ui,-apple-system,sans-serif;
+  --serif:"Instrument Serif",Georgia,serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:#e9e9ec;color:var(--ink);font-family:var(--sans);}
+.accent{font-family:var(--serif);font-style:italic;color:var(--rust);font-weight:400;}
+.doc{max-width:182mm;margin:8mm auto;padding:16mm;background:#fff;box-shadow:0 4px 24px rgba(0,0,0,0.18);}
+
+.cover{position:relative;min-height:240mm;display:flex;flex-direction:column;justify-content:center;break-after:page;}
+.divider{break-before:page;padding-top:6mm;}
+.appendix{break-before:page;padding-top:4mm;}
+.scene{margin:0 0 9mm;}
+.scene.quote{break-before:page;padding-top:8mm;}
+.slide,.body pre,.body table,.body blockquote{break-inside:avoid;}
+.body h3{break-after:avoid;}
+
+.book-chip{display:inline-block;font-family:var(--mono);font-size:8pt;letter-spacing:0.02em;color:var(--soft);background:#fff;border:1px solid var(--line);padding:3px 9px;border-radius:5px;white-space:nowrap;}
+.scene-chip{margin-bottom:3mm;}
+.slide{display:block;width:100%;max-width:100%;border-radius:8px;border:1px solid var(--line);}
+
+.body h3{font-size:19pt;font-weight:700;color:#16181d;margin:0 0 3mm;line-height:1.15;letter-spacing:-0.01em;}
+.body p{font-size:11pt;line-height:1.62;color:var(--soft);margin:0 0 3mm;}
+.body p strong,.body li strong{color:var(--ink);font-weight:700;}
+.body em{font-family:var(--serif);font-style:italic;color:var(--ink);}
+.body ul,.body ol{margin:3mm 0;padding-left:6mm;}
+.body li{margin:0 0 2mm;line-height:1.55;font-size:11pt;color:var(--soft);}
+.body code{font-family:var(--mono);font-size:0.86em;background:var(--code-bg);padding:0.08em 0.32em;border-radius:4px;color:#9a3a18;}
+.body pre{background:var(--code-bg);color:var(--code-fg);border:1px solid var(--line);border-radius:8px;padding:4mm 5mm;white-space:pre-wrap;overflow-wrap:break-word;font-family:var(--mono);font-size:9.5pt;line-height:1.5;margin:4mm 0;}
+.body pre code{background:none;padding:0;color:inherit;font-size:inherit;}
+.body table{width:100%;border-collapse:collapse;margin:4mm 0;font-size:10pt;}
+.body th{text-align:left;background:#f3f3f4;color:var(--ink);font-family:var(--mono);font-size:8pt;text-transform:uppercase;letter-spacing:0.02em;padding:2.4mm 3mm;border:1px solid var(--line);}
+.body td{padding:2.4mm 3mm;border:1px solid var(--line);vertical-align:top;color:var(--soft);overflow-wrap:break-word;}
+.body blockquote{margin:5mm 0 0;background:#f7f7f6;border-left:3px solid var(--rust);border-radius:0 6px 6px 0;padding:3.5mm 5mm;font-size:11pt;color:var(--ink);}
+.body blockquote p{margin:0;color:var(--ink);} .body blockquote strong{color:#16181d;}
+
+.cover-eyebrow{font-family:var(--mono);font-size:9.5pt;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);}
+.cover-title{font-size:40pt;line-height:1.06;font-weight:800;color:#16181d;margin:6mm 0 0;letter-spacing:-0.01em;padding-right:34mm;}
+.cover-tagline{font-family:var(--serif);font-style:italic;font-size:18pt;color:var(--soft);margin:7mm 0 0;max-width:150mm;line-height:1.4;}
+.cover-chip{margin-top:14mm;align-self:flex-start;font-family:var(--mono);font-size:9.5pt;color:var(--soft);background:#fff;border:1px solid var(--line);padding:6px 12px;border-radius:6px;}
+.cover-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);padding-top:5mm;font-size:9pt;color:var(--muted);}
+.cover-foot .ep{font-family:var(--mono);font-weight:700;color:var(--rust);letter-spacing:0.1em;}
+.cover-foot-r{font-family:var(--mono);font-size:8.5pt;color:var(--muted);}
+.cover-num{position:absolute;top:13mm;right:0;font-family:var(--mono);font-weight:800;font-size:54pt;color:#dadbe0;}
+
+.divider-head{display:flex;align-items:center;gap:14px;margin-bottom:4mm;}
+.divider .kicker{font-family:var(--mono);font-size:9pt;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);}
+.divider-title{font-size:30pt;font-weight:800;color:#16181d;margin:0;letter-spacing:-0.01em;}
+.divider-intro{margin-top:5mm;} .divider-intro p{font-size:11.5pt;}
+
+.ap-title{font-size:26pt;font-weight:800;color:#16181d;margin:0 0 2mm;}
+.ap-sub{font-size:11pt;color:var(--soft);max-width:150mm;margin:0 0 5mm;}
+.ck-table{width:100%;border-collapse:collapse;font-size:10pt;}
+.ck-table th{text-align:left;background:#f3f3f4;color:var(--ink);font-family:var(--mono);font-size:8pt;text-transform:uppercase;letter-spacing:0.03em;padding:2.6mm 3mm;border:1px solid var(--line);}
+.ck-scene{font-weight:700;color:#16181d;width:40%;}
+.ck-table td{padding:2.6mm 3mm;border:1px solid var(--line);color:var(--soft);vertical-align:top;overflow-wrap:break-word;}
+.ap-foot{margin-top:7mm;font-size:10pt;background:#f7f7f6;border:1px solid var(--line);border-radius:8px;padding:4mm 5mm;line-height:1.7;}
+
+/* "Save as PDF" button: screen only */
+.save-pdf{position:fixed;right:18px;bottom:18px;z-index:50;font-family:var(--sans);font-size:13px;font-weight:700;color:#fff;background:var(--rust);border:none;border-radius:8px;padding:11px 16px;box-shadow:0 3px 12px rgba(0,0,0,0.25);cursor:pointer;}
+.save-pdf:hover{background:#b0461f;}
+/* running header/footer: print only (repeat on every printed page) */
+.print-running{display:none;}
+
+@page{size:A4;margin:16mm 14mm 14mm;}
+@media print{
+  html,body{background:#fff;}
+  .doc{max-width:none;margin:0;padding:0;background:#fff;box-shadow:none;}
+  .save-pdf{display:none !important;}
+  .print-running{display:flex;position:fixed;left:0;right:0;align-items:center;justify-content:space-between;font-size:8pt;color:var(--soft);font-family:var(--mono);}
+  .print-running.top{top:6mm;} .print-running.bot{bottom:6mm;}
+  .print-running .brand{display:flex;align-items:center;gap:6px;font-family:var(--sans);font-weight:700;color:var(--ink);}
+  .print-running .xh{display:flex;align-items:center;gap:5px;}
+  .print-running .muted{color:var(--muted);}
+}
+
+/* frosted-glass zoom panel: screen only, hidden in print */
+.zoom-panel{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:60;display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:16px;background:rgba(255,255,255,0.55);-webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blur(14px) saturate(1.3);border:1px solid rgba(255,255,255,0.7);box-shadow:0 10px 30px rgba(28,30,34,0.18),inset 0 1px 0 rgba(255,255,255,0.65);font-family:var(--sans);}
+.zoom-panel button{width:40px;height:40px;border:none;cursor:pointer;border-radius:11px;background:rgba(255,255,255,0.5);color:var(--ink);font-size:19px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;transition:background .15s,transform .1s;}
+.zoom-panel button:hover{background:rgba(255,255,255,0.95);}
+.zoom-panel button:active{transform:scale(0.93);}
+.zoom-level{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--soft);text-align:center;padding:3px 0;cursor:pointer;user-select:none;letter-spacing:0.02em;border-radius:8px;}
+.zoom-level:hover{color:var(--rust);background:rgba(255,255,255,0.5);}
+.zoom-mbar-bg{display:none;}
+/* phones: sticky bottom toolbar holding zoom (left) + Save as PDF (right) */
+@media (max-width:640px){.zoom-mbar-bg{display:block;position:fixed;left:0;right:0;bottom:0;height:58px;background:rgba(255,255,255,0.55);-webkit-backdrop-filter:blur(16px) saturate(1.4);backdrop-filter:blur(16px) saturate(1.4);border-top:1px solid rgba(255,255,255,0.7);box-shadow:0 -8px 30px rgba(28,30,34,0.12);z-index:59;}.zoom-panel{left:14px;right:auto;top:auto;bottom:10px;transform:none;flex-direction:row-reverse;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;border:none;box-shadow:none;padding:0;}.zoom-panel button{width:38px;height:38px;background:rgba(0,0,0,0.05);color:var(--ink);}.zoom-panel button:hover{background:rgba(0,0,0,0.1);}.zoom-level{color:var(--soft);}.zoom-level:hover{color:var(--rust);background:transparent;}.save-pdf{right:14px !important;bottom:10px !important;z-index:60 !important;}body{padding-bottom:70px;}}
+@media print{.zoom-panel{display:none !important;}.doc{zoom:1 !important;width:auto !important;}}
+
+/* notes-mobile-css: screen-only mobile reflow, print styles left untouched */
+@media screen and (max-width: 640px) {
+  html, body { background: #fff; }
+  .doc { max-width: 100%; margin: 0; padding: 22px 16px; box-shadow: none; }
+  .cover { min-height: auto; padding: 6px 0 22px; }
+  .cover-title { font-size: 30pt; padding-right: 0; }
+  .cover-tagline { font-size: 15pt; }
+  .cover-num { font-size: 38pt; top: 6px; }
+  .divider-title { font-size: 24pt; }
+  .body h3 { font-size: 17pt; }
+  .body p, .body li { font-size: 12pt; }
+  .body pre { font-size: 8.5pt; padding: 3mm 3.5mm; }
+  .ap-title { font-size: 22pt; }
+}
+</style>
+<link rel="icon" type="image/png" href="/icon" />
+</head>
+<body>
+<div class="print-running top"><span class="brand"><svg viewBox="0 0 28 20" width="18" height="13" aria-hidden="true"><rect width="28" height="20" rx="5" fill="#FF0033"/><path d="M11 6l7 4-7 4z" fill="#fff"/></svg>MeowyTheDev</span><span class="muted">RUST FROM ZERO · EP.03</span></div>
+<div class="print-running bot"><span class="xh"><svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="#2b1d12" d="M18.9 2H22l-7.6 8.7L23.3 22h-6.9l-5.4-7-6.2 7H1.7l8.1-9.3L1 2h7l4.9 6.5z"/></svg>@me256ow</span><span class="muted">companion guide</span></div>
+<main class="doc">
+<section class="cover">
+      <div class="cover-eyebrow">MeowyTheDev <span class="dot">·</span> Rust from Zero</div>
+      <h1 class="cover-title">Structs, <span class="accent">Enums</span>, and Match</h1>
+      <p class="cover-tagline">structs shape your data. enums give it choices. match reads them back.</p>
+      <div class="cover-chip">The Rust Programming Language <span class="dot">·</span> Chapters 5-6</div>
+      <div class="cover-foot"><span class="ep">EP.03</span><span class="cover-foot-r">companion guide · watch on the Rust from Zero playlist</span></div>
+      <div class="cover-num">03</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 5-6 (intro)</span></div><div class="body"><h3>Your turn to build</h3>
+<img class="slide" src="img/SceneTypesHook.webp" alt="" /><p>Ownership keeps your data safe. Now the harder question: how do you shape your data in the first place? So far you have integers, booleans, strings, tuples. They carry values, but none of them can say <code>Player</code>, and none can say <code>Status</code>. Two tools fix that.</p>
+<ul>
+<li>A <strong>struct</strong> gives your data a shape, with named fields you choose.</li>
+<li>An <strong>enum</strong> gives it a set of choices, one of which holds at any time.</li>
+<li><strong>Pattern matching</strong> reads them both back, safely, at compile time.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> structs shape it. enums choose it. match reads it.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-rust">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Structs</h2><span class="book-chip">Book · §5.1</span></div>
+      <img class="slide" src="img/SceneChapter01.webp" alt="Structs chapter divider" />
+      <div class="body divider-intro"><p>Define the shape of your data. Structs and enums model everything.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §5.1 Defining Structs</span></div><div class="body"><h3>Define a struct</h3>
+<img class="slide" src="img/SceneStructIntro.webp" alt="" /><pre><code class="language-rust">struct Player {
+    name: String,
+    score: u32,
+    is_alive: bool,
+}
+</code></pre>
+<p>The <code>struct</code> keyword names a new type you define yourself. We&#39;re modeling a game character, so this one is <code>Player</code>. Inside the braces are the fields, each with a name and a type.</p>
+<ul>
+<li>We used <code>String</code>, not <code>&amp;str</code>. When the struct <strong>owns</strong> its data, the data lives as long as the <code>Player</code> does. References inside a struct work too, but they need lifetimes (chapter 10).</li>
+<li>The definition is just the <strong>shape</strong>, the blueprint. It doesn&#39;t create a player yet.</li>
+</ul>
+<p>To get a value, fill the shape in: one <code>Player</code>, named <code>meow</code>, score 0, alive.</p>
+<blockquote>
+<p><strong>Remember:</strong> struct = the shape. instance = a value of that shape.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §5.1 Defining Structs</span></div><div class="body"><h3>Why not a tuple?</h3>
+<img class="slide" src="img/SceneStructVsTuple.webp" alt="" /><p>You could model a player with a tuple. The data fits, but what does each piece mean?</p>
+<pre><code class="language-rust">let meow = (String::from(&quot;Meow&quot;), 0, true);
+</code></pre>
+<p>A struct names each piece:</p>
+<pre><code class="language-rust">let meow = Player {
+    name: String::from(&quot;Meow&quot;),
+    score: 0,
+    is_alive: true,
+};
+</code></pre>
+<ul>
+<li>Same three values, same memory. But now anyone reading the code can tell what each piece represents.</li>
+<li>The compiler reads those names too. Misspell a field and you get a compile error before the bug ships:</li>
+</ul>
+<pre><code class="language-text">error[E0609]: no field `scor` on type `Player`   (did you mean `score`?)
+</code></pre>
+<p>Two or three obviously-related values, a tuple is fine. Beyond that, give the pieces names.</p>
+<blockquote>
+<p><strong>Remember:</strong> tuples are positional. structs are named.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §5.1 Defining Structs</span></div><div class="body"><h3>Making and changing one</h3>
+<img class="slide" src="img/SceneStructInstance.webp" alt="" /><pre><code class="language-rust">let mut meow = Player {
+    name: String::from(&quot;Meow&quot;),
+    score: 0,
+    is_alive: true,
+};
+
+println!(&quot;{}&quot;, meow.score);   // read
+meow.score = 100;             // write
+</code></pre>
+<ul>
+<li>Fill <strong>every field</strong> once. Order is up to you. Read a field with a dot.</li>
+<li>To change a field, the <strong>whole <code>let</code></strong> has to be <code>mut</code>. Rust has no per-field opt-in: the whole instance is mutable, or none of it is.</li>
+</ul>
+<p>Field shorthand when a local already has the field&#39;s name, and update syntax to take the rest from another value:</p>
+<pre><code class="language-rust">let name = String::from(&quot;Meow&quot;);
+let score = 0;
+let meow = Player { name, score, is_alive: true }; // shorthand
+
+let revived = Player { is_alive: true, ..meow };    // update syntax
+println!(&quot;{}&quot;, meow.name);  // value borrowed after move
+</code></pre>
+<ul>
+<li><strong>Catch:</strong> <code>..meow</code> <em>moves</em> the non-<code>Copy</code> fields out. <code>name</code> is a <code>String</code>, so after this <code>meow.name</code> is gone.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> fill every field once. shorthand when names match. <code>..</code> may move, not copy.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §5.1 Defining Structs</span></div><div class="body"><h3>Tuple and unit structs</h3>
+<img class="slide" src="img/SceneTupleAndUnitStructs.webp" alt="" /><p>Two more struct shapes:</p>
+<pre><code class="language-rust">struct Position(i32, i32);   // x, y on the map
+let here = Position(meow.x, meow.y);
+println!(&quot;at {}, {}&quot;, here.0, here.1);
+</code></pre>
+<ul>
+<li><strong>Tuple struct:</strong> fields by position, reached with <code>.0</code>, <code>.1</code>, but with a real type name.</li>
+</ul>
+<pre><code class="language-rust">struct Inches(u32);
+struct Centimeters(u32);
+walk_cm(Inches(10));  // mismatched types
+</code></pre>
+<ul>
+<li><strong>Same shape, different identity.</strong> <code>Inches</code> and <code>Centimeters</code> both wrap a <code>u32</code>, but the compiler treats them as different types.</li>
+</ul>
+<pre><code class="language-rust">struct Spawn;   // a marker, no data
+</code></pre>
+<ul>
+<li><strong>Unit struct:</strong> no fields, just a name. Useful as a marker type (you&#39;ll see why in episode 06).</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> <code>Position(i32, i32)</code> is a tuple struct. <code>Spawn</code> is a unit struct. <code>Player { ... }</code> is named.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §5.2 Example Program</span></div><div class="body"><h3>One example, three shapes</h3>
+<img class="slide" src="img/SceneAreaProgression.webp" alt="" /><p>The area of a rectangle, refactored twice. Same answer (<code>1500</code>) each time, clearer intent each step:</p>
+<pre><code class="language-rust">fn area(width: u32, height: u32) -&gt; u32 { width * height }
+let result = area(30, 50);            // raw params
+
+fn area(dim: (u32, u32)) -&gt; u32 { dim.0 * dim.1 }
+let result = area((30, 50));          // tuple
+
+struct Rectangle { width: u32, height: u32 }
+fn area(rect: &amp;Rectangle) -&gt; u32 { rect.width * rect.height }
+let r = Rectangle { width: 30, height: 50 };
+let result = area(&amp;r);                // struct
+</code></pre>
+<ul>
+<li><strong>Raw params:</strong> two free-floating numbers. The caller has to remember the order.</li>
+<li><strong>Tuple:</strong> grouped, but <code>.0</code> and <code>.1</code> carry no meaning.</li>
+<li><strong>Struct:</strong> named fields. <code>rect.width * rect.height</code> reads like prose. The intent lives in the code.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> raw -&gt; tuple -&gt; struct. each step adds meaning.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §5.2 Derived Traits</span></div><div class="body"><h3>Seeing inside: Debug and dbg!</h3>
+<img class="slide" src="img/SceneDebugAndDbg.webp" alt="" /><p>Want to print a struct? <code>println!(&quot;{}&quot;, r)</code> won&#39;t compile: <code>Rectangle</code> doesn&#39;t implement <code>Display</code>, and Rust won&#39;t write it for you. The debug formatter <code>{:?}</code> needs opting in too:</p>
+<pre><code class="language-rust">#[derive(Debug)]
+struct Rectangle { width: u32, height: u32 }
+
+let r = Rectangle { width: 30, height: 50 };
+println!(&quot;{:?}&quot;, r);   // Rectangle { width: 30, height: 50 }
+println!(&quot;{:#?}&quot;, r);  // pretty, one field per line
+dbg!(&amp;r);              // prints file, line, expression, and value
+</code></pre>
+<ul>
+<li><strong><code>Display</code> (<code>{}</code>)</strong> is for end users. You write it yourself.</li>
+<li><strong><code>Debug</code> (<code>{:?}</code>)</strong> is the developer formatter. One <code>#[derive(Debug)]</code> and the compiler generates it. <code>{:#?}</code> pretty-prints.</li>
+<li><strong><code>dbg!</code></strong> prints the expression <em>and</em> the value, and hands the value back, so it slots into any line.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> <code>derive(Debug)</code> to see. <code>dbg!</code> to trace.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-teal">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Methods</h2><span class="book-chip">Book · §5.3</span></div>
+      <img class="slide" src="img/SceneChapter02.webp" alt="Methods chapter divider" />
+      <div class="body divider-intro"><p>Behavior lives in impl blocks. Data is what, impl is how.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §5.3 Method Syntax</span></div><div class="body"><h3>Behavior in impl</h3>
+<img class="slide" src="img/SceneImplBlock.webp" alt="" /><p>Data lives in the struct. Behavior lives in an <code>impl</code> block.</p>
+<pre><code class="language-rust">impl Player {
+    fn new(name: String) -&gt; Self {
+        Self { name, score: 0, is_alive: true }
+    }
+    fn describe(&amp;self) -&gt; String {
+        format!(&quot;{} scored {}&quot;, self.name, self.score)
+    }
+}
+
+let meow = Player::new(String::from(&quot;Meow&quot;));
+let line = meow.describe();
+</code></pre>
+<ul>
+<li><strong><code>describe(&amp;self)</code></strong> borrows the player and reads its fields. <code>&amp;self</code> is shorthand for <code>self: &amp;Self</code>.</li>
+<li>At the call site you write <code>meow.describe()</code>, not <code>(&amp;meow).describe()</code>. Rust adds the reference for you.</li>
+<li><strong><code>new</code></strong> has no <code>self</code>. It builds a player and hands it back, so you call it on the type: <code>Player::new(...)</code>. That&#39;s an <strong>associated function</strong>, where constructors live.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> the struct holds the data. impl holds the behavior.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §5.3 Method Syntax</span></div><div class="body"><h3>Three flavors of self</h3>
+<img class="slide" src="img/SceneSelfFlavors.webp" alt="" /><p>Every method asks: what does it need from the player? That answer picks the <code>self</code>:</p>
+<pre><code class="language-rust">fn describe(&amp;self) -&gt; String       // borrow: read
+fn add_points(&amp;mut self, n: u32)   // borrow: write
+fn into_name(self) -&gt; String       // take: consume
+</code></pre>
+<table>
+<thead>
+<tr>
+<th><code>self</code></th>
+<th>does</th>
+<th>caller keeps the player?</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>&amp;self</code></td>
+<td>reads the fields, changes nothing</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>&amp;mut self</code></td>
+<td>changes a field in place</td>
+<td>yes (still owns it)</td>
+</tr>
+<tr>
+<td><code>self</code></td>
+<td>takes the value, consumes it</td>
+<td>no, it&#39;s gone</td>
+</tr>
+</tbody></table>
+<p>Start with <code>&amp;self</code>. Promote to <code>&amp;mut self</code> when you need to write. Use plain <code>self</code> only when you mean to consume (converting types, or a builder chain like <code>Player::new(&quot;Meow&quot;).set_score(0).alive()</code>).</p>
+<blockquote>
+<p><strong>Remember:</strong> <code>&amp;self</code> first. <code>&amp;mut self</code> when you write. <code>self</code> when you take.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §5.3 Method Syntax</span></div><div class="body"><h3>Methods take more than self</h3>
+<img class="slide" src="img/SceneMethodParams.webp" alt="" /><pre><code class="language-rust">impl Player {
+    fn can_beat(&amp;self, other: &amp;Player) -&gt; bool {
+        self.score &gt; other.score
+    }
+}
+
+if meow.can_beat(&amp;other) {
+    println!(&quot;victory!&quot;);
+}
+</code></pre>
+<ul>
+<li><code>self</code> is always the first parameter. After that, methods look like any other function.</li>
+<li>At the call site, Rust auto-references <code>meow</code>, but the second player you reference yourself with <code>&amp;other</code>, because it&#39;s a normal argument, not the <code>self</code>.</li>
+<li>You can split methods across <strong>multiple <code>impl</code> blocks</strong> for the same type. The compiler treats them as one. Handy for grouping by purpose.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> self goes first. more params are normal. one type, many impls.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-rustDk">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Enums</h2><span class="book-chip">Book · §6.1</span></div>
+      <img class="slide" src="img/SceneChapter03.webp" alt="Enums chapter divider" />
+      <div class="body divider-intro"><p>One type, a set of choices. One type, many shapes.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §6.1 Defining an Enum</span></div><div class="body"><h3>Enums carry data</h3>
+<img class="slide" src="img/SceneEnumIntro.webp" alt="" /><p>An enum is a type that is one of a fixed set of options:</p>
+<pre><code class="language-rust">enum Status {
+    Playing,
+    Paused,
+    HitBy(u32),
+    GameOver { by: String },
+}
+</code></pre>
+<ul>
+<li>A player&#39;s status is <strong>exactly one</strong> of these at a time. Never two.</li>
+<li>If you tried this with booleans (<code>is_playing</code>, <code>is_paused</code>, <code>is_hit</code>, <code>is_game_over</code>), nothing would stop two being <code>true</code> at once. The enum makes that impossible.</li>
+<li>Rust enums aren&#39;t just tags. <code>HitBy</code> carries a number (points lost), <code>GameOver</code> carries a named field (who ended it). The data rides inside the variant.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> one type, many shapes. match handles each.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §6.1 Defining an Enum</span></div><div class="body"><h3>Three variant shapes</h3>
+<img class="slide" src="img/SceneEnumVariants.webp" alt="" /><pre><code class="language-rust">let a = Status::Playing;
+let b = Status::HitBy(2);
+let c = Status::GameOver { by: String::from(&quot;boss&quot;) };
+</code></pre>
+<ul>
+<li><strong>Unit variant:</strong> the name on its own, no data. Closest to a C-style enum.</li>
+<li><strong>Tuple variant:</strong> values in parens. The data is part of the variant.</li>
+<li><strong>Struct variant:</strong> named fields, like a tiny struct living inside one arm.</li>
+</ul>
+<p>Three different shapes, one type for the compiler. That&#39;s what makes enums powerful.</p>
+<blockquote>
+<p><strong>Remember:</strong> unit. tuple. struct. three shapes, one type.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §6.1 Option</span></div><div class="body"><h3>No null, just Option</h3>
+<img class="slide" src="img/SceneOption.webp" alt="" /><p>In many languages, any reference might secretly be null, and you find out at runtime, sometimes in production. Rust has no null. If a value might be missing, the type says so:</p>
+<pre><code class="language-rust">let player: Option&lt;Player&gt; = find();
+match player {
+  Some(p) =&gt; greet(p),
+  None    =&gt; wait(),
+}
+</code></pre>
+<ul>
+<li><code>Option&lt;T&gt;</code> is <code>Some(T)</code> or <code>None</code>. You always know up front, from the type, whether something can be missing.</li>
+<li>You can&#39;t use an <code>Option&lt;i32&gt;</code> as an <code>i32</code>. Add one to it and the compiler stops you:</li>
+</ul>
+<pre><code class="language-text">error[E0277]: cannot add `{integer}` to `Option&lt;i32&gt;`
+</code></pre>
+<ul>
+<li>To get the value out, you handle <strong>both</strong> cases. The compiler won&#39;t let you skip <code>None</code>.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> the billion-dollar mistake, opted out at the type level.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-rust">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Pattern matching</h2><span class="book-chip">Book · §6.2</span></div>
+      <img class="slide" src="img/SceneChapter04.webp" alt="Pattern matching chapter divider" />
+      <div class="body divider-intro"><p>Read every shape, exhaustively. Branch and unpack in one move.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §6.2 The match Construct</span></div><div class="body"><h3>Read it with match</h3>
+<img class="slide" src="img/SceneMatch.webp" alt="" /><p>A struct can hold an enum, and <code>match</code> reads it back:</p>
+<pre><code class="language-rust">match meow.status {
+    Status::Playing =&gt; println!(&quot;go&quot;),
+    Status::Paused =&gt; wait(),
+    Status::HitBy(points) =&gt; lose(&amp;meow, points),
+    Status::GameOver { by } =&gt; over(by),
+}
+</code></pre>
+<ul>
+<li>One arm per variant. Rust tests <strong>top to bottom</strong>, the first that fits runs.</li>
+<li><code>match</code> is an <strong>expression</strong>: every arm returns a value, and the whole <code>match</code> returns one. You can assign it with <code>let</code>.</li>
+<li>Patterns can bind the variant&#39;s data (next scene).</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> match = branch + value in one expression.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §6.2 The match Construct</span></div><div class="body"><h3>Patterns bind values</h3>
+<img class="slide" src="img/SceneMatchBindsValues.webp" alt="" /><pre><code class="language-rust">fn plus_one(x: Option&lt;i32&gt;) -&gt; Option&lt;i32&gt; {
+    match x {
+        None     =&gt; None,
+        Some(i)  =&gt; Some(i + 1),
+    }
+}
+</code></pre>
+<ul>
+<li>In <code>Some(i)</code>, the <code>i</code> is a name. It binds to whatever number is inside the <code>Some</code>.</li>
+<li>Call <code>plus_one(Some(5))</code>: the <code>None</code> arm doesn&#39;t fit, <code>Some(i)</code> does with <code>i = 5</code>, returns <code>Some(6)</code>.</li>
+<li>Call <code>plus_one(None)</code>: the <code>None</code> arm fits, <code>Some(i)</code> is never looked at, returns <code>None</code>.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> arms test the shape, and bind the data inside.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §6.2 The match Construct</span></div><div class="body"><h3>Match must be exhaustive</h3>
+<img class="slide" src="img/SceneMatchExhaustive.webp" alt="" /><p>Forget a case and Rust won&#39;t build it:</p>
+<pre><code class="language-text">error[E0004]: non-exhaustive patterns: `GameOver { .. }` not covered
+</code></pre>
+<p>The compiler even names the variant you missed. Add a new variant later, and every match on that type breaks until you handle it, on purpose.</p>
+<p>When you don&#39;t want every case, catch the rest:</p>
+<pre><code class="language-rust">match dice_roll() {
+    3 =&gt; prize(),
+    7 =&gt; prize(),
+    other =&gt; print_roll(other),  // binds the value
+    // _ =&gt; reroll(),            // or drop it, no binding
+}
+</code></pre>
+<ul>
+<li><strong><code>other</code></strong> (a name) binds whatever didn&#39;t match above.</li>
+<li><strong><code>_</code></strong> is the catch-all that drops the value, no binding, no warning.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> exhaustive by default. <code>other</code> to keep, <code>_</code> to drop.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §6.3 Concise Control Flow</span></div><div class="body"><h3>if let and while let</h3>
+<img class="slide" src="img/SceneIfLetWhileLet.webp" alt="" /><p>Sometimes you only care about one variant. A full <code>match</code> is noisy for that.</p>
+<pre><code class="language-rust">if let Status::HitBy(points) = meow.status {
+    lose(&amp;meow, points);
+} else {
+    keep_going(&amp;meow);
+}
+
+while let Some(player) = lobby.pop() {
+    seat(player);
+}
+</code></pre>
+<ul>
+<li><strong><code>if let</code></strong> runs the block only when the pattern fits, and binds the data. It&#39;s a <code>match</code> trimmed to one arm. Add <code>else</code> for a fallback.</li>
+<li><strong><code>while let</code></strong> loops as long as the pattern keeps fitting. The moment <code>pop()</code> returns <code>None</code>, the loop ends.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Use</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>match</code></td>
+<td>you care about every case</td>
+</tr>
+<tr>
+<td><code>if let</code> / <code>if let ... else</code></td>
+<td>one case, optional fallback</td>
+</tr>
+<tr>
+<td><code>while let</code></td>
+<td>drain a stream while it holds</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>Remember:</strong> one case? if let. a stream? while let.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-teal">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Derive</h2><span class="book-chip">Book · §5.2</span></div>
+      <img class="slide" src="img/SceneChapter05.webp" alt="Derive chapter divider" />
+      <div class="body divider-intro"><p>Free behavior, when you ask.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §5.2 Derived Traits</span></div><div class="body"><h3>The rest of derive</h3>
+<img class="slide" src="img/SceneDeriveMacros.webp" alt="" /><p>One line above a struct asks the compiler to write code for you:</p>
+<pre><code class="language-rust">#[derive(Clone, Copy, PartialEq, Default)]
+struct PlayerStats {
+    level: u32,
+    health: u32,
+    speed: u32,
+}
+
+let a = PlayerStats::default();   // Default
+let b = a;                        // Copy: implicit
+let c = a.clone();                // Clone: explicit
+let same = a == b;                // PartialEq: ==
+</code></pre>
+<ul>
+<li><strong><code>Clone</code></strong> is the explicit deep copy: <code>.clone()</code>. Never silent, you typed the word.</li>
+<li><strong><code>Copy</code></strong> is implicit and bitwise, only allowed if <strong>every field is <code>Copy</code></strong> (a <code>String</code> or <code>Vec</code> rules it out). <code>let b = a</code> copies and leaves <code>a</code> usable.</li>
+<li><strong><code>PartialEq</code></strong> gives you <code>==</code> and <code>!=</code>, compared field by field.</li>
+<li><strong><code>Default</code></strong> gives <code>PlayerStats::default()</code>, every field at its zero state.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> derive = behavior, for free, when you ask.</p>
+</blockquote>
+</div></section>
+<section class="scene quote"><img class="slide" src="img/ScenePullQuote.webp" alt="Pull quote" /><div class="body"><p>The whole episode in three ideas:</p>
+<blockquote>
+<p>A struct is the shape. An enum is the choices. Match is how you read them back.</p>
+</blockquote>
+</div></section>
+<section class="appendix">
+      <h2 class="ap-title">Cheatsheet <span class="accent">recap</span></h2>
+      <p class="ap-sub">One line per idea, in order. Skim this when you just need the reminder.</p>
+      <table class="ck-table"><thead><tr><th>Idea</th><th>Remember</th></tr></thead><tbody><tr><td class="ck-scene">Your turn to build</td><td class="ck-text">structs shape it. enums choose it. match reads it.</td></tr>
+<tr><td class="ck-scene">Define a struct</td><td class="ck-text">struct = the shape. instance = a value of that shape.</td></tr>
+<tr><td class="ck-scene">Why not a tuple?</td><td class="ck-text">tuples are positional. structs are named.</td></tr>
+<tr><td class="ck-scene">Making and changing one</td><td class="ck-text">fill every field once. shorthand when names match. <code>..</code> may move, not copy.</td></tr>
+<tr><td class="ck-scene">Tuple and unit structs</td><td class="ck-text"><code>Position(i32, i32)</code> is a tuple struct. <code>Spawn</code> is a unit struct. <code>Player { ... }</code> is named.</td></tr>
+<tr><td class="ck-scene">One example, three shapes</td><td class="ck-text">raw -&gt; tuple -&gt; struct. each step adds meaning.</td></tr>
+<tr><td class="ck-scene">Seeing inside: Debug and dbg!</td><td class="ck-text"><code>derive(Debug)</code> to see. <code>dbg!</code> to trace.</td></tr>
+<tr><td class="ck-scene">Behavior in impl</td><td class="ck-text">the struct holds the data. impl holds the behavior.</td></tr>
+<tr><td class="ck-scene">Three flavors of self</td><td class="ck-text"><code>&amp;self</code> first. <code>&amp;mut self</code> when you write. <code>self</code> when you take.</td></tr>
+<tr><td class="ck-scene">Methods take more than self</td><td class="ck-text">self goes first. more params are normal. one type, many impls.</td></tr>
+<tr><td class="ck-scene">Enums carry data</td><td class="ck-text">one type, many shapes. match handles each.</td></tr>
+<tr><td class="ck-scene">Three variant shapes</td><td class="ck-text">unit. tuple. struct. three shapes, one type.</td></tr>
+<tr><td class="ck-scene">No null, just Option</td><td class="ck-text">the billion-dollar mistake, opted out at the type level.</td></tr>
+<tr><td class="ck-scene">Read it with match</td><td class="ck-text">match = branch + value in one expression.</td></tr>
+<tr><td class="ck-scene">Patterns bind values</td><td class="ck-text">arms test the shape, and bind the data inside.</td></tr>
+<tr><td class="ck-scene">Match must be exhaustive</td><td class="ck-text">exhaustive by default. <code>other</code> to keep, <code>_</code> to drop.</td></tr>
+<tr><td class="ck-scene">if let and while let</td><td class="ck-text">one case? if let. a stream? while let.</td></tr>
+<tr><td class="ck-scene">The rest of derive</td><td class="ck-text">derive = behavior, for free, when you ask.</td></tr></tbody></table>
+      <div class="ap-foot"><strong>Maps to:</strong> The Rust Programming Language, Chapters 5-6.<br/><strong>Practice:</strong> Rustlings <code>07_structs</code>, <code>08_enums</code>, <code>12_options</code>.</div>
+    </section>
+</main>
+<button class="save-pdf" onclick="window.print()">Save as PDF</button>
+
+<div class="zoom-mbar-bg" aria-hidden="true"></div>
+<div class="zoom-panel" data-zoom-panel aria-label="Zoom controls">
+  <button type="button" class="zoom-in" aria-label="Zoom in" title="Zoom in">+</button>
+  <div class="zoom-level" role="button" tabindex="0" title="Reset zoom" aria-label="Reset zoom">100%</div>
+  <button type="button" class="zoom-out" aria-label="Zoom out" title="Zoom out">−</button>
+</div>
+<script>
+(function(){
+  var doc=document.querySelector('.doc');
+  var panel=document.querySelector('[data-zoom-panel]');
+  if(!doc||!panel)return;
+  var label=panel.querySelector('.zoom-level');
+  var KEY='rfz_notes_zoom',MIN=0.5,MAX=2,STEP=0.1,z=1;
+  try{var s=parseFloat(localStorage.getItem(KEY));if(s>=MIN&&s<=MAX)z=s;}catch(e){}
+  function clamp(v){return Math.min(MAX,Math.max(MIN,Math.round(v*100)/100));}
+  function isMobile(){return window.matchMedia&&window.matchMedia('(max-width:640px)').matches;}
+  function apply(){var m=isMobile()&&z!==1;doc.style.zoom=z;doc.style.width=m?('calc(100% / '+z+')'):'';doc.style.maxWidth=m?'none':'';label.textContent=Math.round(z*100)+'%';try{localStorage.setItem(KEY,String(z));}catch(e){}}
+  panel.querySelector('.zoom-in').addEventListener('click',function(){z=clamp(z+STEP);apply();});
+  panel.querySelector('.zoom-out').addEventListener('click',function(){z=clamp(z-STEP);apply();});
+  function reset(){z=1;apply();}
+  label.addEventListener('click',reset);
+  label.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();reset();}});
+  window.addEventListener('resize',apply);
+  apply();
+})();
+</script>
+</body>
+</html>

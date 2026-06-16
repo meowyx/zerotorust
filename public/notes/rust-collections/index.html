@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Vec, String, and HashMap · MeowyTheDev companion guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@1&family=Caveat:wght@500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink:#1c1e22; --soft:#43474e; --muted:#888d96; --line:#e3e4e8;
+  --rust:#c8542a; --code-bg:#f5f5f4; --code-fg:#24292e;
+  --sans:"Bricolage Grotesque",system-ui,-apple-system,sans-serif;
+  --serif:"Instrument Serif",Georgia,serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:#e9e9ec;color:var(--ink);font-family:var(--sans);}
+.accent{font-family:var(--serif);font-style:italic;color:var(--rust);font-weight:400;}
+.doc{max-width:182mm;margin:8mm auto;padding:16mm;background:#fff;box-shadow:0 4px 24px rgba(0,0,0,0.18);}
+
+.cover{position:relative;min-height:240mm;display:flex;flex-direction:column;justify-content:center;break-after:page;}
+.divider{break-before:page;padding-top:6mm;}
+.appendix{break-before:page;padding-top:4mm;}
+.scene{margin:0 0 9mm;}
+.scene.quote{break-before:page;padding-top:8mm;}
+.slide,.body pre,.body table,.body blockquote{break-inside:avoid;}
+.body h3{break-after:avoid;}
+
+.book-chip{display:inline-block;font-family:var(--mono);font-size:8pt;letter-spacing:0.02em;color:var(--soft);background:#fff;border:1px solid var(--line);padding:3px 9px;border-radius:5px;white-space:nowrap;}
+.scene-chip{margin-bottom:3mm;}
+.slide{display:block;width:100%;max-width:100%;border-radius:8px;border:1px solid var(--line);}
+
+.body h3{font-size:19pt;font-weight:700;color:#16181d;margin:0 0 3mm;line-height:1.15;letter-spacing:-0.01em;}
+.body p{font-size:11pt;line-height:1.62;color:var(--soft);margin:0 0 3mm;}
+.body p strong,.body li strong{color:var(--ink);font-weight:700;}
+.body em{font-family:var(--serif);font-style:italic;color:var(--ink);}
+.body ul,.body ol{margin:3mm 0;padding-left:6mm;}
+.body li{margin:0 0 2mm;line-height:1.55;font-size:11pt;color:var(--soft);}
+.body code{font-family:var(--mono);font-size:0.86em;background:var(--code-bg);padding:0.08em 0.32em;border-radius:4px;color:#9a3a18;}
+.body pre{background:var(--code-bg);color:var(--code-fg);border:1px solid var(--line);border-radius:8px;padding:4mm 5mm;white-space:pre-wrap;overflow-wrap:break-word;font-family:var(--mono);font-size:9.5pt;line-height:1.5;margin:4mm 0;}
+.body pre code{background:none;padding:0;color:inherit;font-size:inherit;}
+.body table{width:100%;border-collapse:collapse;margin:4mm 0;font-size:10pt;}
+.body th{text-align:left;background:#f3f3f4;color:var(--ink);font-family:var(--mono);font-size:8pt;text-transform:uppercase;letter-spacing:0.02em;padding:2.4mm 3mm;border:1px solid var(--line);}
+.body td{padding:2.4mm 3mm;border:1px solid var(--line);vertical-align:top;color:var(--soft);overflow-wrap:break-word;}
+.body blockquote{margin:5mm 0 0;background:#f7f7f6;border-left:3px solid var(--rust);border-radius:0 6px 6px 0;padding:3.5mm 5mm;font-size:11pt;color:var(--ink);}
+.body blockquote p{margin:0;color:var(--ink);} .body blockquote strong{color:#16181d;}
+
+.cover-eyebrow{font-family:var(--mono);font-size:9.5pt;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);}
+.cover-title{font-size:40pt;line-height:1.06;font-weight:800;color:#16181d;margin:6mm 0 0;letter-spacing:-0.01em;padding-right:34mm;}
+.cover-tagline{font-family:var(--serif);font-style:italic;font-size:18pt;color:var(--soft);margin:7mm 0 0;max-width:150mm;line-height:1.4;}
+.cover-chip{margin-top:14mm;align-self:flex-start;font-family:var(--mono);font-size:9.5pt;color:var(--soft);background:#fff;border:1px solid var(--line);padding:6px 12px;border-radius:6px;}
+.cover-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);padding-top:5mm;font-size:9pt;color:var(--muted);}
+.cover-foot .ep{font-family:var(--mono);font-weight:700;color:var(--rust);letter-spacing:0.1em;}
+.cover-foot-r{font-family:var(--mono);font-size:8.5pt;color:var(--muted);}
+.cover-num{position:absolute;top:13mm;right:0;font-family:var(--mono);font-weight:800;font-size:54pt;color:#dadbe0;}
+
+.divider-head{display:flex;align-items:center;gap:14px;margin-bottom:4mm;}
+.divider .kicker{font-family:var(--mono);font-size:9pt;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);}
+.divider-title{font-size:30pt;font-weight:800;color:#16181d;margin:0;letter-spacing:-0.01em;}
+.divider-intro{margin-top:5mm;} .divider-intro p{font-size:11.5pt;}
+
+.ap-title{font-size:26pt;font-weight:800;color:#16181d;margin:0 0 2mm;}
+.ap-sub{font-size:11pt;color:var(--soft);max-width:150mm;margin:0 0 5mm;}
+.ck-table{width:100%;border-collapse:collapse;font-size:10pt;}
+.ck-table th{text-align:left;background:#f3f3f4;color:var(--ink);font-family:var(--mono);font-size:8pt;text-transform:uppercase;letter-spacing:0.03em;padding:2.6mm 3mm;border:1px solid var(--line);}
+.ck-scene{font-weight:700;color:#16181d;width:40%;}
+.ck-table td{padding:2.6mm 3mm;border:1px solid var(--line);color:var(--soft);vertical-align:top;overflow-wrap:break-word;}
+.ap-foot{margin-top:7mm;font-size:10pt;background:#f7f7f6;border:1px solid var(--line);border-radius:8px;padding:4mm 5mm;line-height:1.7;}
+
+/* "Save as PDF" button: screen only */
+.save-pdf{position:fixed;right:18px;bottom:18px;z-index:50;font-family:var(--sans);font-size:13px;font-weight:700;color:#fff;background:var(--rust);border:none;border-radius:8px;padding:11px 16px;box-shadow:0 3px 12px rgba(0,0,0,0.25);cursor:pointer;}
+.save-pdf:hover{background:#b0461f;}
+/* running header/footer: print only (repeat on every printed page) */
+.print-running{display:none;}
+
+@page{size:A4;margin:16mm 14mm 14mm;}
+@media print{
+  html,body{background:#fff;}
+  .doc{max-width:none;margin:0;padding:0;background:#fff;box-shadow:none;}
+  .save-pdf{display:none !important;}
+  .print-running{display:flex;position:fixed;left:0;right:0;align-items:center;justify-content:space-between;font-size:8pt;color:var(--soft);font-family:var(--mono);}
+  .print-running.top{top:6mm;} .print-running.bot{bottom:6mm;}
+  .print-running .brand{display:flex;align-items:center;gap:6px;font-family:var(--sans);font-weight:700;color:var(--ink);}
+  .print-running .xh{display:flex;align-items:center;gap:5px;}
+  .print-running .muted{color:var(--muted);}
+}
+
+/* frosted-glass zoom panel: screen only, hidden in print */
+.zoom-panel{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:60;display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:16px;background:rgba(255,255,255,0.55);-webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blur(14px) saturate(1.3);border:1px solid rgba(255,255,255,0.7);box-shadow:0 10px 30px rgba(28,30,34,0.18),inset 0 1px 0 rgba(255,255,255,0.65);font-family:var(--sans);}
+.zoom-panel button{width:40px;height:40px;border:none;cursor:pointer;border-radius:11px;background:rgba(255,255,255,0.5);color:var(--ink);font-size:19px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;transition:background .15s,transform .1s;}
+.zoom-panel button:hover{background:rgba(255,255,255,0.95);}
+.zoom-panel button:active{transform:scale(0.93);}
+.zoom-level{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--soft);text-align:center;padding:3px 0;cursor:pointer;user-select:none;letter-spacing:0.02em;border-radius:8px;}
+.zoom-level:hover{color:var(--rust);background:rgba(255,255,255,0.5);}
+.zoom-mbar-bg{display:none;}
+/* phones: sticky bottom toolbar holding zoom (left) + Save as PDF (right) */
+@media (max-width:640px){.zoom-mbar-bg{display:block;position:fixed;left:0;right:0;bottom:0;height:58px;background:rgba(255,255,255,0.55);-webkit-backdrop-filter:blur(16px) saturate(1.4);backdrop-filter:blur(16px) saturate(1.4);border-top:1px solid rgba(255,255,255,0.7);box-shadow:0 -8px 30px rgba(28,30,34,0.12);z-index:59;}.zoom-panel{left:14px;right:auto;top:auto;bottom:10px;transform:none;flex-direction:row-reverse;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;border:none;box-shadow:none;padding:0;}.zoom-panel button{width:38px;height:38px;background:rgba(0,0,0,0.05);color:var(--ink);}.zoom-panel button:hover{background:rgba(0,0,0,0.1);}.zoom-level{color:var(--soft);}.zoom-level:hover{color:var(--rust);background:transparent;}.save-pdf{right:14px !important;bottom:10px !important;z-index:60 !important;}body{padding-bottom:70px;}}
+@media print{.zoom-panel{display:none !important;}.doc{zoom:1 !important;width:auto !important;}}
+
+/* notes-mobile-css: screen-only mobile reflow, print styles left untouched */
+@media screen and (max-width: 640px) {
+  html, body { background: #fff; }
+  .doc { max-width: 100%; margin: 0; padding: 22px 16px; box-shadow: none; }
+  .cover { min-height: auto; padding: 6px 0 22px; }
+  .cover-title { font-size: 30pt; padding-right: 0; }
+  .cover-tagline { font-size: 15pt; }
+  .cover-num { font-size: 38pt; top: 6px; }
+  .divider-title { font-size: 24pt; }
+  .body h3 { font-size: 17pt; }
+  .body p, .body li { font-size: 12pt; }
+  .body pre { font-size: 8.5pt; padding: 3mm 3.5mm; }
+  .ap-title { font-size: 22pt; }
+}
+</style>
+<link rel="icon" type="image/png" href="/icon" />
+</head>
+<body>
+<div class="print-running top"><span class="brand"><svg viewBox="0 0 28 20" width="18" height="13" aria-hidden="true"><rect width="28" height="20" rx="5" fill="#FF0033"/><path d="M11 6l7 4-7 4z" fill="#fff"/></svg>MeowyTheDev</span><span class="muted">RUST FROM ZERO · EP.04</span></div>
+<div class="print-running bot"><span class="xh"><svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="#2b1d12" d="M18.9 2H22l-7.6 8.7L23.3 22h-6.9l-5.4-7-6.2 7H1.7l8.1-9.3L1 2h7l4.9 6.5z"/></svg>@me256ow</span><span class="muted">companion guide</span></div>
+<main class="doc">
+<section class="cover">
+      <div class="cover-eyebrow">MeowyTheDev <span class="dot">·</span> Rust from Zero</div>
+      <h1 class="cover-title">Vec, String, and <span class="accent">HashMap</span></h1>
+      <p class="cover-tagline">three collections cover almost everything. growable, on the heap, owned by you.</p>
+      <div class="cover-chip">The Rust Programming Language <span class="dot">·</span> Chapter 8</div>
+      <div class="cover-foot"><span class="ep">EP.04</span><span class="cover-foot-r">companion guide · watch on the Rust from Zero playlist</span></div>
+      <div class="cover-num">04</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 8 (intro)</span></div><div class="body"><h3>Three collections</h3>
+<img class="slide" src="img/SceneThreeCollections.webp" alt="" /><p>Three collection types cover almost everything you&#39;ll reach for. All three grow, all three live on the heap, and all three are owned by you, the same ownership rules from episode 2.</p>
+<ul>
+<li><strong><code>Vec&lt;T&gt;</code></strong> is an ordered list.</li>
+<li><strong><code>String</code></strong> is owned text.</li>
+<li><strong><code>HashMap&lt;K, V&gt;</code></strong> pairs a key with a value.</li>
+</ul>
+<p>Different shapes, same rules.</p>
+<blockquote>
+<p><strong>Remember:</strong> same rules. new shapes.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-rust">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Vec&lt;T&gt;</h2><span class="book-chip">Book · §8.1</span></div>
+      <img class="slide" src="img/SceneChapter01.webp" alt="Vec&lt;T&gt; chapter divider" />
+      <div class="body divider-intro"><p>The container you reach for daily: an ordered, growable list of one type.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §8.1 Vectors</span></div><div class="body"><h3>Why a Vec?</h3>
+<img class="slide" src="img/SceneVecWhy.webp" alt="" /><pre><code class="language-rust">let mut treats = vec![3, 1, 4]; // a list that grows
+</code></pre>
+<ul>
+<li><strong>Grows.</strong> An ordered list of one type that resizes itself. An array can&#39;t.</li>
+<li><strong>Heap.</strong> The buffer lives on the heap. That&#39;s what lets it grow while the program runs.</li>
+<li><strong>Owned.</strong> It drops its items when it drops. The ownership rules from before still apply.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> list. heap. owned.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §8.1 Vectors</span></div><div class="body"><h3>Making a Vec</h3>
+<img class="slide" src="img/SceneVecCreate.webp" alt="" /><pre><code class="language-rust">let mut treats = vec![3, 1, 4];
+let mut empty: Vec&lt;i32&gt; = Vec::new();
+let mut sized = Vec::with_capacity(100);
+</code></pre>
+<ul>
+<li><strong><code>vec!</code></strong> is the macro. Start with values inside, the type is inferred.</li>
+<li><strong><code>Vec::new</code></strong> makes an empty one. Give it a type, since there&#39;s nothing inside to infer from.</li>
+<li><strong><code>Vec::with_capacity(100)</code></strong> reserves room for 100 before the next resize, zero items yet. Use it when you know roughly how many are coming.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> macro for known values. <code>new</code> for empty. capacity for big.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §8.1 Vectors</span></div><div class="body"><h3>Changing a Vec</h3>
+<img class="slide" src="img/SceneVecMutate.webp" alt="" /><pre><code class="language-rust">let mut treats = vec![3, 1, 4];
+treats.push(9);
+let last = treats.pop();
+treats.insert(0, 7);
+</code></pre>
+<ul>
+<li><strong><code>push</code></strong> adds to the end, growing if it has to.</li>
+<li><strong><code>pop</code></strong> returns an <code>Option</code>, because the Vec might be empty. <code>None</code> if empty, <code>Some(value)</code> otherwise.</li>
+<li><strong><code>insert</code></strong> puts an item at any index. Items after it shift right; <code>remove</code> shifts left.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> push, pop, insert. always an Option on pop.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §8.1 Vectors</span></div><div class="body"><h3>Reading a Vec</h3>
+<img class="slide" src="img/SceneVecRead.webp" alt="" /><pre><code class="language-rust">let treats = vec![3, 1, 4, 1, 5];
+let third = treats[2];
+let safe = treats.get(2);
+for t in &amp;treats { println!(&quot;{t}&quot;); }
+treats.len();
+treats.capacity();
+</code></pre>
+<ul>
+<li><strong><code>[]</code></strong> panics on an out-of-range index. Fast path when you&#39;re sure.</li>
+<li><strong><code>.get</code></strong> returns <code>Option&lt;&amp;T&gt;</code>: <code>None</code> when missing. Safer.</li>
+<li><strong><code>for x in &amp;v</code></strong> borrows to read. Each <code>x</code> is a <code>&amp;T</code>, no move.</li>
+<li><strong><code>len</code> vs <code>capacity</code>:</strong> length is real items, capacity is room before the next resize.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> <code>.get</code> for safe. <code>&amp;</code> to iterate. len isn&#39;t capacity.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-teal">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">String, really</h2><span class="book-chip">Book · §8.2</span></div>
+      <img class="slide" src="img/SceneChapter02.webp" alt="String, really chapter divider" />
+      <div class="body divider-intro"><p>Text is trickier than it looks. Bytes, chars, and graphemes are not the same thing.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §8.2 Strings</span></div><div class="body"><h3>&amp;str vs String</h3>
+<img class="slide" src="img/SceneStrVsString.webp" alt="" /><pre><code class="language-rust">let lit: &amp;str = &quot;Meowy&quot;;
+let owned: String = String::from(&quot;Meowy&quot;);
+
+fn greet(name: &amp;str) { println!(&quot;hi {name}&quot;); }
+greet(&amp;owned);
+</code></pre>
+<ul>
+<li><strong><code>&amp;str</code></strong> is a borrowed view of text. Fixed size, cheap to pass.</li>
+<li><strong><code>String</code></strong> is owned, on the heap, growable. You control its lifetime.</li>
+<li><strong>Accept <code>&amp;str</code></strong> in functions: it works for both literals and <code>String</code> references, one signature.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> literal: <code>&amp;str</code>. runtime text: <code>String</code>. accept <code>&amp;str</code>.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §8.2 Strings</span></div><div class="body"><h3>Strings are UTF-8 bytes</h3>
+<img class="slide" src="img/SceneStringUTF8.webp" alt="" /><p>Inside, a <code>String</code> is a list of bytes encoded as UTF-8. One character can take more than one byte. Take <code>&quot;Meowy 🐈&quot;</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Count</th>
+<th>Value</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>bytes</td>
+<td>10</td>
+<td>6 ASCII (1 byte each) + 4 for the cat emoji</td>
+</tr>
+<tr>
+<td>chars</td>
+<td>7</td>
+<td>the emoji counts as one char</td>
+</tr>
+<tr>
+<td>graphemes</td>
+<td>7</td>
+<td>and as one grapheme</td>
+</tr>
+</tbody></table>
+<p>ASCII is one byte each. The cat is one character, but four bytes.</p>
+<blockquote>
+<p><strong>Remember:</strong> english fits one byte. one cat does not.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §8.2 Strings</span></div><div class="body"><h3>Why s[0] doesn&#39;t compile</h3>
+<img class="slide" src="img/SceneStringIndex.webp" alt="" /><pre><code class="language-rust">let s = String::from(&quot;Meowy 🐈&quot;);
+let c = s[0];              // won&#39;t compile
+let first = s.chars().nth(0);
+let byte0 = s.bytes().nth(0);
+let head = &amp;s[0..1];       // careful: byte range
+</code></pre>
+<ul>
+<li><strong><code>s[0]</code></strong> asks &quot;which byte?&quot; and Rust refuses. A compile error, not a runtime panic.</li>
+<li><strong><code>.chars()</code></strong> gives an iterator of <code>char</code>. <code>.nth(0)</code> returns the first.</li>
+<li><strong><code>.bytes()</code></strong> gives the bytes instead.</li>
+<li><strong><code>&amp;s[0..n]</code></strong> slices by bytes, and panics if the range cuts a character in half. Stay on char boundaries.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> ask for chars or bytes. never <code>s[0]</code>.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §8.2 Strings</span></div><div class="body"><h3>Building strings</h3>
+<img class="slide" src="img/SceneStringOps.webp" alt="" /><pre><code class="language-rust">let mut s = String::from(&quot;Meowy&quot;);
+s.push_str(&quot; 🐈&quot;);
+let combo = s + &quot; says hi&quot;;
+let line = format!(&quot;{name}: {age}&quot;, name = &quot;nyx&quot;, age = 3);
+</code></pre>
+<ul>
+<li><strong><code>push_str</code></strong> adds a <code>&amp;str</code> to the end. <code>push</code> adds a single <code>char</code>.</li>
+<li><strong><code>+</code></strong> concatenates, but takes the left side by value. The left is gone after.</li>
+<li><strong><code>format!</code></strong> does the same and borrows everything, returning a new <code>String</code>. No moves. Reach for it when you can.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> <code>+</code> moves the left. <code>format!</code> borrows.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-rustDk">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">HashMap</h2><span class="book-chip">Book · §8.3</span></div>
+      <img class="slide" src="img/SceneChapter03.webp" alt="HashMap chapter divider" />
+      <div class="body divider-intro"><p>Look something up by key, not by position.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §8.3 Hash Maps</span></div><div class="body"><h3>Why a HashMap?</h3>
+<img class="slide" src="img/SceneHashMapWhy.webp" alt="" /><p>A <code>HashMap</code> is a key, a value, and a way to look it up by name:</p>
+<pre><code class="language-text">meowy -&gt; 27
+nyx   -&gt; 3
+pip   -&gt; 11
+</code></pre>
+<ul>
+<li><strong>Key to value.</strong> Point a name at a value, with constant-time lookup.</li>
+<li><strong>vs Vec.</strong> A Vec answers &quot;what&#39;s at position 3?&quot; A HashMap answers &quot;what&#39;s at meowy?&quot;</li>
+<li><strong>Owned.</strong> Every key and value lives inside the map. It drops them with it.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> lookup by name. owned, like the rest.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §8.3 Hash Maps</span></div><div class="body"><h3>Using a HashMap</h3>
+<img class="slide" src="img/SceneHashMapBasics.webp" alt="" /><pre><code class="language-rust">use std::collections::HashMap;
+let mut ages = HashMap::new();
+ages.insert(&quot;meowy&quot;, 27);
+let a = ages.get(&quot;meowy&quot;);
+for (name, age) in &amp;ages { println!(&quot;{name}: {age}&quot;); }
+</code></pre>
+<ul>
+<li><strong><code>new</code></strong> makes an empty map. <code>K</code> and <code>V</code> are inferred from the first insert.</li>
+<li><strong><code>insert</code></strong> pairs a key with a value. The same key replaces, returning the old value as an <code>Option</code>.</li>
+<li><strong><code>get</code></strong> returns <code>Option&lt;&amp;V&gt;</code>, because the key might not be there. You unwrap or match.</li>
+<li><strong><code>for (k, v) in &amp;map</code></strong> borrows to read all. The order is not stable, don&#39;t rely on it.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> get returns an Option. order is arbitrary.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §8.3 Hash Maps</span></div><div class="body"><h3>Who owns the keys?</h3>
+<img class="slide" src="img/SceneHashMapOwn.webp" alt="" /><pre><code class="language-rust">use std::collections::HashMap;
+let mut owners: HashMap&lt;String, u32&gt; = HashMap::new();
+let name = String::from(&quot;pip&quot;);
+owners.insert(name, 11);   // name has moved
+let by_id: HashMap&lt;u32, &amp;str&gt; = HashMap::new();
+</code></pre>
+<ul>
+<li><strong>String keys move</strong> into the map. You can&#39;t use <code>name</code> after the insert.</li>
+<li><strong>Copy keys</strong> (<code>u32</code>, <code>bool</code>, <code>char</code>...) are duplicated, not moved. You can still use them.</li>
+<li><strong>Reference keys</strong> (<code>&amp;str</code>) work if the data outlives the map. Lifetimes still apply.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> String moves. u32 copies. a <code>&amp;</code> must outlive the map.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §8.3 Hash Maps</span></div><div class="body"><h3>The check-then-insert mess</h3>
+<img class="slide" src="img/SceneEntryProblem.webp" alt="" /><p>Counting words the obvious way takes two lookups on every hit:</p>
+<pre><code class="language-rust">let mut counts: HashMap&lt;&amp;str, u32&gt; = HashMap::new();
+
+for word in text.split_whitespace() {
+    if counts.contains_key(word) {
+        let v = counts.get_mut(word).unwrap();
+        *v += 1;
+    } else {
+        counts.insert(word, 1);
+    }
+}
+</code></pre>
+<ul>
+<li><strong><code>contains_key</code></strong> asks first, a boolean answer.</li>
+<li><strong><code>get_mut</code> + <code>unwrap</code></strong> is the second lookup. That <code>unwrap</code> is a smell, not a feature.</li>
+<li>The <code>else: insert</code> is a third branch. Two lookups on the hot path, for one update.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> two lookups. there&#39;s a better way.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §8.3 Hash Maps</span></div><div class="body"><h3>The entry API</h3>
+<img class="slide" src="img/SceneEntryAPI.webp" alt="" /><pre><code class="language-rust">*counts.entry(word).or_insert(0) += 1;
+
+counts.entry(word).and_modify(|v| *v += 1).or_insert(1);
+
+counts.entry(key).or_insert_with(expensive_default);
+</code></pre>
+<ul>
+<li><strong><code>.entry(k)</code></strong> does a single lookup and hands you the slot, whether it exists or not.</li>
+<li><strong><code>.or_insert(v)</code></strong> drops in a default if missing, and returns <code>&amp;mut V</code> either way. Dereference and add.</li>
+<li><strong><code>.and_modify(f)</code></strong> runs only if the key is present. Pair it with <code>.or_insert</code> for both cases.</li>
+<li><strong><code>.or_insert_with(f)</code></strong> computes the default lazily, only on a miss.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> one lookup. then decide.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-rust">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Common pitfalls</h2><span class="book-chip">Book · Ch 8</span></div>
+      <img class="slide" src="img/SceneChapter04.webp" alt="Common pitfalls chapter divider" />
+      <div class="body divider-intro"><p>The mistakes everyone makes once.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 8 (pitfalls)</span></div><div class="body"><h3>Borrow while iterating</h3>
+<img class="slide" src="img/SceneBorrowWhileIter.webp" alt="" /><pre><code class="language-rust">let mut v = vec![1, 2, 3];
+
+for x in &amp;v {          // shared borrow
+    v.push(x * 2);     // mutable borrow. conflict.
+}
+</code></pre>
+<p>Iterating with <code>&amp;v</code> hands the loop a shared borrow until it finishes. <code>push</code> needs a mutable borrow. You can&#39;t have both at once:</p>
+<pre><code class="language-text">error[E0502]: cannot borrow `v` as mutable because it is also borrowed as immutable
+</code></pre>
+<p>Same rule from episode 2. New shape, same compiler answer.</p>
+<blockquote>
+<p><strong>Remember:</strong> same borrow rule. new shape.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 8 (pitfalls)</span></div><div class="body"><h3>Read all, then write all</h3>
+<img class="slide" src="img/SceneBorrowFix.webp" alt="" /><pre><code class="language-rust">// read all first, then write all
+let extra: Vec&lt;_&gt; = v.iter().map(|x| x * 2).collect();
+v.extend(extra);
+
+// and resist .clone() as the easy fix
+</code></pre>
+<ul>
+<li><strong><code>collect</code></strong> is the read pass: produce the new items in a fresh Vec while you&#39;re only reading.</li>
+<li><strong><code>extend</code></strong> is the write pass: mutate <code>v</code> once nothing is borrowing it.</li>
+<li><strong><code>.clone()</code> trap:</strong> cheap to type, not cheap to run. Reach for it on purpose, not by reflex.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> read all. then write all.</p>
+</blockquote>
+</div></section>
+<section class="scene quote"><img class="slide" src="img/ScenePullQuote.webp" alt="Pull quote" /><div class="body"><p>The whole episode in one line:</p>
+<blockquote>
+<p>Store many things. Reach for one. Vec, String, HashMap.</p>
+</blockquote>
+</div></section>
+<section class="appendix">
+      <h2 class="ap-title">Cheatsheet <span class="accent">recap</span></h2>
+      <p class="ap-sub">One line per idea, in order. Skim this when you just need the reminder.</p>
+      <table class="ck-table"><thead><tr><th>Idea</th><th>Remember</th></tr></thead><tbody><tr><td class="ck-scene">Three collections</td><td class="ck-text">same rules. new shapes.</td></tr>
+<tr><td class="ck-scene">Why a Vec?</td><td class="ck-text">list. heap. owned.</td></tr>
+<tr><td class="ck-scene">Making a Vec</td><td class="ck-text">macro for known values. <code>new</code> for empty. capacity for big.</td></tr>
+<tr><td class="ck-scene">Changing a Vec</td><td class="ck-text">push, pop, insert. always an Option on pop.</td></tr>
+<tr><td class="ck-scene">Reading a Vec</td><td class="ck-text"><code>.get</code> for safe. <code>&amp;</code> to iterate. len isn't capacity.</td></tr>
+<tr><td class="ck-scene">&amp;str vs String</td><td class="ck-text">literal: <code>&amp;str</code>. runtime text: <code>String</code>. accept <code>&amp;str</code>.</td></tr>
+<tr><td class="ck-scene">Strings are UTF-8 bytes</td><td class="ck-text">english fits one byte. one cat does not.</td></tr>
+<tr><td class="ck-scene">Why s[0] doesn't compile</td><td class="ck-text">ask for chars or bytes. never <code>s[0]</code>.</td></tr>
+<tr><td class="ck-scene">Building strings</td><td class="ck-text"><code>+</code> moves the left. <code>format!</code> borrows.</td></tr>
+<tr><td class="ck-scene">Why a HashMap?</td><td class="ck-text">lookup by name. owned, like the rest.</td></tr>
+<tr><td class="ck-scene">Using a HashMap</td><td class="ck-text">get returns an Option. order is arbitrary.</td></tr>
+<tr><td class="ck-scene">Who owns the keys?</td><td class="ck-text">String moves. u32 copies. a <code>&amp;</code> must outlive the map.</td></tr>
+<tr><td class="ck-scene">The check-then-insert mess</td><td class="ck-text">two lookups. there's a better way.</td></tr>
+<tr><td class="ck-scene">The entry API</td><td class="ck-text">one lookup. then decide.</td></tr>
+<tr><td class="ck-scene">Borrow while iterating</td><td class="ck-text">same borrow rule. new shape.</td></tr>
+<tr><td class="ck-scene">Read all, then write all</td><td class="ck-text">read all. then write all.</td></tr></tbody></table>
+      <div class="ap-foot"><strong>Maps to:</strong> The Rust Programming Language, Chapter 8.<br/><strong>Practice:</strong> Rustlings <code>05_vecs</code>, <code>09_strings</code>, <code>11_hashmaps</code>.</div>
+    </section>
+</main>
+<button class="save-pdf" onclick="window.print()">Save as PDF</button>
+
+<div class="zoom-mbar-bg" aria-hidden="true"></div>
+<div class="zoom-panel" data-zoom-panel aria-label="Zoom controls">
+  <button type="button" class="zoom-in" aria-label="Zoom in" title="Zoom in">+</button>
+  <div class="zoom-level" role="button" tabindex="0" title="Reset zoom" aria-label="Reset zoom">100%</div>
+  <button type="button" class="zoom-out" aria-label="Zoom out" title="Zoom out">−</button>
+</div>
+<script>
+(function(){
+  var doc=document.querySelector('.doc');
+  var panel=document.querySelector('[data-zoom-panel]');
+  if(!doc||!panel)return;
+  var label=panel.querySelector('.zoom-level');
+  var KEY='rfz_notes_zoom',MIN=0.5,MAX=2,STEP=0.1,z=1;
+  try{var s=parseFloat(localStorage.getItem(KEY));if(s>=MIN&&s<=MAX)z=s;}catch(e){}
+  function clamp(v){return Math.min(MAX,Math.max(MIN,Math.round(v*100)/100));}
+  function isMobile(){return window.matchMedia&&window.matchMedia('(max-width:640px)').matches;}
+  function apply(){var m=isMobile()&&z!==1;doc.style.zoom=z;doc.style.width=m?('calc(100% / '+z+')'):'';doc.style.maxWidth=m?'none':'';label.textContent=Math.round(z*100)+'%';try{localStorage.setItem(KEY,String(z));}catch(e){}}
+  panel.querySelector('.zoom-in').addEventListener('click',function(){z=clamp(z+STEP);apply();});
+  panel.querySelector('.zoom-out').addEventListener('click',function(){z=clamp(z-STEP);apply();});
+  function reset(){z=1;apply();}
+  label.addEventListener('click',reset);
+  label.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();reset();}});
+  window.addEventListener('resize',apply);
+  apply();
+})();
+</script>
+</body>
+</html>

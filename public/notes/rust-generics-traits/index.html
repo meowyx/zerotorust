@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Generics, Traits and Lifetimes · MeowyTheDev companion guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@1&family=Caveat:wght@500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink:#1c1e22; --soft:#43474e; --muted:#888d96; --line:#e3e4e8;
+  --rust:#c8542a; --code-bg:#f5f5f4; --code-fg:#24292e;
+  --sans:"Bricolage Grotesque",system-ui,-apple-system,sans-serif;
+  --serif:"Instrument Serif",Georgia,serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:#e9e9ec;color:var(--ink);font-family:var(--sans);}
+.accent{font-family:var(--serif);font-style:italic;color:var(--rust);font-weight:400;}
+.doc{max-width:182mm;margin:8mm auto;padding:16mm;background:#fff;box-shadow:0 4px 24px rgba(0,0,0,0.18);}
+
+.cover{position:relative;min-height:240mm;display:flex;flex-direction:column;justify-content:center;break-after:page;}
+.divider{break-before:page;padding-top:6mm;}
+.appendix{break-before:page;padding-top:4mm;}
+.scene{margin:0 0 9mm;}
+.scene.quote{break-before:page;padding-top:8mm;}
+.slide,.body pre,.body table,.body blockquote{break-inside:avoid;}
+.body h3{break-after:avoid;}
+
+.book-chip{display:inline-block;font-family:var(--mono);font-size:8pt;letter-spacing:0.02em;color:var(--soft);background:#fff;border:1px solid var(--line);padding:3px 9px;border-radius:5px;white-space:nowrap;}
+.scene-chip{margin-bottom:3mm;}
+.slide{display:block;width:100%;max-width:100%;border-radius:8px;border:1px solid var(--line);}
+
+.body h3{font-size:19pt;font-weight:700;color:#16181d;margin:0 0 3mm;line-height:1.15;letter-spacing:-0.01em;}
+.body p{font-size:11pt;line-height:1.62;color:var(--soft);margin:0 0 3mm;}
+.body p strong,.body li strong{color:var(--ink);font-weight:700;}
+.body em{font-family:var(--serif);font-style:italic;color:var(--ink);}
+.body ul,.body ol{margin:3mm 0;padding-left:6mm;}
+.body li{margin:0 0 2mm;line-height:1.55;font-size:11pt;color:var(--soft);}
+.body code{font-family:var(--mono);font-size:0.86em;background:var(--code-bg);padding:0.08em 0.32em;border-radius:4px;color:#9a3a18;}
+.body pre{background:var(--code-bg);color:var(--code-fg);border:1px solid var(--line);border-radius:8px;padding:4mm 5mm;white-space:pre-wrap;overflow-wrap:break-word;font-family:var(--mono);font-size:9.5pt;line-height:1.5;margin:4mm 0;}
+.body pre code{background:none;padding:0;color:inherit;font-size:inherit;}
+.body table{width:100%;border-collapse:collapse;margin:4mm 0;font-size:10pt;}
+.body th{text-align:left;background:#f3f3f4;color:var(--ink);font-family:var(--mono);font-size:8pt;text-transform:uppercase;letter-spacing:0.02em;padding:2.4mm 3mm;border:1px solid var(--line);}
+.body td{padding:2.4mm 3mm;border:1px solid var(--line);vertical-align:top;color:var(--soft);overflow-wrap:break-word;}
+.body blockquote{margin:5mm 0 0;background:#f7f7f6;border-left:3px solid var(--rust);border-radius:0 6px 6px 0;padding:3.5mm 5mm;font-size:11pt;color:var(--ink);}
+.body blockquote p{margin:0;color:var(--ink);} .body blockquote strong{color:#16181d;}
+
+.cover-eyebrow{font-family:var(--mono);font-size:9.5pt;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);}
+.cover-title{font-size:40pt;line-height:1.06;font-weight:800;color:#16181d;margin:6mm 0 0;letter-spacing:-0.01em;padding-right:34mm;}
+.cover-tagline{font-family:var(--serif);font-style:italic;font-size:18pt;color:var(--soft);margin:7mm 0 0;max-width:150mm;line-height:1.4;}
+.cover-chip{margin-top:14mm;align-self:flex-start;font-family:var(--mono);font-size:9.5pt;color:var(--soft);background:#fff;border:1px solid var(--line);padding:6px 12px;border-radius:6px;}
+.cover-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);padding-top:5mm;font-size:9pt;color:var(--muted);}
+.cover-foot .ep{font-family:var(--mono);font-weight:700;color:var(--rust);letter-spacing:0.1em;}
+.cover-foot-r{font-family:var(--mono);font-size:8.5pt;color:var(--muted);}
+.cover-num{position:absolute;top:13mm;right:0;font-family:var(--mono);font-weight:800;font-size:54pt;color:#dadbe0;}
+
+.divider-head{display:flex;align-items:center;gap:14px;margin-bottom:4mm;}
+.divider .kicker{font-family:var(--mono);font-size:9pt;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);}
+.divider-title{font-size:30pt;font-weight:800;color:#16181d;margin:0;letter-spacing:-0.01em;}
+.divider-intro{margin-top:5mm;} .divider-intro p{font-size:11.5pt;}
+
+.ap-title{font-size:26pt;font-weight:800;color:#16181d;margin:0 0 2mm;}
+.ap-sub{font-size:11pt;color:var(--soft);max-width:150mm;margin:0 0 5mm;}
+.ck-table{width:100%;border-collapse:collapse;font-size:10pt;}
+.ck-table th{text-align:left;background:#f3f3f4;color:var(--ink);font-family:var(--mono);font-size:8pt;text-transform:uppercase;letter-spacing:0.03em;padding:2.6mm 3mm;border:1px solid var(--line);}
+.ck-scene{font-weight:700;color:#16181d;width:40%;}
+.ck-table td{padding:2.6mm 3mm;border:1px solid var(--line);color:var(--soft);vertical-align:top;overflow-wrap:break-word;}
+.ap-foot{margin-top:7mm;font-size:10pt;background:#f7f7f6;border:1px solid var(--line);border-radius:8px;padding:4mm 5mm;line-height:1.7;}
+
+/* "Save as PDF" button: screen only */
+.save-pdf{position:fixed;right:18px;bottom:18px;z-index:50;font-family:var(--sans);font-size:13px;font-weight:700;color:#fff;background:var(--rust);border:none;border-radius:8px;padding:11px 16px;box-shadow:0 3px 12px rgba(0,0,0,0.25);cursor:pointer;}
+.save-pdf:hover{background:#b0461f;}
+/* running header/footer: print only (repeat on every printed page) */
+.print-running{display:none;}
+
+@page{size:A4;margin:16mm 14mm 14mm;}
+@media print{
+  html,body{background:#fff;}
+  .doc{max-width:none;margin:0;padding:0;background:#fff;box-shadow:none;}
+  .save-pdf{display:none !important;}
+  .print-running{display:flex;position:fixed;left:0;right:0;align-items:center;justify-content:space-between;font-size:8pt;color:var(--soft);font-family:var(--mono);}
+  .print-running.top{top:6mm;} .print-running.bot{bottom:6mm;}
+  .print-running .brand{display:flex;align-items:center;gap:6px;font-family:var(--sans);font-weight:700;color:var(--ink);}
+  .print-running .xh{display:flex;align-items:center;gap:5px;}
+  .print-running .muted{color:var(--muted);}
+}
+
+/* frosted-glass zoom panel: screen only, hidden in print */
+.zoom-panel{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:60;display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:16px;background:rgba(255,255,255,0.55);-webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blur(14px) saturate(1.3);border:1px solid rgba(255,255,255,0.7);box-shadow:0 10px 30px rgba(28,30,34,0.18),inset 0 1px 0 rgba(255,255,255,0.65);font-family:var(--sans);}
+.zoom-panel button{width:40px;height:40px;border:none;cursor:pointer;border-radius:11px;background:rgba(255,255,255,0.5);color:var(--ink);font-size:19px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;transition:background .15s,transform .1s;}
+.zoom-panel button:hover{background:rgba(255,255,255,0.95);}
+.zoom-panel button:active{transform:scale(0.93);}
+.zoom-level{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--soft);text-align:center;padding:3px 0;cursor:pointer;user-select:none;letter-spacing:0.02em;border-radius:8px;}
+.zoom-level:hover{color:var(--rust);background:rgba(255,255,255,0.5);}
+.zoom-mbar-bg{display:none;}
+/* phones: sticky bottom toolbar holding zoom (left) + Save as PDF (right) */
+@media (max-width:640px){.zoom-mbar-bg{display:block;position:fixed;left:0;right:0;bottom:0;height:58px;background:rgba(255,255,255,0.55);-webkit-backdrop-filter:blur(16px) saturate(1.4);backdrop-filter:blur(16px) saturate(1.4);border-top:1px solid rgba(255,255,255,0.7);box-shadow:0 -8px 30px rgba(28,30,34,0.12);z-index:59;}.zoom-panel{left:14px;right:auto;top:auto;bottom:10px;transform:none;flex-direction:row-reverse;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;border:none;box-shadow:none;padding:0;}.zoom-panel button{width:38px;height:38px;background:rgba(0,0,0,0.05);color:var(--ink);}.zoom-panel button:hover{background:rgba(0,0,0,0.1);}.zoom-level{color:var(--soft);}.zoom-level:hover{color:var(--rust);background:transparent;}.save-pdf{right:14px !important;bottom:10px !important;z-index:60 !important;}body{padding-bottom:70px;}}
+@media print{.zoom-panel{display:none !important;}.doc{zoom:1 !important;width:auto !important;}}
+
+/* notes-mobile-css: screen-only mobile reflow, print styles left untouched */
+@media screen and (max-width: 640px) {
+  html, body { background: #fff; }
+  .doc { max-width: 100%; margin: 0; padding: 22px 16px; box-shadow: none; }
+  .cover { min-height: auto; padding: 6px 0 22px; }
+  .cover-title { font-size: 30pt; padding-right: 0; }
+  .cover-tagline { font-size: 15pt; }
+  .cover-num { font-size: 38pt; top: 6px; }
+  .divider-title { font-size: 24pt; }
+  .body h3 { font-size: 17pt; }
+  .body p, .body li { font-size: 12pt; }
+  .body pre { font-size: 8.5pt; padding: 3mm 3.5mm; }
+  .ap-title { font-size: 22pt; }
+}
+</style>
+<link rel="icon" type="image/png" href="/icon" />
+</head>
+<body>
+<div class="print-running top"><span class="brand"><svg viewBox="0 0 28 20" width="18" height="13" aria-hidden="true"><rect width="28" height="20" rx="5" fill="#FF0033"/><path d="M11 6l7 4-7 4z" fill="#fff"/></svg>MeowyTheDev</span><span class="muted">RUST FROM ZERO · EP.06</span></div>
+<div class="print-running bot"><span class="xh"><svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="#2b1d12" d="M18.9 2H22l-7.6 8.7L23.3 22h-6.9l-5.4-7-6.2 7H1.7l8.1-9.3L1 2h7l4.9 6.5z"/></svg>@me256ow</span><span class="muted">companion guide</span></div>
+<main class="doc">
+<section class="cover">
+      <div class="cover-eyebrow">MeowyTheDev <span class="dot">·</span> Rust from Zero</div>
+      <h1 class="cover-title">Generics, <span class="accent">Traits</span> and Lifetimes</h1>
+      <p class="cover-tagline">one shape, many types. shared behavior. and the names that keep references honest.</p>
+      <div class="cover-chip">The Rust Programming Language <span class="dot">·</span> Chapter 10</div>
+      <div class="cover-foot"><span class="ep">EP.06</span><span class="cover-foot-r">companion guide · watch on the Rust from Zero playlist</span></div>
+      <div class="cover-num">06</div>
+    </section>
+<section class="divider tone-rust">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Generics</h2><span class="book-chip">Book · §10.1</span></div>
+      <img class="slide" src="img/SceneChapterGenerics.webp" alt="Generics chapter divider" />
+      <div class="body divider-intro"><p>Three ideas live in one chapter of the book. We start with generics: writing code once and letting it work for many types.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 10 (the motivation)</span></div><div class="body"><h3>The problem: writing it twice</h3>
+<p>You&#39;ve felt this one. You write a function that finds the largest number in a list. Then you need the same thing for characters, so you copy it, paste it, and change one word.</p>
+<img class="slide" src="img/SceneDuplicateCode.webp" alt="" /><pre><code class="language-rust">fn largest_i32(list: &amp;[i32]) -&gt; i32 {
+    let mut biggest = list[0];
+    for &amp;n in list {
+        if n &gt; biggest { biggest = n; }
+    }
+    biggest
+}
+
+fn largest_char(list: &amp;[char]) -&gt; char {
+    let mut biggest = list[0];
+    for &amp;n in list {
+        if n &gt; biggest { biggest = n; }
+    }
+    biggest
+}
+</code></pre>
+<p>Put them side by side and look closely:</p>
+<ul>
+<li>Same logic, same loop, same comparison.</li>
+<li>The only difference is <code>i32</code> versus <code>char</code>.</li>
+</ul>
+<p>That&#39;s real logic, duplicated, to swap a single type. Every bug you fix in one, you have to remember to fix in the other. There&#39;s a better way, and it&#39;s the whole point of this chapter.</p>
+<blockquote>
+<p><strong>Remember:</strong> same body, twice. only the type changed.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §10.1 Generic Data Types</span></div><div class="body"><h3>One function, every type</h3>
+<p>You wrote <code>largest</code> once for <code>i32</code>, then copy-pasted it for <code>char</code>. Same body, different type. Generics let you stop copying.</p>
+<img class="slide" src="img/SceneGenericFns.webp" alt="" /><p>Here&#39;s the signature, which is where all the new syntax lives:</p>
+<pre><code class="language-rust">fn largest&lt;T: PartialOrd&gt;(list: &amp;[T]) -&gt; &amp;T {
+    // ...find the biggest item...
+}
+</code></pre>
+<p>Read it piece by piece:</p>
+<ul>
+<li><strong><code>&lt;T&gt;</code></strong> introduces a type parameter. <code>T</code> stands in for a type you haven&#39;t picked yet. The caller picks it, the compiler fills it in.</li>
+<li><strong><code>T: PartialOrd</code></strong> is a bound, and it reads as a promise: <code>T</code> has to be a type you can compare with <code>&lt;</code> and <code>&gt;</code>. <code>largest</code> needs to ask &quot;is this bigger?&quot;, so the type has to answer. (<code>PartialOrd</code> is a trait. More on those next chapter.)</li>
+<li><strong><code>list: &amp;[T]</code></strong> is a borrowed slice. The function looks, it doesn&#39;t take.</li>
+<li><strong><code>-&gt; &amp;T</code></strong> hands one back by reference.</li>
+</ul>
+<p>Now call it with anything that fits the promise:</p>
+<table>
+<thead>
+<tr>
+<th>You call it with</th>
+<th><code>T</code> becomes</th>
+<th>Works?</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>&amp;[3, 8, 1, 9, 4]</code></td>
+<td><code>i32</code></td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>&amp;[1.2, 4.7, 0.3]</code></td>
+<td><code>f64</code></td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>&amp;[&quot;meow&quot;, &quot;purr&quot;, &quot;mrr&quot;]</code></td>
+<td><code>&amp;str</code></td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>&amp;[&#39;c&#39;, &#39;a&#39;, &#39;t&#39;]</code></td>
+<td><code>char</code></td>
+<td>yes</td>
+</tr>
+</tbody></table>
+<p>One function. The compiler stamps out a specialized copy for each type you actually use, and each runs as fast as a hand-written version. Generics aren&#39;t slower. There&#39;s no runtime guessing, the cost is paid once, at compile time.</p>
+<blockquote>
+<p><strong>Remember:</strong> write it once, call it with anything that fits the promise.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §10.1 Generic Data Types</span></div><div class="body"><h3>Generic structs</h3>
+<p>Generics aren&#39;t only for functions. A struct can carry a type parameter too.</p>
+<img class="slide" src="img/SceneGenericStructs.webp" alt="" /><pre><code class="language-rust">struct Point&lt;T&gt; {
+    x: T,
+    y: T,
+}
+
+let p = Point { x: 1, y: 2 }; // both i32
+</code></pre>
+<ul>
+<li>The <code>&lt;T&gt;</code> after the name works exactly like it did on functions.</li>
+<li>Both fields use the same <code>T</code>, so <code>x</code> and <code>y</code> have to be the same type.</li>
+</ul>
+<p>What if they should differ? Add a second name:</p>
+<pre><code class="language-rust">struct Point&lt;T, U&gt; {
+    x: T,
+    y: U,
+}
+
+let p = Point { x: 1, y: 2.5 }; // i32 and f64, together
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Definition</th>
+<th><code>x</code> and <code>y</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Point&lt;T&gt;</code></td>
+<td>must be the same type</td>
+</tr>
+<tr>
+<td><code>Point&lt;T, U&gt;</code></td>
+<td>can be different types</td>
+</tr>
+</tbody></table>
+<p>Same shape, different fillings. You pick the types each time you build one.</p>
+<blockquote>
+<p><strong>Remember:</strong> same shape. different fillings.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §10.1 Generic Data Types</span></div><div class="body"><h3>You&#39;ve used generics already</h3>
+<p>Here&#39;s the part you&#39;ll like. You&#39;ve been using generics this whole time without calling them that.</p>
+<img class="slide" src="img/SceneAlreadyGeneric.webp" alt="" /><pre><code class="language-rust">enum Option&lt;T&gt; {
+    Some(T),
+    None,
+}
+
+enum Result&lt;T, E&gt; {
+    Ok(T),
+    Err(E),
+}
+</code></pre>
+<ul>
+<li><strong><code>Option&lt;T&gt;</code></strong> carries one type parameter. <code>T</code> is whatever value might be there, or might be missing.</li>
+<li><strong><code>Result&lt;T, E&gt;</code></strong> carries two. <code>T</code> is the value when things work, <code>E</code> is the reason when they don&#39;t.</li>
+</ul>
+<p>Every time you wrote <code>Option&lt;String&gt;</code> or <code>Result&lt;u32, MyError&gt;</code>, you were filling in those type parameters. Generics were never the scary part.</p>
+<blockquote>
+<p><strong>Remember:</strong> you already wrote this. every day.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-teal">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Traits</h2><span class="book-chip">Book · §10.2</span></div>
+      <img class="slide" src="img/SceneChapterTraits.webp" alt="Traits chapter divider" />
+      <div class="body divider-intro"><p>Generics covered types. Traits cover behavior: how to say &quot;any type that can do this thing.&quot;</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §10.2 Traits</span></div><div class="body"><h3>Traits name behavior</h3>
+<p>A trait is a promise about what a type can <em>do</em>. It names a capability without writing it.</p>
+<img class="slide" src="img/SceneTraitsAsInterfaces.webp" alt="" /><pre><code class="language-rust">trait Greet {
+    fn hello(&amp;self) -&gt; String;
+}
+</code></pre>
+<p><code>Greet</code> says: anything with this trait has a <code>hello</code>. It doesn&#39;t say what <code>hello</code> returns yet. Each type fills that in:</p>
+<pre><code class="language-rust">impl Greet for Cat {
+    fn hello(&amp;self) -&gt; String { &quot;meow, i&#39;m meowy&quot;.into() }
+}
+
+impl Greet for Dog {
+    fn hello(&amp;self) -&gt; String { &quot;woof!&quot;.into() }
+}
+</code></pre>
+<ul>
+<li>Same method name, <code>hello</code>.</li>
+<li>A different body per type. The cat meows, the dog barks.</li>
+<li>Same call, different behavior, decided by the type.</li>
+</ul>
+<p>Anything else can opt in later: a robot, a teapot, whatever you write next. Just add the <code>impl</code>.</p>
+<blockquote>
+<p><strong>Remember:</strong> the trait says what. the impl says how.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §10.2 Traits</span></div><div class="body"><h3>Default methods</h3>
+<p>A trait can ship a body, not just a name. That body is a default every type gets for free.</p>
+<img class="slide" src="img/SceneDefaultMethods.webp" alt="" /><pre><code class="language-rust">trait Greet {
+    fn hello(&amp;self) -&gt; String {
+        &quot;hi.&quot;.into() // the default
+    }
+}
+</code></pre>
+<p>Now a type can take the default by writing nothing, or replace it when it wants its own:</p>
+<pre><code class="language-rust">impl Greet for Cat {} // inherits &quot;hi.&quot;
+
+impl Greet for Dog {
+    fn hello(&amp;self) -&gt; String { &quot;woof!&quot;.into() } // overrides
+}
+</code></pre>
+<ul>
+<li><strong>Cat</strong> writes an empty impl and inherits the default.</li>
+<li><strong>Dog</strong> overrides with its own body. Everyone else still gets the fallback.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> override when the type needs it. otherwise, inherit.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §10.2 Traits</span></div><div class="body"><h3>Trait bounds narrow T</h3>
+<p>Back to generics, with one new power. The moment a function calls <code>hello</code> on a <code>T</code>, it has to promise that <code>T</code> can greet. That promise is a bound, and there are three ways to write the same one:</p>
+<img class="slide" src="img/SceneTraitBounds.webp" alt="" /><pre><code class="language-rust">// 1. inline
+fn notify&lt;T: Greet&gt;(item: &amp;T) { item.hello(); }
+
+// 2. where clause
+fn notify&lt;T&gt;(item: &amp;T) where T: Greet { item.hello(); }
+
+// 3. impl Trait
+fn notify(item: &amp;impl Greet) { item.hello(); }
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Style</th>
+<th>When to reach for it</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>inline <code>&lt;T: Greet&gt;</code></td>
+<td>fast, fine for a single bound</td>
+</tr>
+<tr>
+<td><code>where T: Greet</code></td>
+<td>reads better once bounds stack up</td>
+</tr>
+<tr>
+<td><code>&amp;impl Greet</code></td>
+<td>shortest, more on it next</td>
+</tr>
+</tbody></table>
+<p>All three say the same thing: any <code>T</code> that can <code>Greet</code>, not just one specific type.</p>
+<blockquote>
+<p><strong>Remember:</strong> any T that does Greet. not just one.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §10.2 Traits</span></div><div class="body"><h3>impl Trait, in and out</h3>
+<p><code>impl Trait</code> is shorthand, but it means slightly different things depending on where it sits.</p>
+<img class="slide" src="img/SceneImplTrait.webp" alt="" /><p>As a <strong>parameter</strong>, it&#39;s pure sugar for the generic bound you just saw:</p>
+<pre><code class="language-rust">fn notify(item: &amp;impl Greet) { item.hello(); }
+</code></pre>
+<p>As a <strong>return type</strong>, it says &quot;I&#39;ll hand back something that greets&quot; and lets the compiler pick the concrete type:</p>
+<pre><code class="language-rust">fn make_greeter() -&gt; impl Greet {
+    Cat { name: &quot;meowy&quot;.into() }
+}
+</code></pre>
+<ul>
+<li>The caller knows only that the result can <code>hello</code>.</li>
+<li>The compiler quietly fills in the real type (here, <code>Cat</code>).</li>
+<li>The catch: one concrete type at a time. For a mix, you need <code>dyn</code>, which is next.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> you say what it does. the compiler picks the type.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §10.2 Traits</span></div><div class="body"><h3>dyn Trait, briefly</h3>
+<p>Everything so far picks one concrete type at each call. That&#39;s the fast path. But sometimes you want a cat and a dog in the same list:</p>
+<img class="slide" src="img/SceneDynTrait.webp" alt="" /><pre><code class="language-rust">let pets: Vec&lt;Box&lt;dyn Greet&gt;&gt; = vec![
+    Box::new(Cat::new(&quot;meowy&quot;)),
+    Box::new(Dog::new(&quot;rex&quot;)),
+];
+</code></pre>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Static (<code>generics</code>, <code>impl Trait</code>)</th>
+<th>Dynamic (<code>Box&lt;dyn Trait&gt;</code>)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>types per spot</td>
+<td>one concrete type</td>
+<td>many, behind one reference</td>
+</tr>
+<tr>
+<td>cost</td>
+<td>fastest</td>
+<td>a small runtime cost</td>
+</tr>
+<tr>
+<td>use when</td>
+<td>the type is fixed</td>
+<td>you genuinely need a mix</td>
+</tr>
+</tbody></table>
+<p>The deep mechanics are a Series 2 topic. The rule of thumb is enough for now.</p>
+<blockquote>
+<p><strong>Remember:</strong> reach for dyn when you need a mix.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-rustDk">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Lifetimes</h2><span class="book-chip">Book · §10.3</span></div>
+      <img class="slide" src="img/SceneChapterLifetimes.webp" alt="Lifetimes chapter divider" />
+      <div class="body divider-intro"><p>Lifetimes sound scary and aren&#39;t. They&#39;re how Rust makes sure a reference never outlives the thing it points to.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §10.3 Validating References with Lifetimes</span></div><div class="body"><h3>The dangling reference problem</h3>
+<p>Start with the bug lifetimes exist to prevent.</p>
+<img class="slide" src="img/SceneWhyLifetimes.webp" alt="" /><pre><code class="language-rust">let r;
+{
+    let x = 5;
+    r = &amp;x;
+} // x dies here
+println!(&quot;{r}&quot;); // r points at nothing
+</code></pre>
+<ul>
+<li><code>r</code> is declared in the outer scope, so it lives a while.</li>
+<li><code>x</code> is born inside the inner block and dies at the closing brace.</li>
+<li><code>r</code> still points at where <code>x</code> used to be. That&#39;s a dangling reference.</li>
+</ul>
+<p>In C, this compiles and crashes later, at three a.m. in production. In Rust, it never compiles in the first place.</p>
+<blockquote>
+<p><strong>Remember:</strong> in C this crashes later. in Rust it never compiles.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §10.3 Validating References with Lifetimes</span></div><div class="body"><h3>&#39;a is a name, not a number</h3>
+<p>So how does the compiler check that? You give the relationship a name.</p>
+<img class="slide" src="img/SceneLifetimeAnnotations.webp" alt="" /><pre><code class="language-rust">fn longer&lt;&#39;a&gt;(x: &amp;&#39;a str, y: &amp;&#39;a str) -&gt; &amp;&#39;a str {
+    if x.len() &gt; y.len() { x } else { y }
+}
+</code></pre>
+<p>The little <code>&#39;a</code> is not a duration. It&#39;s a label:</p>
+<ul>
+<li><code>x: &amp;&#39;a str</code> means x lives at least as long as <code>&#39;a</code>.</li>
+<li><code>y: &amp;&#39;a str</code> means y does too.</li>
+<li><code>-&gt; &amp;&#39;a str</code> means the result is bound by that same <code>&#39;a</code>.</li>
+</ul>
+<p>So the returned reference can&#39;t outlive the inputs it came from. You didn&#39;t say <em>how long</em> anything lives. You named a relationship that already existed.</p>
+<blockquote>
+<p><strong>Remember:</strong> you name a relationship, not a duration.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §10.3 Validating References with Lifetimes</span></div><div class="body"><h3>The three elision rules</h3>
+<p>Here&#39;s the relief: most of the time you don&#39;t write <code>&#39;a</code> at all. The compiler follows three rules and fills them in for you.</p>
+<img class="slide" src="img/SceneElision.webp" alt="" /><table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>What it does</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>each reference parameter gets its own lifetime</td>
+<td><code>fn f(x: &amp;i32, y: &amp;i32)</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>one input reference? its lifetime flows to every output</td>
+<td><code>fn first(s: &amp;str) -&gt; &amp;str</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>a method with <code>&amp;self</code>? self&#39;s lifetime flows to the output</td>
+<td><code>fn name(&amp;self) -&gt; &amp;str</code></td>
+</tr>
+</tbody></table>
+<p>Between them, these cover almost everything you write, especially methods on a struct. You only annotate by hand when the compiler genuinely can&#39;t tell.</p>
+<blockquote>
+<p><strong>Remember:</strong> the compiler guesses for you, and gets it right almost every time.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §10.3 Validating References with Lifetimes</span></div><div class="body"><h3>What &#39;static really means</h3>
+<p>One last name to clear up: <code>&#39;static</code>. People read it as &quot;lives forever&quot; and panic. That&#39;s not it.</p>
+<img class="slide" src="img/SceneStatic.webp" alt="" /><pre><code class="language-rust">let s: &amp;&#39;static str = &quot;meowy&quot;; // every string literal is &#39;static
+</code></pre>
+<ul>
+<li>It means &quot;this <em>can</em> live for the whole program, if something needs it to.&quot;</li>
+<li>You&#39;ve already used it: every string literal in your code is <code>&#39;static</code>, for free.</li>
+<li>You can force it by leaking a value, but that&#39;s rare and usually a smell:</li>
+</ul>
+<pre><code class="language-rust">let leaked: &amp;&#39;static str = Box::leak(s.to_string().into_boxed_str());
+</code></pre>
+<blockquote>
+<p><strong>Remember:</strong> &#39;static says <em>can</em> outlive everything, not <em>must</em>.</p>
+</blockquote>
+</div></section>
+<section class="scene quote"><img class="slide" src="img/ScenePullQuote.webp" alt="Pull quote" /><div class="body"><p>The whole episode in one line:</p>
+<blockquote>
+<p>You&#39;re not annotating new behavior. You&#39;re naming relationships that already existed. That&#39;s the lifetime way, and honestly the generics and traits way too.</p>
+</blockquote>
+</div></section>
+<section class="appendix">
+      <h2 class="ap-title">Cheatsheet <span class="accent">recap</span></h2>
+      <p class="ap-sub">One line per idea, in order. Skim this when you just need the reminder.</p>
+      <table class="ck-table"><thead><tr><th>Idea</th><th>Remember</th></tr></thead><tbody><tr><td class="ck-scene">The problem: writing it twice</td><td class="ck-text">same body, twice. only the type changed.</td></tr>
+<tr><td class="ck-scene">One function, every type</td><td class="ck-text">write it once, call it with anything that fits the promise.</td></tr>
+<tr><td class="ck-scene">Generic structs</td><td class="ck-text">same shape. different fillings.</td></tr>
+<tr><td class="ck-scene">You've used generics already</td><td class="ck-text">you already wrote this. every day.</td></tr>
+<tr><td class="ck-scene">Traits name behavior</td><td class="ck-text">the trait says what. the impl says how.</td></tr>
+<tr><td class="ck-scene">Default methods</td><td class="ck-text">override when the type needs it. otherwise, inherit.</td></tr>
+<tr><td class="ck-scene">Trait bounds narrow T</td><td class="ck-text">any T that does Greet. not just one.</td></tr>
+<tr><td class="ck-scene">impl Trait, in and out</td><td class="ck-text">you say what it does. the compiler picks the type.</td></tr>
+<tr><td class="ck-scene">dyn Trait, briefly</td><td class="ck-text">reach for dyn when you need a mix.</td></tr>
+<tr><td class="ck-scene">The dangling reference problem</td><td class="ck-text">in C this crashes later. in Rust it never compiles.</td></tr>
+<tr><td class="ck-scene">'a is a name, not a number</td><td class="ck-text">you name a relationship, not a duration.</td></tr>
+<tr><td class="ck-scene">The three elision rules</td><td class="ck-text">the compiler guesses for you, and gets it right almost every time.</td></tr>
+<tr><td class="ck-scene">What 'static really means</td><td class="ck-text">'static says <em>can</em> outlive everything, not <em>must</em>.</td></tr></tbody></table>
+      <div class="ap-foot"><strong>Maps to:</strong> The Rust Programming Language, Chapter 10.<br/><strong>Practice:</strong> Rustlings <code>14_generics</code>, <code>15_traits</code>, <code>16_lifetimes</code>.</div>
+    </section>
+</main>
+<button class="save-pdf" onclick="window.print()">Save as PDF</button>
+
+<div class="zoom-mbar-bg" aria-hidden="true"></div>
+<div class="zoom-panel" data-zoom-panel aria-label="Zoom controls">
+  <button type="button" class="zoom-in" aria-label="Zoom in" title="Zoom in">+</button>
+  <div class="zoom-level" role="button" tabindex="0" title="Reset zoom" aria-label="Reset zoom">100%</div>
+  <button type="button" class="zoom-out" aria-label="Zoom out" title="Zoom out">−</button>
+</div>
+<script>
+(function(){
+  var doc=document.querySelector('.doc');
+  var panel=document.querySelector('[data-zoom-panel]');
+  if(!doc||!panel)return;
+  var label=panel.querySelector('.zoom-level');
+  var KEY='rfz_notes_zoom',MIN=0.5,MAX=2,STEP=0.1,z=1;
+  try{var s=parseFloat(localStorage.getItem(KEY));if(s>=MIN&&s<=MAX)z=s;}catch(e){}
+  function clamp(v){return Math.min(MAX,Math.max(MIN,Math.round(v*100)/100));}
+  function isMobile(){return window.matchMedia&&window.matchMedia('(max-width:640px)').matches;}
+  function apply(){var m=isMobile()&&z!==1;doc.style.zoom=z;doc.style.width=m?('calc(100% / '+z+')'):'';doc.style.maxWidth=m?'none':'';label.textContent=Math.round(z*100)+'%';try{localStorage.setItem(KEY,String(z));}catch(e){}}
+  panel.querySelector('.zoom-in').addEventListener('click',function(){z=clamp(z+STEP);apply();});
+  panel.querySelector('.zoom-out').addEventListener('click',function(){z=clamp(z-STEP);apply();});
+  function reset(){z=1;apply();}
+  label.addEventListener('click',reset);
+  label.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();reset();}});
+  window.addEventListener('resize',apply);
+  apply();
+})();
+</script>
+</body>
+</html>
