@@ -24,7 +24,7 @@ const jetBrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://rustschool.dev"),
+  metadataBase: new URL("https://zerotorust.com"),
   title: "Rust Series | meowy",
   description:
     "A growing set of Rust video series by meowy. Series 1, Rust from Zero, is a twelve-episode path from your first cargo new to async Rust. Every episode pairs the video with a companion guide, the exact book chapter, and the Rustlings drills that build the same muscles.",
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     title: "Rust Series",
     description:
       "A growing set of Rust video series by meowy, each paired with companion guides, book chapters and Rustlings drills.",
-    url: "https://rustschool.dev",
+    url: "https://zerotorust.com",
     siteName: "Rust Series",
     type: "website",
   },

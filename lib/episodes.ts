@@ -1,4 +1,4 @@
-// Content source of truth for the Rust School site.
+// Content source of truth for the site.
 //
 // The episode map, statuses, chapter mappings, Rustlings folders, blurbs and
 // reading lists all live here. To update the site as new episodes ship, edit

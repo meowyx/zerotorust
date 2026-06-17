@@ -71,7 +71,7 @@ export default async function Image() {
               marginTop: 40,
             }}
           >
-            rustschool.dev
+            zerotorust.com
           </div>
         </div>
         <img src={ferrisSrc} width={330} height={220} alt="" />
