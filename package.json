@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "notes": "bun scripts/add-favicon.ts && bun scripts/add-mobile-css.ts && bun scripts/add-zoom-panel.ts"
+    "notes": "bun scripts/add-favicon.ts && bun scripts/add-mobile-css.ts && bun scripts/add-zoom-panel.ts && bun scripts/build-slides.ts"
   },
   "dependencies": {
     "next": "16.2.9",

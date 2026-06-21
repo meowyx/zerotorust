@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Rust, from zero · Slides (EP.01)</title>
+<!-- "Add to Home Screen" on iPhone launches this chromeless, the practical
+     way to get a fullscreen-like deck where iOS blocks the Fullscreen API -->
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Rust EP.01" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="icon" type="image/png" href="/icon" />
+<style>
+:root{
+  --ink:#1c1e22; --soft:#43474e; --muted:#888d96; --line:#e3e4e8;
+  --rust:#c8542a; --code-bg:#f5f5f4;
+  --sans:"Bricolage Grotesque",system-ui,-apple-system,sans-serif;
+  --serif:"Instrument Serif",Georgia,serif;
+  --mono:"JetBrains Mono",ui-monospace,monospace;
+  --stage:#0e0f12; --panel:#16181d; --sline:#26282e; --sink:#e8e6e2; --smuted:#9a9aaa;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;height:100%;background:var(--stage);color:var(--sink);font-family:var(--sans);overflow:hidden;}
+button{font-family:inherit;}
+
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh;}
+
+.progress{flex:none;height:3px;background:#1d1f24;}
+.progress > i{display:block;height:100%;background:var(--rust);width:0;transition:width .25s ease;}
+
+.topbar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 18px;}
+.brand{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--sink);}
+.brand svg{display:block;}
+.brand .sep{color:#4a4d55;font-weight:400;}
+.brand .ep{font-family:var(--mono);color:var(--rust);font-weight:700;letter-spacing:.08em;}
+.hint{font-family:var(--mono);font-size:11px;color:#6b6e76;white-space:nowrap;}
+.hint b{color:#9a9aaa;font-weight:700;}
+
+.middle{flex:1;display:flex;min-height:0;min-width:0;}
+.viewport{flex:1;display:grid;place-items:center;min-width:0;min-height:0;position:relative;overflow:hidden;}
+
+/* sized in JS to the scaled deck size so grid centering uses the real footprint */
+.scaler{position:relative;flex:none;}
+.deck{position:absolute;top:0;left:0;width:1280px;height:720px;transform-origin:top left;border-radius:14px;overflow:hidden;background:#fff;
+  box-shadow:0 30px 90px -30px rgba(0,0,0,.85),0 0 0 1px rgba(255,255,255,.05);cursor:pointer;}
+.deck img.full{display:block;width:100%;height:100%;object-fit:contain;background:#fff;}
+
+/* composed: cover */
+.cv{width:100%;height:100%;padding:78px 86px;display:flex;flex-direction:column;justify-content:center;position:relative;color:var(--ink);}
+.cv-eyebrow{font-family:var(--mono);font-size:17px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);}
+.cv-title{font-size:96px;line-height:1.04;font-weight:800;color:#16181d;margin:18px 0 0;letter-spacing:-0.01em;}
+.cv-title .accent{font-family:var(--serif);font-style:italic;color:var(--rust);font-weight:400;}
+.cv-tag{font-family:var(--serif);font-style:italic;font-size:34px;color:var(--soft);margin:26px 0 0;max-width:760px;line-height:1.32;}
+.cv-chip{margin-top:40px;align-self:flex-start;font-family:var(--mono);font-size:16px;color:var(--soft);background:#fff;border:1px solid var(--line);padding:9px 16px;border-radius:8px;}
+.cv-foot{position:absolute;left:86px;right:86px;bottom:54px;display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);padding-top:18px;font-size:15px;color:var(--muted);}
+.cv-foot .ep{font-family:var(--mono);font-weight:700;color:var(--rust);letter-spacing:.12em;}
+.cv-num{position:absolute;top:54px;right:86px;font-family:var(--mono);font-weight:800;font-size:120px;color:#e6e7ec;line-height:1;}
+
+/* composed: cheatsheet */
+.ck{width:100%;height:100%;padding:56px 70px;display:flex;flex-direction:column;color:var(--ink);}
+.ck h2{font-size:48px;font-weight:800;color:#16181d;margin:0 0 4px;letter-spacing:-0.01em;}
+.ck h2 .accent{font-family:var(--serif);font-style:italic;color:var(--rust);font-weight:400;}
+.ck .sub{font-size:17px;color:var(--soft);margin:0 0 18px;}
+.ck table{width:100%;border-collapse:collapse;font-size:16.5px;}
+.ck th{text-align:left;background:#f3f3f4;color:var(--ink);font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.04em;padding:8px 12px;border:1px solid var(--line);}
+.ck td{padding:7px 12px;border:1px solid var(--line);color:var(--soft);vertical-align:top;}
+.ck td.idea{font-weight:700;color:#16181d;width:38%;}
+.ck code{font-family:var(--mono);font-size:.9em;background:var(--code-bg);padding:.06em .3em;border-radius:4px;color:#9a3a18;}
+
+/* notes drawer */
+.notes{flex:none;width:0;overflow:hidden;background:var(--panel);border-left:1px solid var(--sline);transition:width .18s ease,height .18s ease;}
+.notes.open{width:380px;}
+.notes-inner{width:380px;height:100%;overflow:auto;padding:24px 24px 40px;}
+.n-kicker{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#6b6e76;margin-bottom:8px;}
+.n-title{font-size:23px;font-weight:800;color:var(--sink);margin:0 0 14px;letter-spacing:-0.01em;}
+.n-points{margin:0;padding-left:18px;}
+.n-points li{font-size:14.5px;line-height:1.6;color:#c4c4cc;margin:0 0 9px;}
+.n-points li b{color:#fff;font-weight:700;}
+.notes-inner code{font-family:var(--mono);font-size:.86em;background:#22252b;padding:.08em .34em;border-radius:4px;color:#e7a884;}
+.n-remember{margin-top:18px;border-left:3px solid var(--rust);background:rgba(200,84,42,.10);border-radius:0 8px 8px 0;padding:12px 14px;font-size:14.5px;line-height:1.55;color:#f0e6df;}
+.n-remember span{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--rust);font-weight:700;margin-bottom:5px;}
+.n-empty{color:#6b6e76;font-size:14px;font-style:italic;}
+
+/* bottom controls */
+.controls{flex:none;display:flex;align-items:center;gap:10px;padding:10px 16px;border-top:1px solid var(--sline);background:#101216;}
+.controls .counter{font-family:var(--mono);font-size:13px;color:var(--smuted);min-width:66px;}
+.controls .counter b{color:var(--sink);}
+.controls .ctitle{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;color:#c4c4cc;}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--sline);background:#1a1c22;color:var(--sink);
+  font-size:13px;font-weight:600;border-radius:9px;padding:8px 13px;cursor:pointer;transition:background .14s,border-color .14s,color .14s;}
+.btn:hover{background:#23262d;border-color:#3a3d45;}
+.btn:disabled{opacity:.38;cursor:not-allowed;}
+.btn.icon{padding:8px 12px;font-size:17px;line-height:1;}
+.btn.on{background:rgba(200,84,42,.16);border-color:rgba(200,84,42,.55);color:#f0b69e;}
+.btn .k{font-family:var(--mono);font-size:10px;color:#7e818a;}
+
+/* grid overview */
+.grid{position:fixed;inset:0;z-index:80;background:rgba(8,9,11,.97);overflow:auto;padding:36px 40px 56px;display:none;}
+.grid.open{display:block;}
+.grid-head{display:flex;align-items:center;justify-content:space-between;max-width:1320px;margin:0 auto 22px;}
+.grid-head h2{font-size:20px;margin:0;color:var(--sink);font-weight:800;}
+.grid-inner{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;max-width:1320px;margin:0 auto;}
+.thumb{position:relative;aspect-ratio:16/9;border-radius:9px;overflow:hidden;border:1px solid var(--sline);background:#fff;cursor:pointer;transition:transform .12s,outline-color .12s;outline:2px solid transparent;}
+.thumb:hover{transform:translateY(-2px);}
+.thumb.current{outline-color:var(--rust);}
+.thumb img{width:100%;height:100%;object-fit:contain;}
+.thumb .composed{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--ink);padding:10px;text-align:center;}
+.thumb .composed .big{font-size:22px;font-weight:800;color:#16181d;}
+.thumb .composed .big .accent{font-family:var(--serif);font-style:italic;color:var(--rust);font-weight:400;}
+.thumb .num{position:absolute;top:6px;left:8px;font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:rgba(14,15,18,.78);border-radius:5px;padding:2px 6px;}
+
+@media (max-width:760px){
+  .hint{display:none;}
+  .controls .ctitle{display:none;}
+  .controls{flex-wrap:wrap;gap:8px;padding:8px 10px;}
+  .btn{padding:9px 12px;}
+  .btn .k{display:none;}            /* no keyboard on touch */
+  #btnFull{display:none;}           /* fullscreen is niche on phones, unsupported on iOS */
+  /* stack the slide on top and slide notes up from the bottom, so the
+     control bar stays reachable instead of being covered by an overlay */
+  .middle{flex-direction:column;}
+  .notes{width:auto;height:0;border-left:none;border-top:1px solid var(--sline);}
+  .notes.open{width:auto;height:46vh;}
+  .notes-inner{width:auto;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="progress"><i id="bar"></i></div>
+
+  <div class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 28 20" width="20" height="14" aria-hidden="true"><rect width="28" height="20" rx="5" fill="#FF0033"/><path d="M11 6l7 4-7 4z" fill="#fff"/></svg>
+      MeowyTheDev <span class="sep">·</span> Rust from Zero <span class="sep">·</span> <span class="ep">EP.01</span>
+    </div>
+    <div class="hint"><b>←</b> <b>→</b> move · <b>N</b> notes · <b>G</b> grid · <b>F</b> fullscreen</div>
+  </div>
+
+  <div class="middle">
+    <div class="viewport" id="viewport">
+      <div class="scaler" id="scaler">
+        <div class="deck" id="deck" role="group" aria-label="slide"></div>
+      </div>
+    </div>
+    <aside class="notes" id="notes" aria-label="Speaker notes">
+      <div class="notes-inner" id="notesInner"></div>
+    </aside>
+  </div>
+
+  <div class="controls">
+    <button class="btn icon" id="prev" title="Previous (←)" aria-label="Previous slide">‹</button>
+    <button class="btn icon" id="next" title="Next (→)" aria-label="Next slide">›</button>
+    <div class="counter"><b id="cur">1</b> / <span id="total">1</span></div>
+    <div class="ctitle" id="ctitle"></div>
+    <button class="btn" id="btnNotes" title="Toggle speaker notes (N)">Notes <span class="k">N</span></button>
+    <button class="btn" id="btnGrid" title="Slide overview (G)">Grid <span class="k">G</span></button>
+    <button class="btn" id="btnFull" title="Fullscreen (F)">Fullscreen <span class="k">F</span></button>
+  </div>
+</div>
+
+<div class="grid" id="grid">
+  <div class="grid-head">
+    <h2>All slides</h2>
+    <button class="btn" id="gridClose">Close <span class="k">Esc</span></button>
+  </div>
+  <div class="grid-inner" id="gridInner"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // Composed (non-image) slide markup, kept in sync with the companion guide.
+  var COVER =
+    '<div class="cv">' +
+      '<div class="cv-eyebrow">MeowyTheDev · Rust from Zero</div>' +
+      '<h1 class="cv-title">Rust, from <span class="accent">zero</span></h1>' +
+      '<p class="cv-tag">install to control flow, in one go. no systems background needed.</p>' +
+      '<div class="cv-chip">The Rust Programming Language · Chapters 1-3</div>' +
+      '<div class="cv-foot"><span class="ep">EP.01</span><span>companion slides · watch on the Rust from Zero playlist</span></div>' +
+      '<div class="cv-num">01</div>' +
+    '</div>';
+
+  var CHEAT_ROWS = [
+    ["Why Rust?", "safe, fearless, and as fast as C++."],
+    ["Install Rust", "one line. that’s it."],
+    ["cargo new vs init", "new starts fresh. init drops into a folder you already have."],
+    ["What cargo gives you", "five files, each with one job."],
+    ["Hello, world", "<code>cargo run</code> compiles and runs in one step."],
+    ["fn main", "the <code>!</code> means it’s a macro, not a function."],
+    ["Variables and let", "<code>let</code> binds. variables are immutable by default."],
+    ["mut vs shadowing", "new type? use let. new value, same type? use mut."],
+    ["Scalar types", "if you’re not sure which integer, use <code>i32</code>."],
+    ["Tuples and arrays", "mixed types by position? tuple. same type you index into? array."],
+    ["Your first struct", "a struct bundles related fields into your own type."],
+    ["Functions", "last expression, no semicolon, is the return. watch that semicolon."],
+    ["Comments", "<code>//</code> notes, <code>///</code> docs the next item, <code>//!</code> docs the file."],
+    ["if and else", "no parens, must be a bool, and <code>if</code> returns a value."],
+    ["Loops", "loop, while, for. when in doubt, <code>for</code>."]
+  ];
+  var CHEAT = (function(){
+    var rows = CHEAT_ROWS.map(function(r){
+      return '<tr><td class="idea">' + r[0] + '</td><td>' + r[1] + '</td></tr>';
+    }).join('');
+    return '<div class="ck">' +
+      '<h2>Cheatsheet <span class="accent">recap</span></h2>' +
+      '<p class="sub">One line per idea, in order. The pause-for-questions slide.</p>' +
+      '<table><thead><tr><th>Idea</th><th>Remember</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+    '</div>';
+  })();
+
+  // The deck. type: image | divider | quote | cover | cheatsheet
+  var SLIDES = [
+    { type:"cover", title:"Rust, from zero", html:COVER,
+      notes:["<b>Episode 1.</b> Goal: from install to control flow in one sitting, no systems background needed.","Maps to <b>The Book, chapters 1-3</b>.","By the end they can write, compile, and run a small Rust program."] },
+
+    { type:"image", img:"img/Scene3ThreeReasons.webp", kicker:"Book · Ch 1-3 · why Rust", title:"Why Rust?",
+      notes:["<b>Memory safety</b>: whole categories of bugs caught at compile time, not 3am in production.","<b>Fearless concurrency</b>: the compiler proves there are no data races before it runs.","<b>Real performance</b>: as fast as C++, no GC pauses."],
+      remember:"safe, fearless, and as fast as C++." },
+
+    { type:"divider", img:"img/SceneChapter01.webp", kicker:"Chapter · Book · Ch 1", title:"Setup",
+      notes:["Chapter break: <b>Setup</b>.","Where every Rust journey starts, one line."] },
+
+    { type:"image", img:"img/Scene4Install.webp", kicker:"Book · Ch 1 · Getting Started", title:"Install Rust",
+      notes:["One command installs everything via <code>rustup</code>, the official installer.","<code>curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh</code>","Confirm with <code>rustc --version</code>."],
+      remember:"one line. that’s it." },
+
+    { type:"image", img:"img/Scene5CargoNewVsInit.webp", kicker:"Book · Ch 1 · Getting Started", title:"cargo new vs cargo init",
+      notes:["Cargo is Rust’s build tool <i>and</i> package manager.","<code>cargo new myapp</code> creates a fresh folder.","<code>cargo init</code> drops Cargo into a folder you already have.","Same files come out either way."],
+      remember:"new starts fresh. init drops into a folder you already have." },
+
+    { type:"image", img:"img/Scene6ProjectStructure.webp", kicker:"Book · Ch 1 · Getting Started", title:"What cargo gives you",
+      notes:["<code>Cargo.toml</code>: metadata + dependencies, the file you edit.","<code>Cargo.lock</code>: pins exact versions, auto-generated.","<code>src/main.rs</code>: where you write Rust.","<code>target/</code>: build output, always gitignored.","<code>.gitignore</code>: cargo seeds it with <code>/target</code>."],
+      remember:"five files, each with one job." },
+
+    { type:"divider", img:"img/SceneChapter02.webp", kicker:"Chapter · Book · Ch 1-2", title:"First Program",
+      notes:["Chapter break: <b>First Program</b>.","From zero to hello, world."] },
+
+    { type:"image", img:"img/Scene7HelloWorld.webp", kicker:"Book · Ch 2 · First Program", title:"Hello, world",
+      notes:["<code>fn main() { println!(\"Hello, world!\"); }</code>","<code>cargo run</code> compiles your code and runs it.","From zero to running in about thirty seconds."],
+      remember:"cargo run compiles and runs in one step." },
+
+    { type:"image", img:"img/Scene8FnMainDeepDive.webp", kicker:"Book · Ch 2 · First Program", title:"fn main, piece by piece",
+      notes:["<code>fn</code>: the function keyword.","<code>main</code>: the entry point; every binary needs exactly one.","<code>()</code>: takes no arguments. <code>{ }</code>: the body.","<code>println!</code>: a <b>macro</b>; the <code>!</code> marks it, and macros expand at compile time."],
+      remember:"the ! means it’s a macro, not a function." },
+
+    { type:"divider", img:"img/SceneChapter03.webp", kicker:"Chapter · Book · §3.1", title:"Variables and mutability",
+      notes:["Chapter break: <b>Variables and mutability</b>.","A thing once set stays set, unless you opt out."] },
+
+    { type:"image", img:"img/Scene9Variables.webp", kicker:"Book · §3.1 · Variables", title:"Variables and let",
+      notes:["<code>let</code> binds a value to a name; the type is inferred (<code>i32</code> is the default integer).","Annotate with <code>: type</code> to be specific.","<code>const</code> needs a type, uses SCREAMING_SNAKE_CASE, evaluated at compile time.","<b>Shadowing:</b> use <code>let</code> again with the same name for a brand-new binding (can change type)."],
+      remember:"let binds. variables are immutable by default." },
+
+    { type:"image", img:"img/Scene10Mutability.webp", kicker:"Book · §3.1 · Mutability", title:"mut vs shadowing",
+      notes:["Immutable by default, so reassigning is an error until you add <code>mut</code>.","<b>mut</b> keeps the type, changes the value.","<b>let shadowing</b> makes a fresh binding and <i>can</i> change the type."],
+      remember:"need a new type? use let. need a new value, same type? use mut." },
+
+    { type:"divider", img:"img/SceneChapter04.webp", kicker:"Chapter · Book · §3.2", title:"Data types",
+      notes:["Chapter break: <b>Data types</b>.","Where does your data actually live? Ints, floats, strings, structs."] },
+
+    { type:"image", img:"img/SceneScalarTypes.webp", kicker:"Book · §3.2 · Scalar Types", title:"Scalar types",
+      notes:["Hold a single value.","<code>i32</code> default integer, <code>f64</code> default float.","<code>bool</code> is one byte: no truthy ints, be explicit.","<code>char</code> is a single Unicode scalar, 4 bytes, single quotes (emoji works).","Integers: <code>i8</code>..<code>i128</code> plus <code>isize</code>/<code>usize</code>, signed and unsigned."],
+      remember:"if you’re not sure which integer, use i32." },
+
+    { type:"image", img:"img/SceneCompoundTypes.webp", kicker:"Book · §3.2 · Compound Types", title:"Tuples and arrays",
+      notes:["<b>Tuple</b>: mixed types, fixed length; access with <code>.0</code>/<code>.1</code> or destructure.","<b>Array</b>: same type, fixed length; index with <code>nums[0]</code>; out-of-bounds panics.","<code>()</code> is the “unit”. Need to grow it? that’s a <code>Vec</code> (ch 8)."],
+      remember:"mixed types by position? tuple. same type you index into? array." },
+
+    { type:"image", img:"img/ScenePersonStruct.webp", kicker:"Book · Ch 5 · struct teaser", title:"Your first struct",
+      notes:["A struct is your custom shape for related data.","Define with <code>struct</code> + a PascalCase name; fields are <code>name: type</code>.","Make an instance with the type name and braces, filling <b>every</b> field; dot-access fields.","<code>String::from</code> because the field wants an owned <code>String</code>. More in episode 03."],
+      remember:"a struct bundles related fields into your own type." },
+
+    { type:"divider", img:"img/SceneChapter05.webp", kicker:"Chapter · Book · §3.3-3.5", title:"Functions and flow",
+      notes:["Chapter break: <b>Functions and flow</b>.","Branches, loops, and a place to put logic. if, else, match."] },
+
+    { type:"image", img:"img/Scene12Functions.webp", kicker:"Book · §3.3 · Functions", title:"Functions",
+      notes:["<code>fn</code> declares a function, <code>snake_case</code> by convention.","<b>Parameters always need an explicit type.</b> Rust never infers them.","Return types use <code>-&gt;</code>; the last expression with <b>no semicolon</b> is the return value.","Gotcha: add a semicolon and it becomes a statement returning <code>()</code>, and it won’t compile."],
+      remember:"last expression, no semicolon, is the return. watch that semicolon." },
+
+    { type:"image", img:"img/Scene13Comments.webp", kicker:"Book · §3.4 · Comments", title:"Comments",
+      notes:["<code>//</code>: line comment; repeat it for multi-line.","<code>///</code>: outer doc comment, attached to the next item, rendered by <code>cargo doc</code>.","<code>//!</code>: inner doc, documents the file or module itself."],
+      remember:"// notes, /// docs the next item, //! docs the file." },
+
+    { type:"image", img:"img/Scene14IfElse.webp", kicker:"Book · §3.5 · Control Flow", title:"if and else",
+      notes:["<b>No parens</b> around the condition (unlike C/Java/JS).","The condition <b>must be a bool</b>: no int coercion.","<code>if</code> is an expression: <code>let label = if n &gt; 0 { \"+\" } else { \"-\" };</code> (both arms same type).","Long chains? reach for <code>match</code>."],
+      remember:"no parens, must be a bool, and if returns a value." },
+
+    { type:"image", img:"img/Scene15Loops.webp", kicker:"Book · §3.5 · Loops", title:"Loops",
+      notes:["<code>loop</code> runs until you <code>break</code>, and <code>break</code> can return a value.","<code>while</code> checks a condition before each pass.","<code>for</code> walks a range or collection, safest and usually fastest.","Label nested loops with <code>'outer</code> to target the right one."],
+      remember:"loop, while, for. when in doubt, for." },
+
+    { type:"quote", img:"img/ScenePullQuote.webp", kicker:"The takeaway", title:"The Rust difference",
+      notes:["The one thing to carry into every Rust file:","<b>The compiler is your friend.</b> It catches bugs before they ever run.","That’s the Rust difference."] },
+
+    { type:"cheatsheet", title:"Cheatsheet recap", html:CHEAT,
+      notes:["Recap: one line per idea, in order. Good place to pause for questions.","<b>Maps to:</b> The Book, chapters 1-3.","<b>Practice:</b> Rustlings 00_intro, 01_variables, 02_functions, 03_if, 04_primitive_types."] }
+  ];
+
+  // ---- element refs ----
+  var deck = document.getElementById('deck');
+  var scaler = document.getElementById('scaler');
+  var viewport = document.getElementById('viewport');
+  var bar = document.getElementById('bar');
+  var curEl = document.getElementById('cur');
+  var totalEl = document.getElementById('total');
+  var ctitle = document.getElementById('ctitle');
+  var notes = document.getElementById('notes');
+  var notesInner = document.getElementById('notesInner');
+  var grid = document.getElementById('grid');
+  var gridInner = document.getElementById('gridInner');
+  var btnNotes = document.getElementById('btnNotes');
+  var btnGrid = document.getElementById('btnGrid');
+  var btnFull = document.getElementById('btnFull');
+  var prevBtn = document.getElementById('prev');
+  var nextBtn = document.getElementById('next');
+
+  var NOTES_KEY = 'rfz_slides_notes';
+  var idx = 0;
+  var notesOpen = false;
+  try { notesOpen = localStorage.getItem(NOTES_KEY) === '1'; } catch(e){}
+
+  totalEl.textContent = SLIDES.length;
+
+  function bodyHTML(s){
+    if (s.type === 'cover') return s.html;
+    if (s.type === 'cheatsheet') return s.html;
+    return '<img class="full" src="' + s.img + '" alt="' + (s.title || '') + '" />';
+  }
+
+  function notesHTML(s){
+    var pts = (s.notes || []).map(function(n){ return '<li>' + n + '</li>'; }).join('');
+    var html = '';
+    if (s.kicker) html += '<div class="n-kicker">' + s.kicker + '</div>';
+    html += '<h2 class="n-title">' + (s.title || '') + '</h2>';
+    if (pts) html += '<ul class="n-points">' + pts + '</ul>';
+    else html += '<p class="n-empty">No notes for this slide.</p>';
+    if (s.remember) html += '<div class="n-remember"><span>Remember</span>' + s.remember + '</div>';
+    return html;
+  }
+
+  function fit(){
+    var availW = viewport.clientWidth;
+    var availH = viewport.clientHeight;
+    var scale = Math.min(availW / 1280, availH / 720) * 0.955;
+    if (!isFinite(scale) || scale <= 0) scale = 0.1;
+    deck.style.transform = 'scale(' + scale + ')';
+    // scaler takes the scaled footprint so the grid centers it without overflow
+    scaler.style.width = (1280 * scale) + 'px';
+    scaler.style.height = (720 * scale) + 'px';
+  }
+
+  function render(){
+    var s = SLIDES[idx];
+    deck.innerHTML = bodyHTML(s);
+    notesInner.innerHTML = notesHTML(s);
+    curEl.textContent = (idx + 1);
+    ctitle.textContent = s.title || '';
+    bar.style.width = (((idx + 1) / SLIDES.length) * 100) + '%';
+    prevBtn.disabled = (idx === 0);
+    nextBtn.disabled = (idx === SLIDES.length - 1);
+    var hash = '#' + (idx + 1);
+    if (location.hash !== hash) {
+      try { history.replaceState(null, '', hash); } catch(e){ location.hash = hash; }
+    }
+    updateGridCurrent();
+    fit();
+  }
+
+  function go(n){
+    var t = Math.max(0, Math.min(SLIDES.length - 1, n));
+    if (t === idx) return;
+    idx = t;
+    render();
+  }
+  function next(){ go(idx + 1); }
+  function prev(){ go(idx - 1); }
+
+  function setNotes(open){
+    notesOpen = open;
+    notes.classList.toggle('open', open);
+    btnNotes.classList.toggle('on', open);
+    try { localStorage.setItem(NOTES_KEY, open ? '1' : '0'); } catch(e){}
+    // wait for the width transition, then refit
+    setTimeout(fit, 200);
+  }
+  function toggleNotes(){ setNotes(!notesOpen); }
+
+  function setGrid(open){
+    grid.classList.toggle('open', open);
+    btnGrid.classList.toggle('on', open);
+    if (open) updateGridCurrent();
+  }
+  function toggleGrid(){ setGrid(!grid.classList.contains('open')); }
+
+  function updateGridCurrent(){
+    var kids = gridInner.children;
+    for (var i = 0; i < kids.length; i++){
+      kids[i].classList.toggle('current', i === idx);
+    }
+  }
+
+  function buildGrid(){
+    var html = '';
+    for (var i = 0; i < SLIDES.length; i++){
+      var s = SLIDES[i];
+      var inner;
+      if (s.type === 'cover') inner = '<div class="composed"><div class="big">Rust, from <span class="accent">zero</span></div></div>';
+      else if (s.type === 'cheatsheet') inner = '<div class="composed"><div class="big">Cheatsheet <span class="accent">recap</span></div></div>';
+      else inner = '<img src="' + s.img + '" alt="" loading="lazy" />';
+      html += '<div class="thumb" data-i="' + i + '" title="' + (s.title || '') + '">' + inner + '<span class="num">' + (i + 1) + '</span></div>';
+    }
+    gridInner.innerHTML = html;
+  }
+
+  function toggleFull(){
+    var el = document.documentElement;
+    if (!document.fullscreenElement){
+      (el.requestFullscreen || el.webkitRequestFullscreen || function(){}).call(el);
+    } else {
+      (document.exitFullscreen || document.webkitExitFullscreen || function(){}).call(document);
+    }
+  }
+
+  // ---- events ----
+  nextBtn.addEventListener('click', next);
+  prevBtn.addEventListener('click', prev);
+  btnNotes.addEventListener('click', toggleNotes);
+  btnGrid.addEventListener('click', toggleGrid);
+  btnFull.addEventListener('click', toggleFull);
+  document.getElementById('gridClose').addEventListener('click', function(){ setGrid(false); });
+
+  deck.addEventListener('click', next);
+
+  gridInner.addEventListener('click', function(e){
+    var t = e.target.closest('.thumb');
+    if (!t) return;
+    go(parseInt(t.getAttribute('data-i'), 10));
+    setGrid(false);
+  });
+
+  document.addEventListener('keydown', function(e){
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ' || k === 'Spacebar'){ e.preventDefault(); next(); }
+    else if (k === 'ArrowLeft' || k === 'PageUp'){ e.preventDefault(); prev(); }
+    else if (k === 'Home'){ e.preventDefault(); go(0); }
+    else if (k === 'End'){ e.preventDefault(); go(SLIDES.length - 1); }
+    else if (k === 'n' || k === 'N'){ toggleNotes(); }
+    else if (k === 'g' || k === 'G'){ toggleGrid(); }
+    else if (k === 'f' || k === 'F'){ toggleFull(); }
+    else if (k === 'Escape'){ if (grid.classList.contains('open')) setGrid(false); }
+  });
+
+  // basic swipe
+  var sx = null;
+  viewport.addEventListener('touchstart', function(e){ sx = e.touches[0].clientX; }, {passive:true});
+  viewport.addEventListener('touchend', function(e){
+    if (sx === null) return;
+    var dx = e.changedTouches[0].clientX - sx;
+    if (Math.abs(dx) > 50){ dx < 0 ? next() : prev(); }
+    sx = null;
+  }, {passive:true});
+
+  window.addEventListener('resize', fit);
+  window.addEventListener('hashchange', function(){
+    var n = parseInt((location.hash || '').replace('#',''), 10);
+    if (!isNaN(n) && (n - 1) !== idx) go(n - 1);
+  });
+
+  // ---- init ----
+  (function start(){
+    var n = parseInt((location.hash || '').replace('#',''), 10);
+    if (!isNaN(n)) idx = Math.max(0, Math.min(SLIDES.length - 1, n - 1));
+    buildGrid();
+    setNotes(notesOpen);
+    render();
+  })();
+})();
+</script>
+</body>
+</html>

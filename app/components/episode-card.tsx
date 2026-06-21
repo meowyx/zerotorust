@@ -129,6 +129,17 @@ export default function EpisodeCard({
                     ⤓ PDF soon
                   </span>
                 )}
+                {episode.slides && (
+                  <a
+                    href={episode.slides}
+                    target="_blank"
+                    rel="noopener"
+                    title="Open the teaching slide deck in a new tab"
+                    className="inline-flex items-center gap-2 rounded-[9px] border border-line-4 px-4 py-[9px] font-display text-[13.5px] font-semibold text-ink no-underline transition-colors hover:border-muted-4 hover:bg-[#1e1a15]"
+                  >
+                    ▦ Slides
+                  </a>
+                )}
               </>
             ) : (
               <span className="inline-flex cursor-not-allowed items-center gap-2 rounded-[9px] border border-dashed border-line-4 px-4 py-[9px] font-display text-[13.5px] font-semibold text-muted-4">

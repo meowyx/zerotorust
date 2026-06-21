@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Generics, Traits and Lifetimes · Slides (EP.06)</title>
+<!-- "Add to Home Screen" on iPhone launches this chromeless, the practical
+     way to get a fullscreen-like deck where iOS blocks the Fullscreen API -->
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Rust EP.06" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="icon" type="image/png" href="/icon" />
+<style>
+:root{
+  --ink:#1c1e22; --soft:#43474e; --muted:#888d96; --line:#e3e4e8;
+  --rust:#c8542a; --code-bg:#f5f5f4;
+  --sans:"Bricolage Grotesque",system-ui,-apple-system,sans-serif;
+  --serif:"Instrument Serif",Georgia,serif;
+  --mono:"JetBrains Mono",ui-monospace,monospace;
+  --stage:#0e0f12; --panel:#16181d; --sline:#26282e; --sink:#e8e6e2; --smuted:#9a9aaa;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;height:100%;background:var(--stage);color:var(--sink);font-family:var(--sans);overflow:hidden;}
+button{font-family:inherit;}
+
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh;}
+
+.progress{flex:none;height:3px;background:#1d1f24;}
+.progress > i{display:block;height:100%;background:var(--rust);width:0;transition:width .25s ease;}
+
+.topbar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 18px;}
+.brand{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--sink);}
+.brand svg{display:block;}
+.brand .sep{color:#4a4d55;font-weight:400;}
+.brand .ep{font-family:var(--mono);color:var(--rust);font-weight:700;letter-spacing:.08em;}
+.hint{font-family:var(--mono);font-size:11px;color:#6b6e76;white-space:nowrap;}
+.hint b{color:#9a9aaa;font-weight:700;}
+
+.middle{flex:1;display:flex;min-height:0;min-width:0;}
+.viewport{flex:1;display:grid;place-items:center;min-width:0;min-height:0;position:relative;overflow:hidden;}
+
+/* sized in JS to the scaled deck size so grid centering uses the real footprint */
+.scaler{position:relative;flex:none;}
+.deck{position:absolute;top:0;left:0;width:1280px;height:720px;transform-origin:top left;border-radius:14px;overflow:hidden;background:#fff;
+  box-shadow:0 30px 90px -30px rgba(0,0,0,.85),0 0 0 1px rgba(255,255,255,.05);cursor:pointer;}
+.deck img.full{display:block;width:100%;height:100%;object-fit:contain;background:#fff;}
+
+/* composed: cover */
+.cv{width:100%;height:100%;padding:78px 86px;display:flex;flex-direction:column;justify-content:center;position:relative;color:var(--ink);}
+.cv-eyebrow{font-family:var(--mono);font-size:17px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);}
+.cv-title{font-size:96px;line-height:1.04;font-weight:800;color:#16181d;margin:18px 0 0;letter-spacing:-0.01em;}
+.cv-title .accent{font-family:var(--serif);font-style:italic;color:var(--rust);font-weight:400;}
+.cv-tag{font-family:var(--serif);font-style:italic;font-size:34px;color:var(--soft);margin:26px 0 0;max-width:760px;line-height:1.32;}
+.cv-chip{margin-top:40px;align-self:flex-start;font-family:var(--mono);font-size:16px;color:var(--soft);background:#fff;border:1px solid var(--line);padding:9px 16px;border-radius:8px;}
+.cv-foot{position:absolute;left:86px;right:86px;bottom:54px;display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);padding-top:18px;font-size:15px;color:var(--muted);}
+.cv-foot .ep{font-family:var(--mono);font-weight:700;color:var(--rust);letter-spacing:.12em;}
+.cv-num{position:absolute;top:54px;right:86px;font-family:var(--mono);font-weight:800;font-size:120px;color:#e6e7ec;line-height:1;}
+
+/* composed: cheatsheet */
+.ck{width:100%;height:100%;padding:56px 70px;display:flex;flex-direction:column;color:var(--ink);}
+.ck h2{font-size:48px;font-weight:800;color:#16181d;margin:0 0 4px;letter-spacing:-0.01em;}
+.ck h2 .accent{font-family:var(--serif);font-style:italic;color:var(--rust);font-weight:400;}
+.ck .sub{font-size:17px;color:var(--soft);margin:0 0 18px;}
+.ck table{width:100%;border-collapse:collapse;font-size:16.5px;}
+.ck th{text-align:left;background:#f3f3f4;color:var(--ink);font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.04em;padding:8px 12px;border:1px solid var(--line);}
+.ck td{padding:7px 12px;border:1px solid var(--line);color:var(--soft);vertical-align:top;}
+.ck td.idea{font-weight:700;color:#16181d;width:38%;}
+.ck code{font-family:var(--mono);font-size:.9em;background:var(--code-bg);padding:.06em .3em;border-radius:4px;color:#9a3a18;}
+
+/* notes drawer */
+.notes{flex:none;width:0;overflow:hidden;background:var(--panel);border-left:1px solid var(--sline);transition:width .18s ease,height .18s ease;}
+.notes.open{width:380px;}
+.notes-inner{width:380px;height:100%;overflow:auto;padding:24px 24px 40px;}
+.n-kicker{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#6b6e76;margin-bottom:8px;}
+.n-title{font-size:23px;font-weight:800;color:var(--sink);margin:0 0 14px;letter-spacing:-0.01em;}
+.n-points{margin:0;padding-left:18px;}
+.n-points li{font-size:14.5px;line-height:1.6;color:#c4c4cc;margin:0 0 9px;}
+.n-points li b{color:#fff;font-weight:700;}
+.notes-inner code{font-family:var(--mono);font-size:.86em;background:#22252b;padding:.08em .34em;border-radius:4px;color:#e7a884;}
+.n-remember{margin-top:18px;border-left:3px solid var(--rust);background:rgba(200,84,42,.10);border-radius:0 8px 8px 0;padding:12px 14px;font-size:14.5px;line-height:1.55;color:#f0e6df;}
+.n-remember span{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--rust);font-weight:700;margin-bottom:5px;}
+.n-empty{color:#6b6e76;font-size:14px;font-style:italic;}
+
+/* bottom controls */
+.controls{flex:none;display:flex;align-items:center;gap:10px;padding:10px 16px;border-top:1px solid var(--sline);background:#101216;}
+.controls .counter{font-family:var(--mono);font-size:13px;color:var(--smuted);min-width:66px;}
+.controls .counter b{color:var(--sink);}
+.controls .ctitle{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;color:#c4c4cc;}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--sline);background:#1a1c22;color:var(--sink);
+  font-size:13px;font-weight:600;border-radius:9px;padding:8px 13px;cursor:pointer;transition:background .14s,border-color .14s,color .14s;}
+.btn:hover{background:#23262d;border-color:#3a3d45;}
+.btn:disabled{opacity:.38;cursor:not-allowed;}
+.btn.icon{padding:8px 12px;font-size:17px;line-height:1;}
+.btn.on{background:rgba(200,84,42,.16);border-color:rgba(200,84,42,.55);color:#f0b69e;}
+.btn .k{font-family:var(--mono);font-size:10px;color:#7e818a;}
+
+/* grid overview */
+.grid{position:fixed;inset:0;z-index:80;background:rgba(8,9,11,.97);overflow:auto;padding:36px 40px 56px;display:none;}
+.grid.open{display:block;}
+.grid-head{display:flex;align-items:center;justify-content:space-between;max-width:1320px;margin:0 auto 22px;}
+.grid-head h2{font-size:20px;margin:0;color:var(--sink);font-weight:800;}
+.grid-inner{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;max-width:1320px;margin:0 auto;}
+.thumb{position:relative;aspect-ratio:16/9;border-radius:9px;overflow:hidden;border:1px solid var(--sline);background:#fff;cursor:pointer;transition:transform .12s,outline-color .12s;outline:2px solid transparent;}
+.thumb:hover{transform:translateY(-2px);}
+.thumb.current{outline-color:var(--rust);}
+.thumb img{width:100%;height:100%;object-fit:contain;}
+.thumb .composed{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--ink);padding:10px;text-align:center;}
+.thumb .composed .big{font-size:22px;font-weight:800;color:#16181d;}
+.thumb .composed .big .accent{font-family:var(--serif);font-style:italic;color:var(--rust);font-weight:400;}
+.thumb .num{position:absolute;top:6px;left:8px;font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:rgba(14,15,18,.78);border-radius:5px;padding:2px 6px;}
+
+@media (max-width:760px){
+  .hint{display:none;}
+  .controls .ctitle{display:none;}
+  .controls{flex-wrap:wrap;gap:8px;padding:8px 10px;}
+  .btn{padding:9px 12px;}
+  .btn .k{display:none;}            /* no keyboard on touch */
+  #btnFull{display:none;}           /* fullscreen is niche on phones, unsupported on iOS */
+  /* stack the slide on top and slide notes up from the bottom, so the
+     control bar stays reachable instead of being covered by an overlay */
+  .middle{flex-direction:column;}
+  .notes{width:auto;height:0;border-left:none;border-top:1px solid var(--sline);}
+  .notes.open{width:auto;height:46vh;}
+  .notes-inner{width:auto;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="progress"><i id="bar"></i></div>
+
+  <div class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 28 20" width="20" height="14" aria-hidden="true"><rect width="28" height="20" rx="5" fill="#FF0033"/><path d="M11 6l7 4-7 4z" fill="#fff"/></svg>
+      MeowyTheDev <span class="sep">·</span> Rust from Zero <span class="sep">·</span> <span class="ep">EP.06</span>
+    </div>
+    <div class="hint"><b>←</b> <b>→</b> move · <b>N</b> notes · <b>G</b> grid · <b>F</b> fullscreen</div>
+  </div>
+
+  <div class="middle">
+    <div class="viewport" id="viewport">
+      <div class="scaler" id="scaler">
+        <div class="deck" id="deck" role="group" aria-label="slide"></div>
+      </div>
+    </div>
+    <aside class="notes" id="notes" aria-label="Speaker notes">
+      <div class="notes-inner" id="notesInner"></div>
+    </aside>
+  </div>
+
+  <div class="controls">
+    <button class="btn icon" id="prev" title="Previous (left arrow)" aria-label="Previous slide">‹</button>
+    <button class="btn icon" id="next" title="Next (right arrow)" aria-label="Next slide">›</button>
+    <div class="counter"><b id="cur">1</b> / <span id="total">1</span></div>
+    <div class="ctitle" id="ctitle"></div>
+    <button class="btn" id="btnNotes" title="Toggle speaker notes (N)">Notes <span class="k">N</span></button>
+    <button class="btn" id="btnGrid" title="Slide overview (G)">Grid <span class="k">G</span></button>
+    <button class="btn" id="btnFull" title="Fullscreen (F)">Fullscreen <span class="k">F</span></button>
+  </div>
+</div>
+
+<div class="grid" id="grid">
+  <div class="grid-head">
+    <h2>All slides</h2>
+    <button class="btn" id="gridClose">Close <span class="k">Esc</span></button>
+  </div>
+  <div class="grid-inner" id="gridInner"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var DATA = {"ep":"06","title":"Generics, Traits and Lifetimes","cover":"\u003cdiv class=\"cv\">\u003cdiv class=\"cv-eyebrow\">MeowyTheDev · Rust from Zero\u003c/div>\u003ch1 class=\"cv-title\">Generics, \u003cspan class=\"accent\">Traits\u003c/span> and Lifetimes\u003c/h1>\u003cp class=\"cv-tag\">one shape, many types. shared behavior. and the names that keep references honest.\u003c/p>\u003cdiv class=\"cv-chip\">The Rust Programming Language \u003cspan class=\"dot\">·\u003c/span> Chapter 10\u003c/div>\u003cdiv class=\"cv-foot\">\u003cspan class=\"ep\">EP.06\u003c/span>\u003cspan>companion slides · watch on the Rust from Zero playlist\u003c/span>\u003c/div>\u003cdiv class=\"cv-num\">06\u003c/div>\u003c/div>","coverBig":"Generics, \u003cspan class=\"accent\">Traits\u003c/span> and Lifetimes","cheat":"\u003cdiv class=\"ck\">\u003ch2>Cheatsheet \u003cspan class=\"accent\">recap\u003c/span>\u003c/h2>\u003cp class=\"sub\">One line per idea, in order. The pause-for-questions slide.\u003c/p>\u003ctable>\u003cthead>\u003ctr>\u003cth>Idea\u003c/th>\u003cth>Remember\u003c/th>\u003c/tr>\u003c/thead>\u003ctbody>\u003ctr>\u003ctd class=\"idea\">The problem: writing it twice\u003c/td>\u003ctd>same body, twice. only the type changed.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">One function, every type\u003c/td>\u003ctd>write it once, call it with anything that fits the promise.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Generic structs\u003c/td>\u003ctd>same shape. different fillings.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">You've used generics already\u003c/td>\u003ctd>you already wrote this. every day.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Traits name behavior\u003c/td>\u003ctd>the trait says what. the impl says how.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Default methods\u003c/td>\u003ctd>override when the type needs it. otherwise, inherit.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Trait bounds narrow T\u003c/td>\u003ctd>any T that does Greet. not just one.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">impl Trait, in and out\u003c/td>\u003ctd>you say what it does. the compiler picks the type.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">dyn Trait, briefly\u003c/td>\u003ctd>reach for dyn when you need a mix.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">The dangling reference problem\u003c/td>\u003ctd>in C this crashes later. in Rust it never compiles.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">'a is a name, not a number\u003c/td>\u003ctd>you name a relationship, not a duration.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">The three elision rules\u003c/td>\u003ctd>the compiler guesses for you, and gets it right almost every time.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">What 'static really means\u003c/td>\u003ctd>'static says \u003cem>can\u003c/em> outlive everything, not \u003cem>must\u003c/em>.\u003c/td>\u003c/tr>\u003c/tbody>\u003c/table>\u003c/div>","slides":[{"type":"cover","title":"Generics, Traits and Lifetimes","notes":["\u003cb>Episode 6.\u003c/b> one shape, many types. shared behavior. and the names that keep references honest.","\u003cb>Covers:\u003c/b> The Rust Programming Language · Chapter 10"]},{"type":"divider","img":"img/SceneChapterGenerics.webp","kicker":"Chapter · Book · §10.1","title":"Generics","notes":["Chapter break: \u003cb>Generics\u003c/b>.","Three ideas live in one chapter of the book. We start with generics: writing code once and letting it work for many types."]},{"type":"image","img":"img/SceneDuplicateCode.webp","kicker":"Book · Ch 10 (the motivation)","title":"The problem: writing it twice","notes":["You&#39;ve felt this one. You write a function that finds the largest number in a list. Then you need the same thing for characters, so you copy it, paste it, and change one word.","Put them side by side and look closely:","Same logic, same loop, same comparison.","The only difference is \u003ccode>i32\u003c/code> versus \u003ccode>char\u003c/code>.","That&#39;s real logic, duplicated, to swap a single type. Every bug you fix in one, you have to remember to fix in the other. There&#39;s a better way, and it&#39;s the whole point of this chapter."],"remember":"same body, twice. only the type changed."},{"type":"image","img":"img/SceneGenericFns.webp","kicker":"Book · §10.1 Generic Data Types","title":"One function, every type","notes":["You wrote \u003ccode>largest\u003c/code> once for \u003ccode>i32\u003c/code>, then copy-pasted it for \u003ccode>char\u003c/code>. Same body, different type. Generics let you stop copying.","Here&#39;s the signature, which is where all the new syntax lives:","Read it piece by piece:","\u003cb>\u003ccode>&lt;T&gt;\u003c/code>\u003c/b> introduces a type parameter. \u003ccode>T\u003c/code> stands in for a type you haven&#39;t picked yet. The caller picks it, the compiler fills it in.","\u003cb>\u003ccode>T: PartialOrd\u003c/code>\u003c/b> is a bound, and it reads as a promise: \u003ccode>T\u003c/code> has to be a type you can compare with \u003ccode>&lt;\u003c/code> and \u003ccode>&gt;\u003c/code>. \u003ccode>largest\u003c/code> needs to ask &quot;is this bigger?&quot;, so the type has to answer. (\u003ccode>PartialOrd\u003c/code> is a trait. More on those next chapter.)","\u003cb>\u003ccode>list: &amp;[T]\u003c/code>\u003c/b> is a borrowed slice. The function looks, it doesn&#39;t take.","\u003cb>\u003ccode>-&gt; &amp;T\u003c/code>\u003c/b> hands one back by reference.","Now call it with anything that fits the promise:","One function. The compiler stamps out a specialized copy for each type you actually use, and each runs as fast as a hand-written version. Generics aren&#39;t slower. There&#39;s no runtime guessing, the cost is paid once, at compile time."],"remember":"write it once, call it with anything that fits the promise."},{"type":"image","img":"img/SceneGenericStructs.webp","kicker":"Book · §10.1 Generic Data Types","title":"Generic structs","notes":["Generics aren&#39;t only for functions. A struct can carry a type parameter too.","The \u003ccode>&lt;T&gt;\u003c/code> after the name works exactly like it did on functions.","Both fields use the same \u003ccode>T\u003c/code>, so \u003ccode>x\u003c/code> and \u003ccode>y\u003c/code> have to be the same type.","What if they should differ? Add a second name:","Same shape, different fillings. You pick the types each time you build one."],"remember":"same shape. different fillings."},{"type":"image","img":"img/SceneAlreadyGeneric.webp","kicker":"Book · §10.1 Generic Data Types","title":"You&#39;ve used generics already","notes":["Here&#39;s the part you&#39;ll like. You&#39;ve been using generics this whole time without calling them that.","\u003cb>\u003ccode>Option&lt;T&gt;\u003c/code>\u003c/b> carries one type parameter. \u003ccode>T\u003c/code> is whatever value might be there, or might be missing.","\u003cb>\u003ccode>Result&lt;T, E&gt;\u003c/code>\u003c/b> carries two. \u003ccode>T\u003c/code> is the value when things work, \u003ccode>E\u003c/code> is the reason when they don&#39;t.","Every time you wrote \u003ccode>Option&lt;String&gt;\u003c/code> or \u003ccode>Result&lt;u32, MyError&gt;\u003c/code>, you were filling in those type parameters. Generics were never the scary part."],"remember":"you already wrote this. every day."},{"type":"divider","img":"img/SceneChapterTraits.webp","kicker":"Chapter · Book · §10.2","title":"Traits","notes":["Chapter break: \u003cb>Traits\u003c/b>.","Generics covered types. Traits cover behavior: how to say &quot;any type that can do this thing.&quot;"]},{"type":"image","img":"img/SceneTraitsAsInterfaces.webp","kicker":"Book · §10.2 Traits","title":"Traits name behavior","notes":["A trait is a promise about what a type can \u003cem>do\u003c/em>. It names a capability without writing it.","\u003ccode>Greet\u003c/code> says: anything with this trait has a \u003ccode>hello\u003c/code>. It doesn&#39;t say what \u003ccode>hello\u003c/code> returns yet. Each type fills that in:","Same method name, \u003ccode>hello\u003c/code>.","A different body per type. The cat meows, the dog barks.","Same call, different behavior, decided by the type.","Anything else can opt in later: a robot, a teapot, whatever you write next. Just add the \u003ccode>impl\u003c/code>."],"remember":"the trait says what. the impl says how."},{"type":"image","img":"img/SceneDefaultMethods.webp","kicker":"Book · §10.2 Traits","title":"Default methods","notes":["A trait can ship a body, not just a name. That body is a default every type gets for free.","Now a type can take the default by writing nothing, or replace it when it wants its own:","\u003cb>Cat\u003c/b> writes an empty impl and inherits the default.","\u003cb>Dog\u003c/b> overrides with its own body. Everyone else still gets the fallback."],"remember":"override when the type needs it. otherwise, inherit."},{"type":"image","img":"img/SceneTraitBounds.webp","kicker":"Book · §10.2 Traits","title":"Trait bounds narrow T","notes":["Back to generics, with one new power. The moment a function calls \u003ccode>hello\u003c/code> on a \u003ccode>T\u003c/code>, it has to promise that \u003ccode>T\u003c/code> can greet. That promise is a bound, and there are three ways to write the same one:","All three say the same thing: any \u003ccode>T\u003c/code> that can \u003ccode>Greet\u003c/code>, not just one specific type."],"remember":"any T that does Greet. not just one."},{"type":"image","img":"img/SceneImplTrait.webp","kicker":"Book · §10.2 Traits","title":"impl Trait, in and out","notes":["\u003ccode>impl Trait\u003c/code> is shorthand, but it means slightly different things depending on where it sits.","As a \u003cb>parameter\u003c/b>, it&#39;s pure sugar for the generic bound you just saw:","As a \u003cb>return type\u003c/b>, it says &quot;I&#39;ll hand back something that greets&quot; and lets the compiler pick the concrete type:","The caller knows only that the result can \u003ccode>hello\u003c/code>.","The compiler quietly fills in the real type (here, \u003ccode>Cat\u003c/code>).","The catch: one concrete type at a time. For a mix, you need \u003ccode>dyn\u003c/code>, which is next."],"remember":"you say what it does. the compiler picks the type."},{"type":"image","img":"img/SceneDynTrait.webp","kicker":"Book · §10.2 Traits","title":"dyn Trait, briefly","notes":["Everything so far picks one concrete type at each call. That&#39;s the fast path. But sometimes you want a cat and a dog in the same list:","The deep mechanics are a Series 2 topic. The rule of thumb is enough for now."],"remember":"reach for dyn when you need a mix."},{"type":"divider","img":"img/SceneChapterLifetimes.webp","kicker":"Chapter · Book · §10.3","title":"Lifetimes","notes":["Chapter break: \u003cb>Lifetimes\u003c/b>.","Lifetimes sound scary and aren&#39;t. They&#39;re how Rust makes sure a reference never outlives the thing it points to."]},{"type":"image","img":"img/SceneWhyLifetimes.webp","kicker":"Book · §10.3 Validating References with Lifetimes","title":"The dangling reference problem","notes":["Start with the bug lifetimes exist to prevent.","\u003ccode>r\u003c/code> is declared in the outer scope, so it lives a while.","\u003ccode>x\u003c/code> is born inside the inner block and dies at the closing brace.","\u003ccode>r\u003c/code> still points at where \u003ccode>x\u003c/code> used to be. That&#39;s a dangling reference.","In C, this compiles and crashes later, at three a.m. in production. In Rust, it never compiles in the first place."],"remember":"in C this crashes later. in Rust it never compiles."},{"type":"image","img":"img/SceneLifetimeAnnotations.webp","kicker":"Book · §10.3 Validating References with Lifetimes","title":"&#39;a is a name, not a number","notes":["So how does the compiler check that? You give the relationship a name.","The little \u003ccode>&#39;a\u003c/code> is not a duration. It&#39;s a label:","\u003ccode>x: &amp;&#39;a str\u003c/code> means x lives at least as long as \u003ccode>&#39;a\u003c/code>.","\u003ccode>y: &amp;&#39;a str\u003c/code> means y does too.","\u003ccode>-&gt; &amp;&#39;a str\u003c/code> means the result is bound by that same \u003ccode>&#39;a\u003c/code>.","So the returned reference can&#39;t outlive the inputs it came from. You didn&#39;t say \u003cem>how long\u003c/em> anything lives. You named a relationship that already existed."],"remember":"you name a relationship, not a duration."},{"type":"image","img":"img/SceneElision.webp","kicker":"Book · §10.3 Validating References with Lifetimes","title":"The three elision rules","notes":["Here&#39;s the relief: most of the time you don&#39;t write \u003ccode>&#39;a\u003c/code> at all. The compiler follows three rules and fills them in for you.","Between them, these cover almost everything you write, especially methods on a struct. You only annotate by hand when the compiler genuinely can&#39;t tell."],"remember":"the compiler guesses for you, and gets it right almost every time."},{"type":"image","img":"img/SceneStatic.webp","kicker":"Book · §10.3 Validating References with Lifetimes","title":"What &#39;static really means","notes":["One last name to clear up: \u003ccode>&#39;static\u003c/code>. People read it as &quot;lives forever&quot; and panic. That&#39;s not it.","It means &quot;this \u003cem>can\u003c/em> live for the whole program, if something needs it to.&quot;","You&#39;ve already used it: every string literal in your code is \u003ccode>&#39;static\u003c/code>, for free.","You can force it by leaking a value, but that&#39;s rare and usually a smell:"],"remember":"&#39;static says \u003cem>can\u003c/em> outlive everything, not \u003cem>must\u003c/em>."},{"type":"quote","img":"img/ScenePullQuote.webp","kicker":"Takeaway","title":"The big idea","notes":["The whole episode in one line:","You&#39;re not annotating new behavior. You&#39;re naming relationships that already existed. That&#39;s the lifetime way, and honestly the generics and traits way too."]},{"type":"cheatsheet","title":"Cheatsheet recap","notes":["Recap: one line per idea, in order. Good place to pause for questions.","\u003cb>Maps to:\u003c/b> The Rust Programming Language, Chapter 10.","\u003cb>Practice:\u003c/b> Rustlings \u003ccode>14_generics\u003c/code>, \u003ccode>15_traits\u003c/code>, \u003ccode>16_lifetimes\u003c/code>."]}]};
+  var SLIDES = DATA.slides;
+  function stripT(s){ return (s || '').replace(/<[^>]+>/g, ''); }
+
+  // ---- element refs ----
+  var deck = document.getElementById('deck');
+  var scaler = document.getElementById('scaler');
+  var viewport = document.getElementById('viewport');
+  var bar = document.getElementById('bar');
+  var curEl = document.getElementById('cur');
+  var totalEl = document.getElementById('total');
+  var ctitle = document.getElementById('ctitle');
+  var notes = document.getElementById('notes');
+  var notesInner = document.getElementById('notesInner');
+  var grid = document.getElementById('grid');
+  var gridInner = document.getElementById('gridInner');
+  var btnNotes = document.getElementById('btnNotes');
+  var btnGrid = document.getElementById('btnGrid');
+  var btnFull = document.getElementById('btnFull');
+  var prevBtn = document.getElementById('prev');
+  var nextBtn = document.getElementById('next');
+
+  var NOTES_KEY = 'rfz_slides_notes';
+  var idx = 0;
+  var notesOpen = false;
+  try { notesOpen = localStorage.getItem(NOTES_KEY) === '1'; } catch(e){}
+
+  totalEl.textContent = SLIDES.length;
+
+  function bodyHTML(s){
+    if (s.type === 'cover') return DATA.cover;
+    if (s.type === 'cheatsheet') return DATA.cheat;
+    return '<img class="full" src="' + s.img + '" alt="' + stripT(s.title) + '" />';
+  }
+
+  function notesHTML(s){
+    var pts = (s.notes || []).map(function(n){ return '<li>' + n + '</li>'; }).join('');
+    var html = '';
+    if (s.kicker) html += '<div class="n-kicker">' + s.kicker + '</div>';
+    html += '<h2 class="n-title">' + (s.title || '') + '</h2>';
+    if (pts) html += '<ul class="n-points">' + pts + '</ul>';
+    else html += '<p class="n-empty">No notes for this slide.</p>';
+    if (s.remember) html += '<div class="n-remember"><span>Remember</span>' + s.remember + '</div>';
+    return html;
+  }
+
+  function fit(){
+    var availW = viewport.clientWidth;
+    var availH = viewport.clientHeight;
+    var scale = Math.min(availW / 1280, availH / 720) * 0.955;
+    if (!isFinite(scale) || scale <= 0) scale = 0.1;
+    deck.style.transform = 'scale(' + scale + ')';
+    scaler.style.width = (1280 * scale) + 'px';
+    scaler.style.height = (720 * scale) + 'px';
+  }
+
+  function render(){
+    var s = SLIDES[idx];
+    deck.innerHTML = bodyHTML(s);
+    notesInner.innerHTML = notesHTML(s);
+    curEl.textContent = (idx + 1);
+    ctitle.innerHTML = s.title || '';
+    bar.style.width = (((idx + 1) / SLIDES.length) * 100) + '%';
+    prevBtn.disabled = (idx === 0);
+    nextBtn.disabled = (idx === SLIDES.length - 1);
+    var hash = '#' + (idx + 1);
+    if (location.hash !== hash) {
+      try { history.replaceState(null, '', hash); } catch(e){ location.hash = hash; }
+    }
+    updateGridCurrent();
+    fit();
+  }
+
+  function go(n){
+    var t = Math.max(0, Math.min(SLIDES.length - 1, n));
+    if (t === idx) return;
+    idx = t;
+    render();
+  }
+  function next(){ go(idx + 1); }
+  function prev(){ go(idx - 1); }
+
+  function setNotes(open){
+    notesOpen = open;
+    notes.classList.toggle('open', open);
+    btnNotes.classList.toggle('on', open);
+    try { localStorage.setItem(NOTES_KEY, open ? '1' : '0'); } catch(e){}
+    setTimeout(fit, 200);
+  }
+  function toggleNotes(){ setNotes(!notesOpen); }
+
+  function setGrid(open){
+    grid.classList.toggle('open', open);
+    btnGrid.classList.toggle('on', open);
+    if (open) updateGridCurrent();
+  }
+  function toggleGrid(){ setGrid(!grid.classList.contains('open')); }
+
+  function updateGridCurrent(){
+    var kids = gridInner.children;
+    for (var i = 0; i < kids.length; i++){
+      kids[i].classList.toggle('current', i === idx);
+    }
+  }
+
+  function buildGrid(){
+    var html = '';
+    for (var i = 0; i < SLIDES.length; i++){
+      var s = SLIDES[i];
+      var inner;
+      if (s.type === 'cover') inner = '<div class="composed"><div class="big">' + DATA.coverBig + '</div></div>';
+      else if (s.type === 'cheatsheet') inner = '<div class="composed"><div class="big">Cheatsheet <span class="accent">recap</span></div></div>';
+      else inner = '<img src="' + s.img + '" alt="" loading="lazy" />';
+      html += '<div class="thumb" data-i="' + i + '" title="' + stripT(s.title) + '">' + inner + '<span class="num">' + (i + 1) + '</span></div>';
+    }
+    gridInner.innerHTML = html;
+  }
+
+  function toggleFull(){
+    var el = document.documentElement;
+    if (!document.fullscreenElement){
+      (el.requestFullscreen || el.webkitRequestFullscreen || function(){}).call(el);
+    } else {
+      (document.exitFullscreen || document.webkitExitFullscreen || function(){}).call(document);
+    }
+  }
+
+  // ---- events ----
+  nextBtn.addEventListener('click', next);
+  prevBtn.addEventListener('click', prev);
+  btnNotes.addEventListener('click', toggleNotes);
+  btnGrid.addEventListener('click', toggleGrid);
+  btnFull.addEventListener('click', toggleFull);
+  document.getElementById('gridClose').addEventListener('click', function(){ setGrid(false); });
+
+  deck.addEventListener('click', next);
+
+  gridInner.addEventListener('click', function(e){
+    var t = e.target.closest('.thumb');
+    if (!t) return;
+    go(parseInt(t.getAttribute('data-i'), 10));
+    setGrid(false);
+  });
+
+  document.addEventListener('keydown', function(e){
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ' || k === 'Spacebar'){ e.preventDefault(); next(); }
+    else if (k === 'ArrowLeft' || k === 'PageUp'){ e.preventDefault(); prev(); }
+    else if (k === 'Home'){ e.preventDefault(); go(0); }
+    else if (k === 'End'){ e.preventDefault(); go(SLIDES.length - 1); }
+    else if (k === 'n' || k === 'N'){ toggleNotes(); }
+    else if (k === 'g' || k === 'G'){ toggleGrid(); }
+    else if (k === 'f' || k === 'F'){ toggleFull(); }
+    else if (k === 'Escape'){ if (grid.classList.contains('open')) setGrid(false); }
+  });
+
+  // basic swipe
+  var sx = null;
+  viewport.addEventListener('touchstart', function(e){ sx = e.touches[0].clientX; }, {passive:true});
+  viewport.addEventListener('touchend', function(e){
+    if (sx === null) return;
+    var dx = e.changedTouches[0].clientX - sx;
+    if (Math.abs(dx) > 50){ dx < 0 ? next() : prev(); }
+    sx = null;
+  }, {passive:true});
+
+  window.addEventListener('resize', fit);
+  window.addEventListener('hashchange', function(){
+    var n = parseInt((location.hash || '').replace('#',''), 10);
+    if (!isNaN(n) && (n - 1) !== idx) go(n - 1);
+  });
+
+  // ---- init ----
+  (function start(){
+    var n = parseInt((location.hash || '').replace('#',''), 10);
+    if (!isNaN(n)) idx = Math.max(0, Math.min(SLIDES.length - 1, n - 1));
+    buildGrid();
+    setNotes(notesOpen);
+    render();
+  })();
+})();
+</script>
+</body>
+</html>
