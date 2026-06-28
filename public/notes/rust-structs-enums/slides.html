@@ -71,6 +71,20 @@ button{font-family:inherit;}
 .ck td.idea{font-weight:700;color:#16181d;width:38%;}
 .ck code{font-family:var(--mono);font-size:.9em;background:var(--code-bg);padding:.06em .3em;border-radius:4px;color:#9a3a18;}
 
+/* composed: text card for slides with no still (divider / pull-quote / image-less scene) */
+.txt{width:100%;height:100%;padding:64px 78px;display:flex;flex-direction:column;justify-content:center;color:var(--ink);}
+.txt-kicker{font-family:var(--mono);font-size:17px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:18px;}
+.txt-title{font-size:74px;line-height:1.04;font-weight:800;color:#16181d;margin:0;letter-spacing:-0.01em;}
+.txt-title.txt-title-sm{font-size:50px;}
+.txt-title .accent{font-family:var(--serif);font-style:italic;color:var(--rust);font-weight:400;}
+.txt-lead{font-family:var(--serif);font-style:italic;font-size:30px;line-height:1.4;color:var(--soft);margin:26px 0 0;max-width:880px;}
+.txt-points{margin:26px 0 0;padding-left:24px;max-width:900px;}
+.txt-points li{font-size:22px;line-height:1.5;color:var(--soft);margin:0 0 12px;}
+.txt-points li b{color:var(--ink);font-weight:700;}
+.txt code{font-family:var(--mono);font-size:.9em;background:var(--code-bg);padding:.06em .3em;border-radius:4px;color:#9a3a18;}
+.txt-quote{justify-content:center;}
+.txt-quote-text{font-family:var(--serif);font-style:italic;font-size:46px;line-height:1.28;color:#16181d;margin:0;max-width:980px;}
+
 /* notes drawer */
 .notes{flex:none;width:0;overflow:hidden;background:var(--panel);border-left:1px solid var(--sline);transition:width .18s ease,height .18s ease;}
 .notes.open{width:380px;}
@@ -207,6 +221,7 @@ button{font-family:inherit;}
   function bodyHTML(s){
     if (s.type === 'cover') return DATA.cover;
     if (s.type === 'cheatsheet') return DATA.cheat;
+    if (s.composed) return s.composed;
     return '<img class="full" src="' + s.img + '" alt="' + stripT(s.title) + '" />';
   }
 
@@ -287,6 +302,7 @@ button{font-family:inherit;}
       var inner;
       if (s.type === 'cover') inner = '<div class="composed"><div class="big">' + DATA.coverBig + '</div></div>';
       else if (s.type === 'cheatsheet') inner = '<div class="composed"><div class="big">Cheatsheet <span class="accent">recap</span></div></div>';
+      else if (s.composed) inner = '<div class="composed"><div class="big">' + (s.title || '') + '</div></div>';
       else inner = '<img src="' + s.img + '" alt="" loading="lazy" />';
       html += '<div class="thumb" data-i="' + i + '" title="' + stripT(s.title) + '">' + inner + '<span class="num">' + (i + 1) + '</span></div>';
     }

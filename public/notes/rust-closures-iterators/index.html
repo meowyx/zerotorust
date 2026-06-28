@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Closures and Iterators · MeowyTheDev companion guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@1&family=Caveat:wght@500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink:#1c1e22; --soft:#43474e; --muted:#888d96; --line:#e3e4e8;
+  --rust:#c8542a; --code-bg:#f5f5f4; --code-fg:#24292e;
+  --sans:"Bricolage Grotesque",system-ui,-apple-system,sans-serif;
+  --serif:"Instrument Serif",Georgia,serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:#e9e9ec;color:var(--ink);font-family:var(--sans);}
+.accent{font-family:var(--serif);font-style:italic;color:var(--rust);font-weight:400;}
+.doc{max-width:182mm;margin:8mm auto;padding:16mm;background:#fff;box-shadow:0 4px 24px rgba(0,0,0,0.18);}
+
+.cover{position:relative;min-height:240mm;display:flex;flex-direction:column;justify-content:center;break-after:page;}
+.divider{break-before:page;padding-top:6mm;}
+.appendix{break-before:page;padding-top:4mm;}
+.scene{margin:0 0 9mm;}
+.scene.quote{break-before:page;padding-top:8mm;}
+.slide,.body pre,.body table,.body blockquote{break-inside:avoid;}
+.body h3{break-after:avoid;}
+
+.book-chip{display:inline-block;font-family:var(--mono);font-size:8pt;letter-spacing:0.02em;color:var(--soft);background:#fff;border:1px solid var(--line);padding:3px 9px;border-radius:5px;white-space:nowrap;}
+.scene-chip{margin-bottom:3mm;}
+.slide{display:block;width:100%;max-width:100%;border-radius:8px;border:1px solid var(--line);}
+
+.body h3{font-size:19pt;font-weight:700;color:#16181d;margin:0 0 3mm;line-height:1.15;letter-spacing:-0.01em;}
+.body p{font-size:11pt;line-height:1.62;color:var(--soft);margin:0 0 3mm;}
+.body p strong,.body li strong{color:var(--ink);font-weight:700;}
+.body em{font-family:var(--serif);font-style:italic;color:var(--ink);}
+.body ul,.body ol{margin:3mm 0;padding-left:6mm;}
+.body li{margin:0 0 2mm;line-height:1.55;font-size:11pt;color:var(--soft);}
+.body code{font-family:var(--mono);font-size:0.86em;background:var(--code-bg);padding:0.08em 0.32em;border-radius:4px;color:#9a3a18;}
+.body pre{background:var(--code-bg);color:var(--code-fg);border:1px solid var(--line);border-radius:8px;padding:4mm 5mm;white-space:pre-wrap;overflow-wrap:break-word;font-family:var(--mono);font-size:9.5pt;line-height:1.5;margin:4mm 0;}
+.body pre code{background:none;padding:0;color:inherit;font-size:inherit;}
+.body table{width:100%;border-collapse:collapse;margin:4mm 0;font-size:10pt;}
+.body th{text-align:left;background:#f3f3f4;color:var(--ink);font-family:var(--mono);font-size:8pt;text-transform:uppercase;letter-spacing:0.02em;padding:2.4mm 3mm;border:1px solid var(--line);}
+.body td{padding:2.4mm 3mm;border:1px solid var(--line);vertical-align:top;color:var(--soft);overflow-wrap:break-word;}
+.body blockquote{margin:5mm 0 0;background:#f7f7f6;border-left:3px solid var(--rust);border-radius:0 6px 6px 0;padding:3.5mm 5mm;font-size:11pt;color:var(--ink);}
+.body blockquote p{margin:0;color:var(--ink);} .body blockquote strong{color:#16181d;}
+
+.cover-eyebrow{font-family:var(--mono);font-size:9.5pt;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);}
+.cover-title{font-size:40pt;line-height:1.06;font-weight:800;color:#16181d;margin:6mm 0 0;letter-spacing:-0.01em;padding-right:34mm;}
+.cover-tagline{font-family:var(--serif);font-style:italic;font-size:18pt;color:var(--soft);margin:7mm 0 0;max-width:150mm;line-height:1.4;}
+.cover-chip{margin-top:14mm;align-self:flex-start;font-family:var(--mono);font-size:9.5pt;color:var(--soft);background:#fff;border:1px solid var(--line);padding:6px 12px;border-radius:6px;}
+.cover-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);padding-top:5mm;font-size:9pt;color:var(--muted);}
+.cover-foot .ep{font-family:var(--mono);font-weight:700;color:var(--rust);letter-spacing:0.1em;}
+.cover-foot-r{font-family:var(--mono);font-size:8.5pt;color:var(--muted);}
+.cover-num{position:absolute;top:13mm;right:0;font-family:var(--mono);font-weight:800;font-size:54pt;color:#dadbe0;}
+
+.divider-head{display:flex;align-items:center;gap:14px;margin-bottom:4mm;}
+.divider .kicker{font-family:var(--mono);font-size:9pt;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);}
+.divider-title{font-size:30pt;font-weight:800;color:#16181d;margin:0;letter-spacing:-0.01em;}
+.divider-intro{margin-top:5mm;} .divider-intro p{font-size:11.5pt;}
+
+.ap-title{font-size:26pt;font-weight:800;color:#16181d;margin:0 0 2mm;}
+.ap-sub{font-size:11pt;color:var(--soft);max-width:150mm;margin:0 0 5mm;}
+.ck-table{width:100%;border-collapse:collapse;font-size:10pt;}
+.ck-table th{text-align:left;background:#f3f3f4;color:var(--ink);font-family:var(--mono);font-size:8pt;text-transform:uppercase;letter-spacing:0.03em;padding:2.6mm 3mm;border:1px solid var(--line);}
+.ck-scene{font-weight:700;color:#16181d;width:40%;}
+.ck-table td{padding:2.6mm 3mm;border:1px solid var(--line);color:var(--soft);vertical-align:top;overflow-wrap:break-word;}
+.ap-foot{margin-top:7mm;font-size:10pt;background:#f7f7f6;border:1px solid var(--line);border-radius:8px;padding:4mm 5mm;line-height:1.7;}
+
+/* "Save as PDF" button: screen only */
+.save-pdf{position:fixed;right:18px;bottom:18px;z-index:50;font-family:var(--sans);font-size:13px;font-weight:700;color:#fff;background:var(--rust);border:none;border-radius:8px;padding:11px 16px;box-shadow:0 3px 12px rgba(0,0,0,0.25);cursor:pointer;}
+.save-pdf:hover{background:#b0461f;}
+/* running header/footer: print only (repeat on every printed page) */
+.print-running{display:none;}
+
+@page{size:A4;margin:16mm 14mm 14mm;}
+@media print{
+  html,body{background:#fff;}
+  .doc{max-width:none;margin:0;padding:0;background:#fff;box-shadow:none;}
+  .save-pdf{display:none !important;}
+  .print-running{display:flex;position:fixed;left:0;right:0;align-items:center;justify-content:space-between;font-size:8pt;color:var(--soft);font-family:var(--mono);}
+  .print-running.top{top:6mm;} .print-running.bot{bottom:6mm;}
+  .print-running .brand{display:flex;align-items:center;gap:6px;font-family:var(--sans);font-weight:700;color:var(--ink);}
+  .print-running .xh{display:flex;align-items:center;gap:5px;}
+  .print-running .muted{color:var(--muted);}
+}
+
+/* frosted-glass zoom panel: screen only, hidden in print */
+.zoom-panel{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:60;display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:16px;background:rgba(255,255,255,0.55);-webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blur(14px) saturate(1.3);border:1px solid rgba(255,255,255,0.7);box-shadow:0 10px 30px rgba(28,30,34,0.18),inset 0 1px 0 rgba(255,255,255,0.65);font-family:var(--sans);}
+.zoom-panel button{width:40px;height:40px;border:none;cursor:pointer;border-radius:11px;background:rgba(255,255,255,0.5);color:var(--ink);font-size:19px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;transition:background .15s,transform .1s;}
+.zoom-panel button:hover{background:rgba(255,255,255,0.95);}
+.zoom-panel button:active{transform:scale(0.93);}
+.zoom-level{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--soft);text-align:center;padding:3px 0;cursor:pointer;user-select:none;letter-spacing:0.02em;border-radius:8px;}
+.zoom-level:hover{color:var(--rust);background:rgba(255,255,255,0.5);}
+.zoom-mbar-bg{display:none;}
+/* phones: sticky bottom toolbar holding zoom (left) + Save as PDF (right) */
+@media (max-width:640px){.zoom-mbar-bg{display:block;position:fixed;left:0;right:0;bottom:0;height:58px;background:rgba(255,255,255,0.55);-webkit-backdrop-filter:blur(16px) saturate(1.4);backdrop-filter:blur(16px) saturate(1.4);border-top:1px solid rgba(255,255,255,0.7);box-shadow:0 -8px 30px rgba(28,30,34,0.12);z-index:59;}.zoom-panel{left:14px;right:auto;top:auto;bottom:10px;transform:none;flex-direction:row-reverse;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;border:none;box-shadow:none;padding:0;}.zoom-panel button{width:38px;height:38px;background:rgba(0,0,0,0.05);color:var(--ink);}.zoom-panel button:hover{background:rgba(0,0,0,0.1);}.zoom-level{color:var(--soft);}.zoom-level:hover{color:var(--rust);background:transparent;}.save-pdf{right:14px !important;bottom:10px !important;z-index:60 !important;}body{padding-bottom:70px;}}
+@media print{.zoom-panel{display:none !important;}.doc{zoom:1 !important;width:auto !important;}}
+
+/* notes-mobile-css: screen-only mobile reflow, print styles left untouched */
+@media screen and (max-width: 640px) {
+  html, body { background: #fff; }
+  .doc { max-width: 100%; margin: 0; padding: 22px 16px; box-shadow: none; }
+  .cover { min-height: auto; padding: 6px 0 22px; }
+  .cover-title { font-size: 30pt; padding-right: 0; }
+  .cover-tagline { font-size: 15pt; }
+  .cover-num { font-size: 38pt; top: 6px; }
+  .divider-title { font-size: 24pt; }
+  .body h3 { font-size: 17pt; }
+  .body p, .body li { font-size: 12pt; }
+  .body pre { font-size: 8.5pt; padding: 3mm 3.5mm; }
+  .ap-title { font-size: 22pt; }
+}
+</style>
+<link rel="icon" type="image/png" href="/icon" />
+</head>
+<body>
+<div class="print-running top"><span class="brand"><svg viewBox="0 0 28 20" width="18" height="13" aria-hidden="true"><rect width="28" height="20" rx="5" fill="#FF0033"/><path d="M11 6l7 4-7 4z" fill="#fff"/></svg>MeowyTheDev</span><span class="muted">RUST FROM ZERO · EP.07</span></div>
+<div class="print-running bot"><span class="xh"><svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="#2b1d12" d="M18.9 2H22l-7.6 8.7L23.3 22h-6.9l-5.4-7-6.2 7H1.7l8.1-9.3L1 2h7l4.9 6.5z"/></svg>@me256ow</span><span class="muted">companion guide</span></div>
+<main class="doc">
+<section class="cover">
+      <div class="cover-eyebrow">MeowyTheDev <span class="dot">·</span> Rust from Zero</div>
+      <h1 class="cover-title">Closures and <span class="accent">Iterators</span></h1>
+      <p class="cover-tagline">functions that carry their world, and pipelines that run one item at a time.</p>
+      <div class="cover-chip">The Rust Programming Language <span class="dot">·</span> Chapter 13</div>
+      <div class="cover-foot"><span class="ep">EP.07</span><span class="cover-foot-r">companion guide · watch on the Rust from Zero playlist</span></div>
+      <div class="cover-num">07</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 13 (the motivation)</span></div><div class="body"><h3>A function that remembers</h3>
+<p>Two ideas meet in this episode, and they fit together better than you&#39;d expect. Start with the first one. Here&#39;s a value, and here&#39;s a tiny function that uses it.</p>
+<img class="slide" src="img/SceneClosureHook.webp" alt="" /><pre><code class="language-rust">let step = 2;
+let bump = |x| x + step;
+bump(10); // 12
+</code></pre>
+<p>Look closely at <code>bump</code>:</p>
+<ul>
+<li>It never declared <code>step</code>. It reached out and grabbed it from the scope around it.</li>
+<li>You can call it like any other function, <code>bump(10)</code>, and it still remembers <code>step</code>.</li>
+<li>A regular <code>fn</code> can&#39;t do that. A plain function only sees its own parameters, nothing from the code around it.</li>
+</ul>
+<p>That little function carrying a value with it is a <strong>closure</strong>. The pipes <code>|x|</code> hold its parameters, and everything else it needs, it captures from where it was written.</p>
+<blockquote>
+<p><strong>Remember:</strong> a closure remembers where it was born.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-rust">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Closures</h2><span class="book-chip">Book · §13.1</span></div>
+
+      <div class="body divider-intro"><p>First half: closures. They&#39;re functions you write inline, with one superpower a normal <code>fn</code> doesn&#39;t have. They carry values from the scope around them.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §13.1 Closures</span></div><div class="body"><h3>From function to closure</h3>
+<p>You already know functions. They need a name, parameter types, a return type. The whole ceremony. A closure is the same logic with most of that ceremony dropped.</p>
+<img class="slide" src="img/SceneClosureSyntax.webp" alt="" /><pre><code class="language-rust">// a function
+fn add_one(x: u32) -&gt; u32 { x + 1 }
+
+// the same logic, as a closure
+let add_one = |x: u32| -&gt; u32 { x + 1 };
+
+// types inferred, one expression
+let add_one = |x| x + 1;
+</code></pre>
+<p>Walk down the three forms:</p>
+<ul>
+<li><strong>The function</strong> spells everything out: <code>fn</code>, a name, the types, the braces.</li>
+<li><strong>The annotated closure</strong> swaps <code>fn name(...)</code> for pipes <code>|...|</code>. Same types, same body.</li>
+<li><strong>The inferred closure</strong> is the shape you&#39;ll actually write. The compiler infers the types, and a one-expression body needs no braces.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Piece</th>
+<th>a function</th>
+<th>a closure</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>a name</td>
+<td>required (<code>add_one</code>)</td>
+<td>none, it&#39;s just a value</td>
+</tr>
+<tr>
+<td>parameter types</td>
+<td>required</td>
+<td>optional, inferred</td>
+</tr>
+<tr>
+<td>return type</td>
+<td>required</td>
+<td>optional, inferred</td>
+</tr>
+<tr>
+<td>body braces</td>
+<td>always</td>
+<td>only past one expression</td>
+</tr>
+<tr>
+<td>sees outer variables</td>
+<td>no</td>
+<td>yes</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>Remember:</strong> |args| body. that&#39;s the whole shape.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §13.1 Closures</span></div><div class="body"><h3>Three ways to capture</h3>
+<p>When a closure uses an outside value, it captures it. There are three ways to do that, and you don&#39;t pick them by hand. How you <em>use</em> the value decides which one you get.</p>
+<img class="slide" src="img/SceneClosureCapture.webp" alt="" /><pre><code class="language-rust">let name = String::from(&quot;meowy&quot;);
+
+let say = || println!(&quot;hi {name}&quot;); // Fn
+
+let mut list = vec![];
+let mut push = |x| list.push(x);    // FnMut
+
+let consume = move || drop(name);   // FnOnce
+</code></pre>
+<p>Three closures, three relationships with what they captured:</p>
+<ul>
+<li><strong><code>say</code> only reads</strong> <code>name</code>, so it borrows it shared. You can call it as many times as you like.</li>
+<li><strong><code>push</code> changes</strong> <code>list</code>, so it borrows mutably. Still callable many times, but now it can mutate.</li>
+<li><strong><code>consume</code> takes</strong> <code>name</code> whole with <code>move</code>. It owns it now, so it can only run once.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Closure</th>
+<th>Captures as</th>
+<th>Trait</th>
+<th>Callable</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>say</code> (reads)</td>
+<td><code>&amp;T</code>, shared borrow</td>
+<td><code>Fn</code></td>
+<td>many times</td>
+</tr>
+<tr>
+<td><code>push</code> (mutates)</td>
+<td><code>&amp;mut T</code>, mutable borrow</td>
+<td><code>FnMut</code></td>
+<td>many times</td>
+</tr>
+<tr>
+<td><code>consume</code> (<code>move</code>)</td>
+<td><code>T</code>, owned</td>
+<td><code>FnOnce</code></td>
+<td>once</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>Remember:</strong> how you use a capture picks the trait.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §13.1 Closures</span></div><div class="body"><h3>Fn, FnMut, FnOnce</h3>
+<p>Remember traits from last episode? <code>Fn</code>, <code>FnMut</code>, and <code>FnOnce</code> are three of them, and they describe exactly what a closure is allowed to do with its captures.</p>
+<img class="slide" src="img/SceneFnTraits.webp" alt="" /><p>They nest, loosest on the outside to strictest on the inside:</p>
+<ul>
+<li><strong><code>FnOnce</code></strong> is the loosest. You can call it at least once, and it may consume its captures.</li>
+<li><strong><code>FnMut</code></strong> adds calling again, with mutation allowed.</li>
+<li><strong><code>Fn</code></strong> is the strictest. Call it again and again, but it only reads.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Trait</th>
+<th>What it promises</th>
+<th>Call again?</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>FnOnce</code></td>
+<td>callable at least once, may consume captures</td>
+<td>maybe not</td>
+</tr>
+<tr>
+<td><code>FnMut</code></td>
+<td>callable again, may mutate captures</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>Fn</code></td>
+<td>callable again, only reads</td>
+<td>yes</td>
+</tr>
+</tbody></table>
+<p>Because each ring sits inside the next, <strong>every <code>Fn</code> is also an <code>FnMut</code> is also an <code>FnOnce</code></strong>. So when a function asks for <code>Fn</code>, it&#39;s asking for the most flexible kind. And reach for <code>move</code> when a closure has to outlive the scope it was born in (a thread, for instance, which is a story for later).</p>
+<blockquote>
+<p><strong>Remember:</strong> every fn is an fnmut is an fnonce.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-teal">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Iterators</h2><span class="book-chip">Book · §13.2</span></div>
+      <img class="slide" src="img/SceneChapterIterators.webp" alt="Iterators chapter divider" />
+      <div class="body divider-intro"><p>Second half: iterators. One item at a time, lazy by default, and built on the same three modes you just learned. The fun part of the episode starts here.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §13.2 Iterators</span></div><div class="body"><h3>An iterator is one method</h3>
+<p>&quot;Iterator&quot; sounds fancy, but it&#39;s really one method: <code>next</code>. It hands back the next item, or <code>None</code> when it&#39;s done. That&#39;s the whole contract.</p>
+<img class="slide" src="img/SceneIteratorTrait.webp" alt="" /><pre><code class="language-rust">trait Iterator {
+    type Item;
+    fn next(&amp;mut self) -&gt; Option&lt;Self::Item&gt;;
+}
+
+let v = vec![10, 20];
+let mut it = v.iter();
+it.next(); // Some(&amp;10)
+it.next(); // Some(&amp;20)
+it.next(); // None
+</code></pre>
+<p>Call <code>iter()</code> to get one, then call <code>next</code> yourself:</p>
+<ul>
+<li><strong>First call</strong> hands back <code>Some(&amp;10)</code>. One item, wrapped in <code>Some</code>.</li>
+<li><strong>Next call</strong> hands back <code>Some(&amp;20)</code>. One more.</li>
+<li><strong>When the items run out</strong>, <code>next</code> returns <code>None</code>.</li>
+</ul>
+<p>That <code>None</code> is exactly how a <code>for</code> loop knows when to stop. A <code>for</code> loop <em>is</em> this, calling <code>next</code> over and over until it sees <code>None</code>, done for you automatically.</p>
+<blockquote>
+<p><strong>Remember:</strong> a for loop is next() until none.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §13.2 Iterators</span></div><div class="body"><h3>iter, iter_mut, into_iter</h3>
+<p>You get an iterator three ways, and they should feel familiar. They&#39;re the same borrow, mutate, take split you just saw in closures.</p>
+<img class="slide" src="img/SceneIterWays.webp" alt="" /><ul>
+<li><strong><code>iter()</code></strong> borrows each item to read. Yields <code>&amp;T</code>.</li>
+<li><strong><code>iter_mut()</code></strong> borrows mutably, so you can change items in place. Yields <code>&amp;mut T</code>.</li>
+<li><strong><code>into_iter()</code></strong> takes ownership, consuming the whole collection. Yields <code>T</code>.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Yields</th>
+<th>Mode</th>
+<th>Closure cousin</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>iter()</code></td>
+<td><code>&amp;T</code></td>
+<td>borrow, read only</td>
+<td><code>Fn</code></td>
+</tr>
+<tr>
+<td><code>iter_mut()</code></td>
+<td><code>&amp;mut T</code></td>
+<td>mutable borrow</td>
+<td><code>FnMut</code></td>
+</tr>
+<tr>
+<td><code>into_iter()</code></td>
+<td><code>T</code></td>
+<td>takes ownership</td>
+<td><code>FnOnce</code></td>
+</tr>
+</tbody></table>
+<p>Borrow, mutate, take. The exact same three modes as closures, learned once and reused.</p>
+<blockquote>
+<p><strong>Remember:</strong> the same three modes as closures.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §13.2 Iterators</span></div><div class="body"><h3>Adapters take closures</h3>
+<p>Here&#39;s where both halves of the episode meet. Adapters are iterator methods that take a closure, so everything you learned about closures pays off again.</p>
+<img class="slide" src="img/SceneAdapters.webp" alt="" /><pre><code class="language-rust">let names = vec![&quot;meowy&quot;, &quot;tom&quot;, &quot;felix&quot;];
+let long = names.iter()
+    .map(|n| n.len())
+    .filter(|len| *len &gt; 3);
+</code></pre>
+<ul>
+<li><strong><code>map</code></strong> runs your closure on every item. A name goes in, its length comes out.</li>
+<li><strong><code>filter</code></strong> keeps an item only when your closure returns <code>true</code>. So here, only the longer names survive.</li>
+<li><strong>The trick:</strong> each adapter returns <em>another iterator</em>. That&#39;s why you can keep chaining them, one after another.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Adapter</th>
+<th>Takes</th>
+<th>Does</th>
+<th>Returns</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>map</code></td>
+<td>a closure</td>
+<td>transforms each item</td>
+<td>a new iterator</td>
+</tr>
+<tr>
+<td><code>filter</code></td>
+<td>a closure to <code>bool</code></td>
+<td>keeps items that pass</td>
+<td>a new iterator</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>Remember:</strong> adapters return iterators. chain as many as you like.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §13.2 Iterators</span></div><div class="body"><h3>Iterators are lazy</h3>
+<p>Here&#39;s the part that trips people up. Iterators are lazy. Building a chain doesn&#39;t run anything. Nothing happens until something asks.</p>
+<img class="slide" src="img/SceneLazyEval.webp" alt="" /><pre><code class="language-rust">nums.iter().map(|x| { println!(&quot;hit&quot;); x * 2 });
+// prints nothing
+
+nums.iter().map(|x| { println!(&quot;hit&quot;); x * 2 }).collect();
+// prints &quot;hit&quot; once per element
+</code></pre>
+<ul>
+<li><strong>The first line</strong> builds a <code>map</code>, then drops it. It prints nothing. Not one <code>hit</code>. The closure never even runs.</li>
+<li><strong>The second line</strong> adds <code>.collect()</code>, and suddenly it runs, once per element.</li>
+</ul>
+<p><code>collect</code> is the thing that <em>asks</em>. Adapters just describe work. A consumer like <code>collect</code> is what finally pulls the values through.</p>
+<blockquote>
+<p><strong>Remember:</strong> nothing runs until a consumer asks.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §13.2 Iterators</span></div><div class="body"><h3>A real pipeline</h3>
+<p>Now put it together. Start with six numbers, keep the even ones, double each, and gather the result. One readable chain.</p>
+<img class="slide" src="img/SceneIteratorChain.webp" alt="" /><pre><code class="language-rust">let nums = vec![1, 2, 3, 4, 5, 6];
+let doubled_evens: Vec&lt;_&gt; = nums
+    .iter()
+    .filter(|n| **n % 2 == 0)
+    .map(|n| n * 2)
+    .collect();
+// [4, 8, 12]
+</code></pre>
+<p>Trace the values flowing through, one step at a time:</p>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Values</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>iter()</code></td>
+<td><code>1 2 3 4 5 6</code></td>
+</tr>
+<tr>
+<td><code>filter</code> even</td>
+<td><code>2 4 6</code></td>
+</tr>
+<tr>
+<td><code>map *2</code></td>
+<td><code>4 8 12</code></td>
+</tr>
+<tr>
+<td><code>collect</code></td>
+<td><code>[4, 8, 12]</code></td>
+</tr>
+</tbody></table>
+<p><code>collect</code> is what finally asks. It pulls everything through and gathers it into a <code>Vec</code>. And here&#39;s the kicker: this whole chain compiles down to one tight loop. No intermediate vectors, no wasted passes.</p>
+<blockquote>
+<p><strong>Remember:</strong> describe the pipeline. rust runs it as one tight loop.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §13.2 Iterators</span></div><div class="body"><h3>Consumers end the chain</h3>
+<p>So what actually asks? A consumer. It&#39;s the method at the end that pulls every value through and hands you back a result.</p>
+<img class="slide" src="img/SceneConsumers.webp" alt="" /><pre><code class="language-rust">let nums = vec![1, 2, 3, 4];
+nums.iter().sum::&lt;i32&gt;();          // 10
+nums.iter().count();               // 4
+nums.iter().fold(0, |acc, n| acc + n); // 10
+</code></pre>
+<ul>
+<li><strong><code>sum</code></strong> pulls every value through and adds them up. Now the pipeline really runs.</li>
+<li><strong><code>count</code></strong> walks the whole thing and tells you how many came out.</li>
+<li><strong><code>fold</code></strong> is the general one. It carries an accumulator across every item, and you decide what to do at each step.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Consumer</th>
+<th>Does</th>
+<th>On <code>[1, 2, 3, 4]</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>sum</code></td>
+<td>adds everything up</td>
+<td><code>10</code></td>
+</tr>
+<tr>
+<td><code>count</code></td>
+<td>counts the items</td>
+<td><code>4</code></td>
+</tr>
+<tr>
+<td><code>fold</code></td>
+<td>accumulates, your rule per step</td>
+<td><code>10</code></td>
+</tr>
+</tbody></table>
+<p>In fact <code>sum</code>, <code>count</code>, even <code>collect</code> are all <code>fold</code> with the boilerplate hidden. Learn <code>fold</code> and you understand the rest.</p>
+<blockquote>
+<p><strong>Remember:</strong> a consumer is the thing that asks.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §13.2 Iterators</span></div><div class="body"><h3>Zero-cost abstractions</h3>
+<p>You might worry all this chaining is slow. It isn&#39;t. Here&#39;s what you write, and here&#39;s what the compiler turns it into.</p>
+<img class="slide" src="img/ScenePerformance.webp" alt="" /><pre><code class="language-rust">// what you write
+let total: u32 = nums.iter()
+    .filter(|n| **n % 2 == 0)
+    .map(|n| n * 2)
+    .sum();
+
+// what it compiles to
+let mut total = 0;
+for n in &amp;nums {
+    if n % 2 == 0 { total += n * 2; }
+}
+</code></pre>
+<p>Same machine code. No extra cost for the nice syntax.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>what you write</th>
+<th>what it compiles to</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>shape</td>
+<td>a chain of adapters</td>
+<td>a plain <code>for</code> loop</td>
+</tr>
+<tr>
+<td>reads like</td>
+<td>a description of the result</td>
+<td>low-level steps</td>
+</tr>
+<tr>
+<td>runs like</td>
+<td>the hand-written loop</td>
+<td>the exact same loop</td>
+</tr>
+</tbody></table>
+<p>This is what people mean by a zero-cost abstraction. You pay nothing at runtime for writing the readable version.</p>
+<blockquote>
+<p><strong>Remember:</strong> high-level to read. low-level to run.</p>
+</blockquote>
+</div></section>
+<section class="scene quote"><div class="body"><p>The whole second half in one line. Lazy, chained, fast.</p>
+<blockquote>
+<p>Iterators are the killer feature: you describe what you want, and Rust runs it fast.</p>
+</blockquote>
+</div></section>
+<section class="appendix">
+      <h2 class="ap-title">Cheatsheet <span class="accent">recap</span></h2>
+      <p class="ap-sub">One line per idea, in order. Skim this when you just need the reminder.</p>
+      <table class="ck-table"><thead><tr><th>Idea</th><th>Remember</th></tr></thead><tbody><tr><td class="ck-scene">A function that remembers</td><td class="ck-text">a closure remembers where it was born.</td></tr>
+<tr><td class="ck-scene">From function to closure</td><td class="ck-text">|args| body. that&#39;s the whole shape.</td></tr>
+<tr><td class="ck-scene">Three ways to capture</td><td class="ck-text">how you use a capture picks the trait.</td></tr>
+<tr><td class="ck-scene">Fn, FnMut, FnOnce</td><td class="ck-text">every fn is an fnmut is an fnonce.</td></tr>
+<tr><td class="ck-scene">An iterator is one method</td><td class="ck-text">a for loop is next() until none.</td></tr>
+<tr><td class="ck-scene">iter, iter_mut, into_iter</td><td class="ck-text">the same three modes as closures.</td></tr>
+<tr><td class="ck-scene">Adapters take closures</td><td class="ck-text">adapters return iterators. chain as many as you like.</td></tr>
+<tr><td class="ck-scene">Iterators are lazy</td><td class="ck-text">nothing runs until a consumer asks.</td></tr>
+<tr><td class="ck-scene">A real pipeline</td><td class="ck-text">describe the pipeline. rust runs it as one tight loop.</td></tr>
+<tr><td class="ck-scene">Consumers end the chain</td><td class="ck-text">a consumer is the thing that asks.</td></tr>
+<tr><td class="ck-scene">Zero-cost abstractions</td><td class="ck-text">high-level to read. low-level to run.</td></tr></tbody></table>
+      <div class="ap-foot"><strong>Maps to:</strong> The Rust Programming Language, Chapter 13.<br/><strong>Practice:</strong> Rustlings <code>18_iterators</code>.</div>
+    </section>
+</main>
+<button class="save-pdf" onclick="window.print()">Save as PDF</button>
+
+<div class="zoom-mbar-bg" aria-hidden="true"></div>
+<div class="zoom-panel" data-zoom-panel aria-label="Zoom controls">
+  <button type="button" class="zoom-in" aria-label="Zoom in" title="Zoom in">+</button>
+  <div class="zoom-level" role="button" tabindex="0" title="Reset zoom" aria-label="Reset zoom">100%</div>
+  <button type="button" class="zoom-out" aria-label="Zoom out" title="Zoom out">−</button>
+</div>
+<script>
+(function(){
+  var doc=document.querySelector('.doc');
+  var panel=document.querySelector('[data-zoom-panel]');
+  if(!doc||!panel)return;
+  var label=panel.querySelector('.zoom-level');
+  var KEY='rfz_notes_zoom',MIN=0.5,MAX=2,STEP=0.1,z=1;
+  try{var s=parseFloat(localStorage.getItem(KEY));if(s>=MIN&&s<=MAX)z=s;}catch(e){}
+  function clamp(v){return Math.min(MAX,Math.max(MIN,Math.round(v*100)/100));}
+  function isMobile(){return window.matchMedia&&window.matchMedia('(max-width:640px)').matches;}
+  function apply(){var m=isMobile()&&z!==1;doc.style.zoom=z;doc.style.width=m?('calc(100% / '+z+')'):'';doc.style.maxWidth=m?'none':'';label.textContent=Math.round(z*100)+'%';try{localStorage.setItem(KEY,String(z));}catch(e){}}
+  panel.querySelector('.zoom-in').addEventListener('click',function(){z=clamp(z+STEP);apply();});
+  panel.querySelector('.zoom-out').addEventListener('click',function(){z=clamp(z-STEP);apply();});
+  function reset(){z=1;apply();}
+  label.addEventListener('click',reset);
+  label.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();reset();}});
+  window.addEventListener('resize',apply);
+  apply();
+})();
+</script>
+</body>
+</html>

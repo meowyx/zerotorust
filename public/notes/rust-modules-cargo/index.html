@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Modules and Cargo · MeowyTheDev companion guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@1&family=Caveat:wght@500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink:#1c1e22; --soft:#43474e; --muted:#888d96; --line:#e3e4e8;
+  --rust:#c8542a; --code-bg:#f5f5f4; --code-fg:#24292e;
+  --sans:"Bricolage Grotesque",system-ui,-apple-system,sans-serif;
+  --serif:"Instrument Serif",Georgia,serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:#e9e9ec;color:var(--ink);font-family:var(--sans);}
+.accent{font-family:var(--serif);font-style:italic;color:var(--rust);font-weight:400;}
+.doc{max-width:182mm;margin:8mm auto;padding:16mm;background:#fff;box-shadow:0 4px 24px rgba(0,0,0,0.18);}
+
+.cover{position:relative;min-height:240mm;display:flex;flex-direction:column;justify-content:center;break-after:page;}
+.divider{break-before:page;padding-top:6mm;}
+.appendix{break-before:page;padding-top:4mm;}
+.scene{margin:0 0 9mm;}
+.scene.quote{break-before:page;padding-top:8mm;}
+.slide,.body pre,.body table,.body blockquote{break-inside:avoid;}
+.body h3{break-after:avoid;}
+
+.book-chip{display:inline-block;font-family:var(--mono);font-size:8pt;letter-spacing:0.02em;color:var(--soft);background:#fff;border:1px solid var(--line);padding:3px 9px;border-radius:5px;white-space:nowrap;}
+.scene-chip{margin-bottom:3mm;}
+.slide{display:block;width:100%;max-width:100%;border-radius:8px;border:1px solid var(--line);}
+
+.body h3{font-size:19pt;font-weight:700;color:#16181d;margin:0 0 3mm;line-height:1.15;letter-spacing:-0.01em;}
+.body p{font-size:11pt;line-height:1.62;color:var(--soft);margin:0 0 3mm;}
+.body p strong,.body li strong{color:var(--ink);font-weight:700;}
+.body em{font-family:var(--serif);font-style:italic;color:var(--ink);}
+.body ul,.body ol{margin:3mm 0;padding-left:6mm;}
+.body li{margin:0 0 2mm;line-height:1.55;font-size:11pt;color:var(--soft);}
+.body code{font-family:var(--mono);font-size:0.86em;background:var(--code-bg);padding:0.08em 0.32em;border-radius:4px;color:#9a3a18;}
+.body pre{background:var(--code-bg);color:var(--code-fg);border:1px solid var(--line);border-radius:8px;padding:4mm 5mm;white-space:pre-wrap;overflow-wrap:break-word;font-family:var(--mono);font-size:9.5pt;line-height:1.5;margin:4mm 0;}
+.body pre code{background:none;padding:0;color:inherit;font-size:inherit;}
+.body table{width:100%;border-collapse:collapse;margin:4mm 0;font-size:10pt;}
+.body th{text-align:left;background:#f3f3f4;color:var(--ink);font-family:var(--mono);font-size:8pt;text-transform:uppercase;letter-spacing:0.02em;padding:2.4mm 3mm;border:1px solid var(--line);}
+.body td{padding:2.4mm 3mm;border:1px solid var(--line);vertical-align:top;color:var(--soft);overflow-wrap:break-word;}
+.body blockquote{margin:5mm 0 0;background:#f7f7f6;border-left:3px solid var(--rust);border-radius:0 6px 6px 0;padding:3.5mm 5mm;font-size:11pt;color:var(--ink);}
+.body blockquote p{margin:0;color:var(--ink);} .body blockquote strong{color:#16181d;}
+
+.cover-eyebrow{font-family:var(--mono);font-size:9.5pt;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);}
+.cover-title{font-size:40pt;line-height:1.06;font-weight:800;color:#16181d;margin:6mm 0 0;letter-spacing:-0.01em;padding-right:34mm;}
+.cover-tagline{font-family:var(--serif);font-style:italic;font-size:18pt;color:var(--soft);margin:7mm 0 0;max-width:150mm;line-height:1.4;}
+.cover-chip{margin-top:14mm;align-self:flex-start;font-family:var(--mono);font-size:9.5pt;color:var(--soft);background:#fff;border:1px solid var(--line);padding:6px 12px;border-radius:6px;}
+.cover-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);padding-top:5mm;font-size:9pt;color:var(--muted);}
+.cover-foot .ep{font-family:var(--mono);font-weight:700;color:var(--rust);letter-spacing:0.1em;}
+.cover-foot-r{font-family:var(--mono);font-size:8.5pt;color:var(--muted);}
+.cover-num{position:absolute;top:13mm;right:0;font-family:var(--mono);font-weight:800;font-size:54pt;color:#dadbe0;}
+
+.divider-head{display:flex;align-items:center;gap:14px;margin-bottom:4mm;}
+.divider .kicker{font-family:var(--mono);font-size:9pt;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);}
+.divider-title{font-size:30pt;font-weight:800;color:#16181d;margin:0;letter-spacing:-0.01em;}
+.divider-intro{margin-top:5mm;} .divider-intro p{font-size:11.5pt;}
+
+.ap-title{font-size:26pt;font-weight:800;color:#16181d;margin:0 0 2mm;}
+.ap-sub{font-size:11pt;color:var(--soft);max-width:150mm;margin:0 0 5mm;}
+.ck-table{width:100%;border-collapse:collapse;font-size:10pt;}
+.ck-table th{text-align:left;background:#f3f3f4;color:var(--ink);font-family:var(--mono);font-size:8pt;text-transform:uppercase;letter-spacing:0.03em;padding:2.6mm 3mm;border:1px solid var(--line);}
+.ck-scene{font-weight:700;color:#16181d;width:40%;}
+.ck-table td{padding:2.6mm 3mm;border:1px solid var(--line);color:var(--soft);vertical-align:top;overflow-wrap:break-word;}
+.ap-foot{margin-top:7mm;font-size:10pt;background:#f7f7f6;border:1px solid var(--line);border-radius:8px;padding:4mm 5mm;line-height:1.7;}
+
+/* "Save as PDF" button: screen only */
+.save-pdf{position:fixed;right:18px;bottom:18px;z-index:50;font-family:var(--sans);font-size:13px;font-weight:700;color:#fff;background:var(--rust);border:none;border-radius:8px;padding:11px 16px;box-shadow:0 3px 12px rgba(0,0,0,0.25);cursor:pointer;}
+.save-pdf:hover{background:#b0461f;}
+/* running header/footer: print only (repeat on every printed page) */
+.print-running{display:none;}
+
+@page{size:A4;margin:16mm 14mm 14mm;}
+@media print{
+  html,body{background:#fff;}
+  .doc{max-width:none;margin:0;padding:0;background:#fff;box-shadow:none;}
+  .save-pdf{display:none !important;}
+  .print-running{display:flex;position:fixed;left:0;right:0;align-items:center;justify-content:space-between;font-size:8pt;color:var(--soft);font-family:var(--mono);}
+  .print-running.top{top:6mm;} .print-running.bot{bottom:6mm;}
+  .print-running .brand{display:flex;align-items:center;gap:6px;font-family:var(--sans);font-weight:700;color:var(--ink);}
+  .print-running .xh{display:flex;align-items:center;gap:5px;}
+  .print-running .muted{color:var(--muted);}
+}
+
+/* frosted-glass zoom panel: screen only, hidden in print */
+.zoom-panel{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:60;display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:16px;background:rgba(255,255,255,0.55);-webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blur(14px) saturate(1.3);border:1px solid rgba(255,255,255,0.7);box-shadow:0 10px 30px rgba(28,30,34,0.18),inset 0 1px 0 rgba(255,255,255,0.65);font-family:var(--sans);}
+.zoom-panel button{width:40px;height:40px;border:none;cursor:pointer;border-radius:11px;background:rgba(255,255,255,0.5);color:var(--ink);font-size:19px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;transition:background .15s,transform .1s;}
+.zoom-panel button:hover{background:rgba(255,255,255,0.95);}
+.zoom-panel button:active{transform:scale(0.93);}
+.zoom-level{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--soft);text-align:center;padding:3px 0;cursor:pointer;user-select:none;letter-spacing:0.02em;border-radius:8px;}
+.zoom-level:hover{color:var(--rust);background:rgba(255,255,255,0.5);}
+.zoom-mbar-bg{display:none;}
+/* phones: sticky bottom toolbar holding zoom (left) + Save as PDF (right) */
+@media (max-width:640px){.zoom-mbar-bg{display:block;position:fixed;left:0;right:0;bottom:0;height:58px;background:rgba(255,255,255,0.55);-webkit-backdrop-filter:blur(16px) saturate(1.4);backdrop-filter:blur(16px) saturate(1.4);border-top:1px solid rgba(255,255,255,0.7);box-shadow:0 -8px 30px rgba(28,30,34,0.12);z-index:59;}.zoom-panel{left:14px;right:auto;top:auto;bottom:10px;transform:none;flex-direction:row-reverse;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;border:none;box-shadow:none;padding:0;}.zoom-panel button{width:38px;height:38px;background:rgba(0,0,0,0.05);color:var(--ink);}.zoom-panel button:hover{background:rgba(0,0,0,0.1);}.zoom-level{color:var(--soft);}.zoom-level:hover{color:var(--rust);background:transparent;}.save-pdf{right:14px !important;bottom:10px !important;z-index:60 !important;}body{padding-bottom:70px;}}
+@media print{.zoom-panel{display:none !important;}.doc{zoom:1 !important;width:auto !important;}}
+
+/* notes-mobile-css: screen-only mobile reflow, print styles left untouched */
+@media screen and (max-width: 640px) {
+  html, body { background: #fff; }
+  .doc { max-width: 100%; margin: 0; padding: 22px 16px; box-shadow: none; }
+  .cover { min-height: auto; padding: 6px 0 22px; }
+  .cover-title { font-size: 30pt; padding-right: 0; }
+  .cover-tagline { font-size: 15pt; }
+  .cover-num { font-size: 38pt; top: 6px; }
+  .divider-title { font-size: 24pt; }
+  .body h3 { font-size: 17pt; }
+  .body p, .body li { font-size: 12pt; }
+  .body pre { font-size: 8.5pt; padding: 3mm 3.5mm; }
+  .ap-title { font-size: 22pt; }
+}
+</style>
+<link rel="icon" type="image/png" href="/icon" />
+</head>
+<body>
+<div class="print-running top"><span class="brand"><svg viewBox="0 0 28 20" width="18" height="13" aria-hidden="true"><rect width="28" height="20" rx="5" fill="#FF0033"/><path d="M11 6l7 4-7 4z" fill="#fff"/></svg>MeowyTheDev</span><span class="muted">RUST FROM ZERO · EP.08</span></div>
+<div class="print-running bot"><span class="xh"><svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="#2b1d12" d="M18.9 2H22l-7.6 8.7L23.3 22h-6.9l-5.4-7-6.2 7H1.7l8.1-9.3L1 2h7l4.9 6.5z"/></svg>@me256ow</span><span class="muted">companion guide</span></div>
+<main class="doc">
+<section class="cover">
+      <div class="cover-eyebrow">MeowyTheDev <span class="dot">·</span> Rust from Zero</div>
+      <h1 class="cover-title">Modules and <span class="accent">Cargo</span></h1>
+      <p class="cover-tagline">the shape of a growing project, and the tool that builds it.</p>
+      <div class="cover-chip">The Rust Programming Language <span class="dot">·</span> Chapters 7 and 14</div>
+      <div class="cover-foot"><span class="ep">EP.08</span><span class="cover-foot-r">companion guide · watch on the Rust from Zero playlist</span></div>
+      <div class="cover-num">08</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 7 + 14 (the motivation)</span></div><div class="body"><h3>One file stops scaling</h3>
+<p>You start with one file. <code>main.rs</code>. It works fine at first.</p>
+<img class="slide" src="img/SceneHook.webp" alt="" /><p>Then you add a few structs. A few functions. Then a few more.</p>
+<pre><code class="language-rust">struct Cat { name: String, age: u8 }
+struct MenuItem { name: String, price: f32 }
+struct Order { items: Vec&lt;MenuItem&gt; }
+
+fn add_cat(name: &amp;str) -&gt; Cat { /* 40 lines */ }
+fn take_order(cat: &amp;Cat) -&gt; Order { /* ... */ }
+fn print_menu(items: &amp;[MenuItem]) { /* ... */ }
+// main.rs is now 400 lines and still growing...
+</code></pre>
+<p>And suddenly it&#39;s four hundred lines of nowhere. You go to add the next function and you have no idea where it belongs.</p>
+<ul>
+<li>Same file holds your structs, your business logic, and <code>main</code>.</li>
+<li>Nothing is grouped. Nothing has a home.</li>
+<li>Every new feature makes it worse.</li>
+</ul>
+<p>Three keywords fix this: <strong>mod</strong>, <strong>pub</strong>, and <strong>use</strong>. That&#39;s the whole lesson, and the rest of this guide is just those three in detail.</p>
+<blockquote>
+<p><strong>Remember:</strong> one file does not scale. mod, pub, use is the fix.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-rust">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Module tree</h2><span class="book-chip">Book · §7.1</span></div>
+
+      <div class="body divider-intro"><p>Before any syntax, you need the map. Rust nests your code in three layers: a package holds crates, a crate holds modules, and a module is just a named scope. Get those rings straight and the keywords fall into place.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 7 Managing Growing Projects</span></div><div class="body"><h3>Package, crate, module</h3>
+<p>Rust organizes code in three nested layers. Think rings, outside in.</p>
+<img class="slide" src="img/SceneMentalModel.webp" alt="" /><ul>
+<li><strong>Package</strong> is the outer ring. <code>Cargo.toml</code> defines it, and it ships one or more crates together.</li>
+<li><strong>Crate</strong> is the middle ring. It&#39;s a tree of modules, and its root is <code>lib.rs</code> or <code>main.rs</code>.</li>
+<li><strong>Module</strong> is the inner ring. It&#39;s a named scope inside a crate, like <code>mod cats</code>.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Ring</th>
+<th>What it is</th>
+<th>Defined by</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>package</td>
+<td>the thing you build and publish</td>
+<td><code>Cargo.toml</code></td>
+</tr>
+<tr>
+<td>crate</td>
+<td>one tree of modules</td>
+<td><code>lib.rs</code> or <code>main.rs</code></td>
+</tr>
+<tr>
+<td>module</td>
+<td>a namespace inside the crate</td>
+<td><code>mod cats { ... }</code></td>
+</tr>
+</tbody></table>
+<p>A module is the part you create most. Each one is a separate namespace, so <code>mod cats</code> and <code>mod orders</code> never collide.</p>
+<pre><code class="language-rust">mod cats {
+    // a named scope, all its own
+}
+</code></pre>
+<blockquote>
+<p><strong>Remember:</strong> package wraps crate wraps module. rings, outside in.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 7 Managing Growing Projects</span></div><div class="body"><h3>A real module tree</h3>
+<p>Here is a real one. The <code>cat_cafe</code> package, with a <code>Cargo.toml</code> at the root and a <code>src</code> folder holding the crate.</p>
+<img class="slide" src="img/SceneModuleTree.webp" alt="" /><p>The <code>cats</code> folder becomes the <code>cats</code> module. Each file inside it is a submodule.</p>
+<pre><code>cat_cafe/
+├─ Cargo.toml
+└─ src/
+   ├─ main.rs        // binary crate root
+   ├─ cats/          // mod cats
+   │  ├─ mod.rs
+   │  ├─ breeds.rs   // pub struct Breed
+   │  └─ health.rs   // pub(crate) fn check
+   └─ orders/        // mod orders
+      └─ menu.rs     // pub fn print_menu
+</code></pre>
+<p>To reach a name, you write a path. Two kinds show up constantly:</p>
+<ul>
+<li><strong><code>crate::</code></strong> starts from the crate root, so it works from anywhere.</li>
+<li><strong><code>super::</code></strong> steps one module up, like <code>..</code> in a file path.</li>
+</ul>
+<pre><code class="language-rust">use crate::cats::breeds::Breed;       // from the crate root
+use crate::orders::menu::print_menu;
+use super::breeds::Breed;             // from cats/health.rs, one up
+</code></pre>
+<p>You can name a module folder <code>cats/mod.rs</code> or a single file <code>cats.rs</code>. Rust looks in both places, so pick whichever fits how big the module is.</p>
+<blockquote>
+<p><strong>Remember:</strong> cats/mod.rs or cats.rs. rust looks in both places.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-teal">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">mod, pub, use</h2><span class="book-chip">Book · §7.2-7.4</span></div>
+
+      <div class="body divider-intro"><p>Now the three keywords from the hook, one at a time. <code>mod</code> declares a module, <code>pub</code> decides who can see what&#39;s inside, and <code>use</code> pulls a name into scope so you stop typing the full path. That&#39;s the whole toolkit.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 7 Managing Growing Projects</span></div><div class="body"><h3>Two ways to mod</h3>
+<p>You can write a module inline, or point Rust at a file. Same result, different size.</p>
+<img class="slide" src="img/SceneModDecl.webp" alt="" /><p>Inline keeps everything in one place. It works, but it grows fast, which is exactly the pain we just showed.</p>
+<pre><code class="language-rust">// OPTION A: inline
+mod cats {
+    pub struct Cat { pub name: String }
+    pub fn meow() { /* ... */ }
+}
+</code></pre>
+<p>The better option for anything real is a <code>mod cats;</code> with a semicolon. That tells Rust to go find the file.</p>
+<pre><code class="language-rust">// OPTION B: file-based, in main.rs
+mod cats;            // rust looks for cats.rs or cats/mod.rs
+pub use cats::Cat;   // re-export: callers see Cat as yours
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Style</th>
+<th>Code lives</th>
+<th>Reach for it when</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>inline <code>mod cats { }</code></td>
+<td>in the same file</td>
+<td>the module is tiny</td>
+</tr>
+<tr>
+<td>file-based <code>mod cats;</code></td>
+<td>in <code>cats.rs</code> or <code>cats/mod.rs</code></td>
+<td>it has grown past a few lines</td>
+</tr>
+</tbody></table>
+<p>Items inside a module are still private. You opt in with <code>pub</code>. And <code>pub use</code> re-exports a name so callers see it as if you defined it right there.</p>
+<blockquote>
+<p><strong>Remember:</strong> split into a file when the inline version gets long.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 7 Managing Growing Projects</span></div><div class="body"><h3>The four visibility gates</h3>
+<p>Default visibility is the narrowest one: private. You opt in to wider visibility from there.</p>
+<img class="slide" src="img/ScenePubGates.webp" alt="" /><table>
+<thead>
+<tr>
+<th>Keyword</th>
+<th>Who can see it</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>pub</code></td>
+<td>the world, anyone who depends on your crate</td>
+<td><code>pub fn print_menu()</code></td>
+</tr>
+<tr>
+<td><code>pub(crate)</code></td>
+<td>this crate, your own modules only</td>
+<td><code>pub(crate) struct Token</code></td>
+</tr>
+<tr>
+<td><code>pub(super)</code></td>
+<td>the parent module, one level up</td>
+<td><code>pub(super) fn helper()</code></td>
+</tr>
+<tr>
+<td><em>(none)</em></td>
+<td>this module only, private</td>
+<td><code>fn internal()</code></td>
+</tr>
+</tbody></table>
+<p>The rule is simple:</p>
+<ul>
+<li><strong>Start private.</strong> Nothing leaks until you say so.</li>
+<li><strong>Promote only what callers actually need.</strong> Each <code>pub</code> is a promise you have to keep.</li>
+<li><strong>You can widen later, but you cannot take it back.</strong> Making something more public is easy; un-publishing it is a breaking change.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> start private. promote only what callers actually need.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 7 Managing Growing Projects</span></div><div class="body"><h3>use, paths, re-exports</h3>
+<p><code>use</code> brings a name into scope so you stop typing the full path every time. The path prefix decides where it starts.</p>
+<img class="slide" src="img/SceneUsePaths.webp" alt="" /><pre><code class="language-rust">use crate::cats::Cat;                    // absolute, from the crate root
+use super::health::Checkup;              // relative, one module up
+use self::breeds::Breed;                 // the current module
+pub use crate::orders::menu::print_menu; // re-export
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Prefix</th>
+<th>Starts from</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>crate::</code></td>
+<td>the crate root</td>
+<td>always works from anywhere</td>
+</tr>
+<tr>
+<td><code>super::</code></td>
+<td>the parent module</td>
+<td>like <code>..</code> in a file path</td>
+</tr>
+<tr>
+<td><code>self::</code></td>
+<td>the current module</td>
+<td>rare, but handy in <code>mod.rs</code> re-exports</td>
+</tr>
+</tbody></table>
+<p>The last line is the special one. <strong><code>pub use</code></strong> re-exports a name, so callers see it as if you defined it yourself. That&#39;s how libraries build a clean public API: hide the deep module path, expose one tidy name.</p>
+<blockquote>
+<p><strong>Remember:</strong> use just makes the name shorter. the path is still there.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 7 Managing Growing Projects</span></div><div class="body"><h3>Before and after</h3>
+<p>Here is the payoff. One file, four hundred lines, becomes three small ones.</p>
+<img class="slide" src="img/SceneRefactorDemo.webp" alt="" /><p><strong>Before:</strong> structs, functions, business logic, all piled into <code>main.rs</code>. You&#39;ve seen this one.</p>
+<p><strong>After:</strong> three lines of <code>mod</code>, three lines of <code>use</code>, twelve lines total. Rust finds each file automatically.</p>
+<pre><code class="language-rust">mod cats;     // rust looks for cats.rs or cats/mod.rs
+mod orders;   // same for orders
+mod menu;     // and the menu module
+
+use cats::Cat;
+use orders::Order;
+use menu::print_menu;
+
+fn main() {
+    print_menu();
+}
+</code></pre>
+<ul>
+<li>Each <code>mod</code> line points Rust at a file. No wiring, no config.</li>
+<li>Everything inside those files stays private until you <code>pub</code> it.</li>
+<li>The logic never changed. Only where it lives did.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> same code. different zip code.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-rustDk">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Cargo.toml</h2><span class="book-chip">Book · Ch 14</span></div>
+
+      <div class="body divider-intro"><p>Modules organize your code. Cargo organizes your project. Open <code>Cargo.toml</code> and meet the file that names the package, pulls in dependencies, and tells the compiler how to build.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 14 More About Cargo</span></div><div class="body"><h3>Cargo.toml, section by section</h3>
+<p>Every Rust project has a <code>Cargo.toml</code>. A few sections do almost all the work.</p>
+<img class="slide" src="img/SceneCargoToml.webp" alt="" /><pre><code class="language-toml">[package]
+name = &quot;cat_cafe&quot;
+version = &quot;0.1.0&quot;
+edition = &quot;2021&quot;
+
+[dependencies]
+serde = { version = &quot;1&quot;, features = [&quot;derive&quot;] }
+tokio = { version = &quot;1&quot;, features = [&quot;full&quot;] }
+
+[dev-dependencies]
+mockall = &quot;0.12&quot;
+</code></pre>
+<ul>
+<li><strong><code>[package]</code></strong> is required: name, version, edition. The edition sets the Rust language version, and <code>2021</code> is the current stable one.</li>
+<li><strong><code>[dependencies]</code></strong> is where external crates go. You name the crate and a semver range like <code>&quot;1&quot;</code> (any <code>1.x</code>), and cargo fetches it from crates.io.</li>
+<li><strong><code>features = [...]</code></strong> opts into parts of a dependency, like <code>&quot;derive&quot;</code> on serde.</li>
+<li><strong><code>[dev-dependencies]</code></strong> are only compiled for tests and benchmarks. They never end up in your final binary.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> cargo handles the rest. you just name what you need.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 14 More About Cargo</span></div><div class="body"><h3>dev vs release</h3>
+<p>Cargo ships two build profiles out of the box, each tuned for a different moment.</p>
+<pre><code class="language-toml">[profile.dev]
+opt-level = 0        # fast compile
+debug = true         # full debug info
+
+[profile.release]
+opt-level = 3        # max speed
+lto = true           # link-time opt
+</code></pre>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><code>cargo build</code> (dev)</th>
+<th><code>cargo build --release</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>opt-level</td>
+<td><code>0</code>, no optimizing</td>
+<td><code>3</code>, max speed</td>
+</tr>
+<tr>
+<td>compile time</td>
+<td>fast</td>
+<td>slower</td>
+</tr>
+<tr>
+<td>debug info</td>
+<td>full</td>
+<td>stripped</td>
+</tr>
+<tr>
+<td>use it for</td>
+<td>day-to-day development</td>
+<td>what you ship</td>
+</tr>
+</tbody></table>
+<p>You can also write a custom <code>[profile.something]</code> and inherit from dev or release. Handy for a profiling build that keeps debug info but is still optimized.</p>
+<blockquote>
+<p><strong>Remember:</strong> dev compiles fast. release ships fast.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 14 More About Cargo</span></div><div class="body"><h3>fmt, clippy, doc</h3>
+<p>Three tools you&#39;ll reach for every single day, and one more for when you&#39;re ready to share.</p>
+<img class="slide" src="img/SceneCargoTools.webp" alt="" /><table>
+<thead>
+<tr>
+<th>Command</th>
+<th>What it does</th>
+<th>Try</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>cargo fmt</code></td>
+<td>rewrites your code to the standard style, no debate</td>
+<td><code>cargo fmt --all</code></td>
+</tr>
+<tr>
+<td><code>cargo clippy</code></td>
+<td>idiomatic lint, catches what the compiler won&#39;t</td>
+<td><code>cargo clippy -- -D warnings</code></td>
+</tr>
+<tr>
+<td><code>cargo doc</code></td>
+<td>builds HTML docs from your <code>///</code> comments</td>
+<td><code>cargo doc --open</code></td>
+</tr>
+</tbody></table>
+<ul>
+<li><strong><code>cargo fmt</code></strong> ends every formatting argument before it starts. There&#39;s one standard style and this applies it.</li>
+<li><strong><code>cargo clippy</code></strong> flags common mistakes and suggests the more idiomatic way.</li>
+<li><strong><code>cargo doc</code></strong> turns your <code>///</code> comments into a browsable site, and <code>--open</code> launches it.</li>
+</ul>
+<p>When the crate is ready, <strong><code>cargo publish</code></strong> sends it to crates.io. Bump versions with semver so you don&#39;t break the people depending on you.</p>
+<blockquote>
+<p><strong>Remember:</strong> cargo publish shares it with the world. semver keeps everyone sane.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-rust">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Workspaces</h2><span class="book-chip">Book · §14.3</span></div>
+
+      <div class="body divider-intro"><p>One package gets you far. When you have many crates that ship together, a workspace ties them under one roof. The best example is this very repo: the whole video series is one.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 14 More About Cargo</span></div><div class="body"><h3>Workspaces scale projects</h3>
+<p>A workspace is a group of crates that live together, with one <code>Cargo.toml</code> at the root.</p>
+<img class="slide" src="img/SceneWorkspaces.webp" alt="" /><pre><code class="language-toml">[workspace]
+members = [
+    &quot;shared/*&quot;,            # design system
+    &quot;rust-intro&quot;,
+    &quot;rust-modules-cargo&quot;,  # this one
+    &quot;rust-error-handling&quot;,
+    # ...all 12 episodes
+]
+</code></pre>
+<p>What you get for grouping them:</p>
+<ul>
+<li><strong>One lock file.</strong> Every member shares the same <code>Cargo.lock</code>, so there are no version conflicts between crates.</li>
+<li><strong>One command.</strong> <code>cargo test --workspace</code> tests every crate at once, and <code>cargo build --workspace</code> builds them all.</li>
+<li><strong>Shared deps.</strong> Define a version once in <code>[workspace.dependencies]</code> and members inherit it with <code>dep = { workspace = true }</code>, no repeating the number.</li>
+</ul>
+<p>This series is itself a workspace. All twelve episodes are members, and they share the <code>video-kit</code> design system as a local crate.</p>
+<blockquote>
+<p><strong>Remember:</strong> each member is a crate. the workspace is the project.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 14 More About Cargo</span></div><div class="body"><h3>Features and gates</h3>
+<p>Features let you gate parts of your crate behind an opt-in flag, so callers compile only what they need.</p>
+<img class="slide" src="img/SceneFeatures.webp" alt="" /><p>Declare them in <code>[features]</code>. The <code>default</code> list is the set that turns on automatically.</p>
+<pre><code class="language-toml">[features]
+default = [&quot;logging&quot;]
+logging = [&quot;dep:tracing&quot;]
+async   = [&quot;dep:tokio&quot;]
+</code></pre>
+<p>Then gate code with <code>cfg</code>. That block compiles only when the feature is on, at compile time, not at runtime.</p>
+<pre><code class="language-rust">#[cfg(feature = &quot;logging&quot;)]
+fn setup_tracing() { ... }
+</code></pre>
+<p>To turn a feature on, pass it at build time or add it in <code>Cargo.toml</code>:</p>
+<pre><code>cargo build --features async
+</code></pre>
+<p>Because it&#39;s resolved while compiling, code behind an off feature simply isn&#39;t in the binary. There&#39;s no runtime check and no dead weight.</p>
+<blockquote>
+<p><strong>Remember:</strong> features = conditional compilation without runtime cost.</p>
+</blockquote>
+</div></section>
+<section class="scene quote"><div class="body"><p>The whole episode in one line:</p>
+<blockquote>
+<p>One file does not scale. Modules give your code an address and cargo gives your project a shape. Structure is a feature, not a chore.</p>
+</blockquote>
+</div></section>
+<section class="appendix">
+      <h2 class="ap-title">Cheatsheet <span class="accent">recap</span></h2>
+      <p class="ap-sub">One line per idea, in order. Skim this when you just need the reminder.</p>
+      <table class="ck-table"><thead><tr><th>Idea</th><th>Remember</th></tr></thead><tbody><tr><td class="ck-scene">One file stops scaling</td><td class="ck-text">one file does not scale. mod, pub, use is the fix.</td></tr>
+<tr><td class="ck-scene">Package, crate, module</td><td class="ck-text">package wraps crate wraps module. rings, outside in.</td></tr>
+<tr><td class="ck-scene">A real module tree</td><td class="ck-text">cats/mod.rs or cats.rs. rust looks in both places.</td></tr>
+<tr><td class="ck-scene">Two ways to mod</td><td class="ck-text">split into a file when the inline version gets long.</td></tr>
+<tr><td class="ck-scene">The four visibility gates</td><td class="ck-text">start private. promote only what callers actually need.</td></tr>
+<tr><td class="ck-scene">use, paths, re-exports</td><td class="ck-text">use just makes the name shorter. the path is still there.</td></tr>
+<tr><td class="ck-scene">Before and after</td><td class="ck-text">same code. different zip code.</td></tr>
+<tr><td class="ck-scene">Cargo.toml, section by section</td><td class="ck-text">cargo handles the rest. you just name what you need.</td></tr>
+<tr><td class="ck-scene">dev vs release</td><td class="ck-text">dev compiles fast. release ships fast.</td></tr>
+<tr><td class="ck-scene">fmt, clippy, doc</td><td class="ck-text">cargo publish shares it with the world. semver keeps everyone sane.</td></tr>
+<tr><td class="ck-scene">Workspaces scale projects</td><td class="ck-text">each member is a crate. the workspace is the project.</td></tr>
+<tr><td class="ck-scene">Features and gates</td><td class="ck-text">features = conditional compilation without runtime cost.</td></tr></tbody></table>
+      <div class="ap-foot"><strong>Maps to:</strong> The Rust Programming Language, Chapters 7 and 14.<br/><strong>Practice:</strong> Rustlings <code>10_modules</code>, <code>22_clippy</code>.</div>
+    </section>
+</main>
+<button class="save-pdf" onclick="window.print()">Save as PDF</button>
+
+<div class="zoom-mbar-bg" aria-hidden="true"></div>
+<div class="zoom-panel" data-zoom-panel aria-label="Zoom controls">
+  <button type="button" class="zoom-in" aria-label="Zoom in" title="Zoom in">+</button>
+  <div class="zoom-level" role="button" tabindex="0" title="Reset zoom" aria-label="Reset zoom">100%</div>
+  <button type="button" class="zoom-out" aria-label="Zoom out" title="Zoom out">−</button>
+</div>
+<script>
+(function(){
+  var doc=document.querySelector('.doc');
+  var panel=document.querySelector('[data-zoom-panel]');
+  if(!doc||!panel)return;
+  var label=panel.querySelector('.zoom-level');
+  var KEY='rfz_notes_zoom',MIN=0.5,MAX=2,STEP=0.1,z=1;
+  try{var s=parseFloat(localStorage.getItem(KEY));if(s>=MIN&&s<=MAX)z=s;}catch(e){}
+  function clamp(v){return Math.min(MAX,Math.max(MIN,Math.round(v*100)/100));}
+  function isMobile(){return window.matchMedia&&window.matchMedia('(max-width:640px)').matches;}
+  function apply(){var m=isMobile()&&z!==1;doc.style.zoom=z;doc.style.width=m?('calc(100% / '+z+')'):'';doc.style.maxWidth=m?'none':'';label.textContent=Math.round(z*100)+'%';try{localStorage.setItem(KEY,String(z));}catch(e){}}
+  panel.querySelector('.zoom-in').addEventListener('click',function(){z=clamp(z+STEP);apply();});
+  panel.querySelector('.zoom-out').addEventListener('click',function(){z=clamp(z-STEP);apply();});
+  function reset(){z=1;apply();}
+  label.addEventListener('click',reset);
+  label.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();reset();}});
+  window.addEventListener('resize',apply);
+  apply();
+})();
+</script>
+</body>
+</html>

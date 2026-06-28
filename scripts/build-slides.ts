@@ -22,6 +22,10 @@ const EPISODES = [
   "rust-collections",
   "rust-error-handling",
   "rust-generics-traits",
+  "rust-closures-iterators",
+  "rust-modules-cargo",
+  "rust-testing",
+  "rust-smart-pointers",
 ];
 
 // ---- text helpers -----------------------------------------------------------
@@ -67,6 +71,10 @@ type Slide = {
   title?: string;
   notes: string[];
   remember?: string;
+  // Pre-rendered card for slides with no still (chapter dividers, the pull
+  // quote, or a scene that was never rendered to a frame). The deck shows this
+  // instead of a broken <img src="">. Only set when img is empty.
+  composed?: string;
 };
 
 const imgOf = (inner: string) => first(/<img class="slide"[^>]*src="([^"]+)"/, inner);
@@ -165,32 +173,65 @@ function buildEpisode(slug: string): { html: string; count: number } {
       const bq = inline(first(/<blockquote>([\s\S]*?)<\/blockquote>/, inner).replace(/<\/?p>/g, ""));
       const lead = inner.replace(/<blockquote>[\s\S]*?<\/blockquote>/g, "").replace(/<img\b[\s\S]*?>/g, "");
       const introP = inline(first(/<p>([\s\S]*?)<\/p>/, lead));
-      slides.push({
+      const qimg = imgOf(inner);
+      const slide: Slide = {
         type: "quote",
-        img: imgOf(inner),
+        img: qimg,
         kicker: "Takeaway",
         title: "The big idea",
         notes: [introP, bq].filter(Boolean),
-      });
+      };
+      if (!qimg) {
+        slide.composed =
+          '<div class="txt txt-quote"><div class="txt-kicker">Takeaway</div>' +
+          '<p class="txt-quote-text">' + bq + "</p>" +
+          (introP ? '<p class="txt-lead">' + introP + "</p>" : "") +
+          "</div>";
+      }
+      slides.push(slide);
     } else if (/\bdivider\b/.test(cls)) {
-      const dtitle = decode(stripTags(first(/<h2 class="divider-title">([\s\S]*?)<\/h2>/, inner))).trim();
+      // Keep the title HTML-escaped (entities intact) so a generic param like
+      // Box<T> survives into the notes, the title bar, and the composed card.
+      const dtitle = inline(first(/<h2 class="divider-title">([\s\S]*?)<\/h2>/, inner));
       const intro = inline(first(/<div class="body divider-intro">[\s\S]*?<p>([\s\S]*?)<\/p>/, inner));
-      slides.push({
+      const dimg = imgOf(inner);
+      const slide: Slide = {
         type: "divider",
-        img: imgOf(inner),
+        img: dimg,
         kicker: "Chapter · " + chipOf(inner),
         title: dtitle,
         notes: ["Chapter break: <b>" + dtitle + "</b>.", intro].filter(Boolean),
-      });
+      };
+      if (!dimg) {
+        slide.composed =
+          '<div class="txt"><div class="txt-kicker">Chapter</div><h1 class="txt-title">' +
+          dtitle + "</h1>" +
+          (intro ? '<p class="txt-lead">' + intro + "</p>" : "") +
+          "</div>";
+      }
+      slides.push(slide);
     } else if (/\bscene\b/.test(cls)) {
-      slides.push({
+      const simg = imgOf(inner);
+      const stitle = inline(first(/<h3>([\s\S]*?)<\/h3>/, inner));
+      const snotes = prose(inner);
+      const slide: Slide = {
         type: "image",
-        img: imgOf(inner),
+        img: simg,
         kicker: chipOf(inner),
-        title: inline(first(/<h3>([\s\S]*?)<\/h3>/, inner)),
-        notes: prose(inner),
+        title: stitle,
+        notes: snotes,
         remember: rememberOf(inner),
-      });
+      };
+      if (!simg) {
+        slide.composed =
+          '<div class="txt"><div class="txt-kicker">' + chipOf(inner) + "</div>" +
+          '<h1 class="txt-title txt-title-sm">' + stitle + "</h1>" +
+          (snotes.length
+            ? '<ul class="txt-points">' + snotes.map((n) => "<li>" + n + "</li>").join("") + "</ul>"
+            : "") +
+          "</div>";
+      }
+      slides.push(slide);
     }
   }
 
@@ -280,6 +321,20 @@ button{font-family:inherit;}
 .ck td{padding:7px 12px;border:1px solid var(--line);color:var(--soft);vertical-align:top;}
 .ck td.idea{font-weight:700;color:#16181d;width:38%;}
 .ck code{font-family:var(--mono);font-size:.9em;background:var(--code-bg);padding:.06em .3em;border-radius:4px;color:#9a3a18;}
+
+/* composed: text card for slides with no still (divider / pull-quote / image-less scene) */
+.txt{width:100%;height:100%;padding:64px 78px;display:flex;flex-direction:column;justify-content:center;color:var(--ink);}
+.txt-kicker{font-family:var(--mono);font-size:17px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:18px;}
+.txt-title{font-size:74px;line-height:1.04;font-weight:800;color:#16181d;margin:0;letter-spacing:-0.01em;}
+.txt-title.txt-title-sm{font-size:50px;}
+.txt-title .accent{font-family:var(--serif);font-style:italic;color:var(--rust);font-weight:400;}
+.txt-lead{font-family:var(--serif);font-style:italic;font-size:30px;line-height:1.4;color:var(--soft);margin:26px 0 0;max-width:880px;}
+.txt-points{margin:26px 0 0;padding-left:24px;max-width:900px;}
+.txt-points li{font-size:22px;line-height:1.5;color:var(--soft);margin:0 0 12px;}
+.txt-points li b{color:var(--ink);font-weight:700;}
+.txt code{font-family:var(--mono);font-size:.9em;background:var(--code-bg);padding:.06em .3em;border-radius:4px;color:#9a3a18;}
+.txt-quote{justify-content:center;}
+.txt-quote-text{font-family:var(--serif);font-style:italic;font-size:46px;line-height:1.28;color:#16181d;margin:0;max-width:980px;}
 
 /* notes drawer */
 .notes{flex:none;width:0;overflow:hidden;background:var(--panel);border-left:1px solid var(--sline);transition:width .18s ease,height .18s ease;}
@@ -417,6 +472,7 @@ button{font-family:inherit;}
   function bodyHTML(s){
     if (s.type === 'cover') return DATA.cover;
     if (s.type === 'cheatsheet') return DATA.cheat;
+    if (s.composed) return s.composed;
     return '<img class="full" src="' + s.img + '" alt="' + stripT(s.title) + '" />';
   }
 
@@ -497,6 +553,7 @@ button{font-family:inherit;}
       var inner;
       if (s.type === 'cover') inner = '<div class="composed"><div class="big">' + DATA.coverBig + '</div></div>';
       else if (s.type === 'cheatsheet') inner = '<div class="composed"><div class="big">Cheatsheet <span class="accent">recap</span></div></div>';
+      else if (s.composed) inner = '<div class="composed"><div class="big">' + (s.title || '') + '</div></div>';
       else inner = '<img src="' + s.img + '" alt="" loading="lazy" />';
       html += '<div class="thumb" data-i="' + i + '" title="' + stripT(s.title) + '">' + inner + '<span class="num">' + (i + 1) + '</span></div>';
     }

@@ -190,7 +190,7 @@ const SERIES_1_SEED: EpisodeSeed[] = [
   {
     num: "07",
     title: "Closures & iterators",
-    status: "scaffolded",
+    status: "upcoming",
     bookCh: "Ch 13",
     bookTitle: "Functional Features: Iterators and Closures",
     rustlings: ["18_iterators"],
@@ -208,7 +208,7 @@ const SERIES_1_SEED: EpisodeSeed[] = [
   {
     num: "08",
     title: "Project structure: modules + cargo",
-    status: "scaffolded",
+    status: "upcoming",
     bookCh: "Ch 7 + 14",
     bookTitle: "Managing Growing Projects, More about Cargo",
     rustlings: ["10_modules", "22_clippy"],
@@ -306,6 +306,10 @@ const NOTES_SLUG: Record<string, string> = {
   "04": "rust-collections",
   "05": "rust-error-handling",
   "06": "rust-generics-traits",
+  "07": "rust-closures-iterators",
+  "08": "rust-modules-cargo",
+  "09": "rust-testing",
+  "10": "rust-smart-pointers",
 };
 
 const series1: Episode[] = SERIES_1_SEED.map((e) => ({

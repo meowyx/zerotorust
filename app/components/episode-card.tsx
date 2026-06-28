@@ -102,49 +102,57 @@ export default function EpisodeCard({
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
+            {/* Video: live Watch link once shipped, otherwise an Upcoming
+                placeholder. The companion guide buttons below render
+                independently so scaffolded/upcoming episodes can still link to
+                their PDF and slides before the video is on YouTube. */}
             {shipped ? (
-              <>
-                <a
-                  href={episode.youtube}
-                  target="_blank"
-                  rel="noopener"
-                  className="inline-flex items-center gap-2 rounded-[9px] bg-accent px-4 py-[9px] font-display text-[13.5px] font-semibold text-white no-underline transition hover:brightness-110"
-                >
-                  ▶ Watch
-                </a>
-                {episode.pdf ? (
-                  <a
-                    href={episode.pdf}
-                    target="_blank"
-                    rel="noopener"
-                    className="inline-flex items-center gap-2 rounded-[9px] border border-line-4 px-4 py-[9px] font-display text-[13.5px] font-semibold text-ink no-underline transition-colors hover:border-muted-4 hover:bg-[#1e1a15]"
-                  >
-                    ⤓ Companion PDF
-                  </a>
-                ) : (
-                  <span
-                    title="Companion PDF coming soon"
-                    className="inline-flex cursor-not-allowed items-center gap-2 rounded-[9px] border border-dashed border-line-4 px-4 py-[9px] font-display text-[13.5px] font-semibold text-muted-4"
-                  >
-                    ⤓ PDF soon
-                  </span>
-                )}
-                {episode.slides && (
-                  <a
-                    href={episode.slides}
-                    target="_blank"
-                    rel="noopener"
-                    title="Open the teaching slide deck in a new tab"
-                    className="inline-flex items-center gap-2 rounded-[9px] border border-line-4 px-4 py-[9px] font-display text-[13.5px] font-semibold text-ink no-underline transition-colors hover:border-muted-4 hover:bg-[#1e1a15]"
-                  >
-                    ▦ Slides
-                  </a>
-                )}
-              </>
+              <a
+                href={episode.youtube}
+                target="_blank"
+                rel="noopener"
+                className="inline-flex items-center gap-2 rounded-[9px] bg-accent px-4 py-[9px] font-display text-[13.5px] font-semibold text-white no-underline transition hover:brightness-110"
+              >
+                ▶ Watch
+              </a>
             ) : (
-              <span className="inline-flex cursor-not-allowed items-center gap-2 rounded-[9px] border border-dashed border-line-4 px-4 py-[9px] font-display text-[13.5px] font-semibold text-muted-4">
-                ▶ Not yet released
+              <span
+                title="Video not on YouTube yet"
+                className="inline-flex cursor-not-allowed items-center gap-2 rounded-[9px] border border-dashed border-line-4 px-4 py-[9px] font-display text-[13.5px] font-semibold text-muted-4"
+              >
+                ▶ Upcoming
               </span>
+            )}
+
+            {episode.pdf ? (
+              <a
+                href={episode.pdf}
+                target="_blank"
+                rel="noopener"
+                className="inline-flex items-center gap-2 rounded-[9px] border border-line-4 px-4 py-[9px] font-display text-[13.5px] font-semibold text-ink no-underline transition-colors hover:border-muted-4 hover:bg-[#1e1a15]"
+              >
+                ⤓ Companion PDF
+              </a>
+            ) : (
+              shipped && (
+                <span
+                  title="Companion PDF coming soon"
+                  className="inline-flex cursor-not-allowed items-center gap-2 rounded-[9px] border border-dashed border-line-4 px-4 py-[9px] font-display text-[13.5px] font-semibold text-muted-4"
+                >
+                  ⤓ PDF soon
+                </span>
+              )
+            )}
+            {episode.slides && (
+              <a
+                href={episode.slides}
+                target="_blank"
+                rel="noopener"
+                title="Open the teaching slide deck in a new tab"
+                className="inline-flex items-center gap-2 rounded-[9px] border border-line-4 px-4 py-[9px] font-display text-[13.5px] font-semibold text-ink no-underline transition-colors hover:border-muted-4 hover:bg-[#1e1a15]"
+              >
+                ▦ Slides
+              </a>
             )}
 
             <button

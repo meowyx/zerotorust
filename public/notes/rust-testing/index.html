@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Writing Tests · MeowyTheDev companion guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@1&family=Caveat:wght@500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink:#1c1e22; --soft:#43474e; --muted:#888d96; --line:#e3e4e8;
+  --rust:#c8542a; --code-bg:#f5f5f4; --code-fg:#24292e;
+  --sans:"Bricolage Grotesque",system-ui,-apple-system,sans-serif;
+  --serif:"Instrument Serif",Georgia,serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:#e9e9ec;color:var(--ink);font-family:var(--sans);}
+.accent{font-family:var(--serif);font-style:italic;color:var(--rust);font-weight:400;}
+.doc{max-width:182mm;margin:8mm auto;padding:16mm;background:#fff;box-shadow:0 4px 24px rgba(0,0,0,0.18);}
+
+.cover{position:relative;min-height:240mm;display:flex;flex-direction:column;justify-content:center;break-after:page;}
+.divider{break-before:page;padding-top:6mm;}
+.appendix{break-before:page;padding-top:4mm;}
+.scene{margin:0 0 9mm;}
+.scene.quote{break-before:page;padding-top:8mm;}
+.slide,.body pre,.body table,.body blockquote{break-inside:avoid;}
+.body h3{break-after:avoid;}
+
+.book-chip{display:inline-block;font-family:var(--mono);font-size:8pt;letter-spacing:0.02em;color:var(--soft);background:#fff;border:1px solid var(--line);padding:3px 9px;border-radius:5px;white-space:nowrap;}
+.scene-chip{margin-bottom:3mm;}
+.slide{display:block;width:100%;max-width:100%;border-radius:8px;border:1px solid var(--line);}
+
+.body h3{font-size:19pt;font-weight:700;color:#16181d;margin:0 0 3mm;line-height:1.15;letter-spacing:-0.01em;}
+.body p{font-size:11pt;line-height:1.62;color:var(--soft);margin:0 0 3mm;}
+.body p strong,.body li strong{color:var(--ink);font-weight:700;}
+.body em{font-family:var(--serif);font-style:italic;color:var(--ink);}
+.body ul,.body ol{margin:3mm 0;padding-left:6mm;}
+.body li{margin:0 0 2mm;line-height:1.55;font-size:11pt;color:var(--soft);}
+.body code{font-family:var(--mono);font-size:0.86em;background:var(--code-bg);padding:0.08em 0.32em;border-radius:4px;color:#9a3a18;}
+.body pre{background:var(--code-bg);color:var(--code-fg);border:1px solid var(--line);border-radius:8px;padding:4mm 5mm;white-space:pre-wrap;overflow-wrap:break-word;font-family:var(--mono);font-size:9.5pt;line-height:1.5;margin:4mm 0;}
+.body pre code{background:none;padding:0;color:inherit;font-size:inherit;}
+.body table{width:100%;border-collapse:collapse;margin:4mm 0;font-size:10pt;}
+.body th{text-align:left;background:#f3f3f4;color:var(--ink);font-family:var(--mono);font-size:8pt;text-transform:uppercase;letter-spacing:0.02em;padding:2.4mm 3mm;border:1px solid var(--line);}
+.body td{padding:2.4mm 3mm;border:1px solid var(--line);vertical-align:top;color:var(--soft);overflow-wrap:break-word;}
+.body blockquote{margin:5mm 0 0;background:#f7f7f6;border-left:3px solid var(--rust);border-radius:0 6px 6px 0;padding:3.5mm 5mm;font-size:11pt;color:var(--ink);}
+.body blockquote p{margin:0;color:var(--ink);} .body blockquote strong{color:#16181d;}
+
+.cover-eyebrow{font-family:var(--mono);font-size:9.5pt;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);}
+.cover-title{font-size:40pt;line-height:1.06;font-weight:800;color:#16181d;margin:6mm 0 0;letter-spacing:-0.01em;padding-right:34mm;}
+.cover-tagline{font-family:var(--serif);font-style:italic;font-size:18pt;color:var(--soft);margin:7mm 0 0;max-width:150mm;line-height:1.4;}
+.cover-chip{margin-top:14mm;align-self:flex-start;font-family:var(--mono);font-size:9.5pt;color:var(--soft);background:#fff;border:1px solid var(--line);padding:6px 12px;border-radius:6px;}
+.cover-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);padding-top:5mm;font-size:9pt;color:var(--muted);}
+.cover-foot .ep{font-family:var(--mono);font-weight:700;color:var(--rust);letter-spacing:0.1em;}
+.cover-foot-r{font-family:var(--mono);font-size:8.5pt;color:var(--muted);}
+.cover-num{position:absolute;top:13mm;right:0;font-family:var(--mono);font-weight:800;font-size:54pt;color:#dadbe0;}
+
+.divider-head{display:flex;align-items:center;gap:14px;margin-bottom:4mm;}
+.divider .kicker{font-family:var(--mono);font-size:9pt;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);}
+.divider-title{font-size:30pt;font-weight:800;color:#16181d;margin:0;letter-spacing:-0.01em;}
+.divider-intro{margin-top:5mm;} .divider-intro p{font-size:11.5pt;}
+
+.ap-title{font-size:26pt;font-weight:800;color:#16181d;margin:0 0 2mm;}
+.ap-sub{font-size:11pt;color:var(--soft);max-width:150mm;margin:0 0 5mm;}
+.ck-table{width:100%;border-collapse:collapse;font-size:10pt;}
+.ck-table th{text-align:left;background:#f3f3f4;color:var(--ink);font-family:var(--mono);font-size:8pt;text-transform:uppercase;letter-spacing:0.03em;padding:2.6mm 3mm;border:1px solid var(--line);}
+.ck-scene{font-weight:700;color:#16181d;width:40%;}
+.ck-table td{padding:2.6mm 3mm;border:1px solid var(--line);color:var(--soft);vertical-align:top;overflow-wrap:break-word;}
+.ap-foot{margin-top:7mm;font-size:10pt;background:#f7f7f6;border:1px solid var(--line);border-radius:8px;padding:4mm 5mm;line-height:1.7;}
+
+/* "Save as PDF" button: screen only */
+.save-pdf{position:fixed;right:18px;bottom:18px;z-index:50;font-family:var(--sans);font-size:13px;font-weight:700;color:#fff;background:var(--rust);border:none;border-radius:8px;padding:11px 16px;box-shadow:0 3px 12px rgba(0,0,0,0.25);cursor:pointer;}
+.save-pdf:hover{background:#b0461f;}
+/* running header/footer: print only (repeat on every printed page) */
+.print-running{display:none;}
+
+@page{size:A4;margin:16mm 14mm 14mm;}
+@media print{
+  html,body{background:#fff;}
+  .doc{max-width:none;margin:0;padding:0;background:#fff;box-shadow:none;}
+  .save-pdf{display:none !important;}
+  .print-running{display:flex;position:fixed;left:0;right:0;align-items:center;justify-content:space-between;font-size:8pt;color:var(--soft);font-family:var(--mono);}
+  .print-running.top{top:6mm;} .print-running.bot{bottom:6mm;}
+  .print-running .brand{display:flex;align-items:center;gap:6px;font-family:var(--sans);font-weight:700;color:var(--ink);}
+  .print-running .xh{display:flex;align-items:center;gap:5px;}
+  .print-running .muted{color:var(--muted);}
+}
+
+/* frosted-glass zoom panel: screen only, hidden in print */
+.zoom-panel{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:60;display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:16px;background:rgba(255,255,255,0.55);-webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blur(14px) saturate(1.3);border:1px solid rgba(255,255,255,0.7);box-shadow:0 10px 30px rgba(28,30,34,0.18),inset 0 1px 0 rgba(255,255,255,0.65);font-family:var(--sans);}
+.zoom-panel button{width:40px;height:40px;border:none;cursor:pointer;border-radius:11px;background:rgba(255,255,255,0.5);color:var(--ink);font-size:19px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;transition:background .15s,transform .1s;}
+.zoom-panel button:hover{background:rgba(255,255,255,0.95);}
+.zoom-panel button:active{transform:scale(0.93);}
+.zoom-level{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--soft);text-align:center;padding:3px 0;cursor:pointer;user-select:none;letter-spacing:0.02em;border-radius:8px;}
+.zoom-level:hover{color:var(--rust);background:rgba(255,255,255,0.5);}
+.zoom-mbar-bg{display:none;}
+/* phones: sticky bottom toolbar holding zoom (left) + Save as PDF (right) */
+@media (max-width:640px){.zoom-mbar-bg{display:block;position:fixed;left:0;right:0;bottom:0;height:58px;background:rgba(255,255,255,0.55);-webkit-backdrop-filter:blur(16px) saturate(1.4);backdrop-filter:blur(16px) saturate(1.4);border-top:1px solid rgba(255,255,255,0.7);box-shadow:0 -8px 30px rgba(28,30,34,0.12);z-index:59;}.zoom-panel{left:14px;right:auto;top:auto;bottom:10px;transform:none;flex-direction:row-reverse;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;border:none;box-shadow:none;padding:0;}.zoom-panel button{width:38px;height:38px;background:rgba(0,0,0,0.05);color:var(--ink);}.zoom-panel button:hover{background:rgba(0,0,0,0.1);}.zoom-level{color:var(--soft);}.zoom-level:hover{color:var(--rust);background:transparent;}.save-pdf{right:14px !important;bottom:10px !important;z-index:60 !important;}body{padding-bottom:70px;}}
+@media print{.zoom-panel{display:none !important;}.doc{zoom:1 !important;width:auto !important;}}
+
+/* notes-mobile-css: screen-only mobile reflow, print styles left untouched */
+@media screen and (max-width: 640px) {
+  html, body { background: #fff; }
+  .doc { max-width: 100%; margin: 0; padding: 22px 16px; box-shadow: none; }
+  .cover { min-height: auto; padding: 6px 0 22px; }
+  .cover-title { font-size: 30pt; padding-right: 0; }
+  .cover-tagline { font-size: 15pt; }
+  .cover-num { font-size: 38pt; top: 6px; }
+  .divider-title { font-size: 24pt; }
+  .body h3 { font-size: 17pt; }
+  .body p, .body li { font-size: 12pt; }
+  .body pre { font-size: 8.5pt; padding: 3mm 3.5mm; }
+  .ap-title { font-size: 22pt; }
+}
+</style>
+<link rel="icon" type="image/png" href="/icon" />
+</head>
+<body>
+<div class="print-running top"><span class="brand"><svg viewBox="0 0 28 20" width="18" height="13" aria-hidden="true"><rect width="28" height="20" rx="5" fill="#FF0033"/><path d="M11 6l7 4-7 4z" fill="#fff"/></svg>MeowyTheDev</span><span class="muted">RUST FROM ZERO · EP.09</span></div>
+<div class="print-running bot"><span class="xh"><svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="#2b1d12" d="M18.9 2H22l-7.6 8.7L23.3 22h-6.9l-5.4-7-6.2 7H1.7l8.1-9.3L1 2h7l4.9 6.5z"/></svg>@me256ow</span><span class="muted">companion guide</span></div>
+<main class="doc">
+<section class="cover">
+      <div class="cover-eyebrow">MeowyTheDev <span class="dot">·</span> Rust from Zero</div>
+      <h1 class="cover-title">Writing <span class="accent">Tests</span></h1>
+      <p class="cover-tagline">the confidence to change your code without breaking it.</p>
+      <div class="cover-chip">The Rust Programming Language <span class="dot">·</span> Chapter 11</div>
+      <div class="cover-foot"><span class="ep">EP.09</span><span class="cover-foot-r">companion guide · watch on the Rust from Zero playlist</span></div>
+      <div class="cover-num">09</div>
+    </section>
+<section class="divider tone-rust">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Writing tests</h2><span class="book-chip">Book · §11.1</span></div>
+
+      <div class="body divider-intro"><p>Tests get a bad rap as extra homework. They&#39;re really the thing that lets you change your code and know, in one command, whether you broke anything. We start with the smallest real test.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §11.1 How to Write Tests</span></div><div class="body"><h3>Why test at all?</h3>
+<p>Before you write a single test, here&#39;s why they&#39;re worth it. Picture two ways of working.</p>
+<img class="slide" src="img/SceneWhyTest.webp" alt="" /><p><strong>Without tests,</strong> every change is a gamble. You edit some code, click around by hand to check it, and hope nothing else broke. You never quite know.</p>
+<p><strong>With tests,</strong> you change whatever you want, run one command, and the suite tells you exactly what still works. The hoping is gone.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Without tests</th>
+<th>With tests</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>after a change</td>
+<td>click around, hope</td>
+<td>run one command, know</td>
+</tr>
+<tr>
+<td>confidence</td>
+<td>&quot;I think it&#39;s fine&quot;</td>
+<td>&quot;the suite says it&#39;s fine&quot;</td>
+</tr>
+<tr>
+<td>refactoring</td>
+<td>scary</td>
+<td>safe</td>
+</tr>
+</tbody></table>
+<p>So tests aren&#39;t extra work bolted onto the real job. They&#39;re the thing that lets you change code without fear.</p>
+<blockquote>
+<p><strong>Remember:</strong> tests are the confidence to change code, not a chore on top of it.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §11.1 How to Write Tests</span></div><div class="body"><h3>Your first test</h3>
+<p>Start with the function you want to check. In the <code>adoption</code> crate, <code>adoption_fee</code> turns a kitten&#39;s age into a price.</p>
+<img class="slide" src="img/SceneFirstTest.webp" alt="" /><pre><code class="language-rust">// src/lib.rs
+pub fn adoption_fee(age: u8) -&gt; u32 {
+    if age &lt; 1 { 150 } else { 100 }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn kitten_fee_is_150() {
+        assert_eq!(adoption_fee(0), 150);
+    }
+}
+</code></pre>
+<p>Read the test part piece by piece:</p>
+<ul>
+<li><strong><code>#[cfg(test)] mod tests</code></strong> is where tests live, right next to the code. The <code>cfg(test)</code> part means this module only builds when you run tests, never in your shipped binary.</li>
+<li><strong><code>use super::*;</code></strong> pulls in everything from the file above, so the test can see <code>adoption_fee</code>.</li>
+<li><strong><code>#[test]</code></strong> marks one plain function as a test that Rust should run.</li>
+<li><strong><code>assert_eq!</code></strong> checks that two values are equal. If they differ, the test fails and prints both.</li>
+</ul>
+<p>A newborn kitten should cost <code>150</code>. Run <code>cargo test</code> and Rust checks it for you:</p>
+<pre><code>$ cargo test
+running 1 test
+test tests::kitten_fee_is_150 ... ok
+
+test result: ok. 1 passed; 0 failed
+</code></pre>
+<p>Green. That&#39;s the whole loop: write the function, write a <code>#[test]</code> next to it, assert what you expect, run.</p>
+<blockquote>
+<p><strong>Remember:</strong> a test is a plain function with #[test] on top, living in a cfg(test) module.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-teal">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Assertions</h2><span class="book-chip">Book · §11.1</span></div>
+
+      <div class="body divider-intro"><p>A test is only as good as the question it asks. Assertions are how you ask: this should be true, these two should be equal, these two should differ.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §11.1 How to Write Tests</span></div><div class="body"><h3>Pick the right assertion</h3>
+<p>There are three macros in the family, and each says a slightly different thing.</p>
+<img class="slide" src="img/SceneAssertions.webp" alt="" /><pre><code class="language-rust">// assert! - any boolean
+let shelter = Shelter { capacity: 10, current: 4 };
+assert!(shelter.has_room());
+
+// assert_eq! - equal
+assert_eq!(adoption_fee(0), 150);
+
+// assert_ne! - not equal
+assert_ne!(adoption_fee(0), adoption_fee(10));
+</code></pre>
+<ul>
+<li><strong><code>assert!</code></strong> passes when its expression is true. Reach for it on any boolean check, like &quot;does the shelter have room?&quot;</li>
+<li><strong><code>assert_eq!</code></strong> checks that left equals right, and prints both values when it fails.</li>
+<li><strong><code>assert_ne!</code></strong> is the mirror image. It fails only if the two are equal. A kitten fee should not match an adult fee.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Macro</th>
+<th>Passes when</th>
+<th>On failure it prints</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>assert!(x)</code></td>
+<td><code>x</code> is true</td>
+<td>the line that failed</td>
+</tr>
+<tr>
+<td><code>assert_eq!(a, b)</code></td>
+<td><code>a == b</code></td>
+<td>both <code>a</code> and <code>b</code></td>
+</tr>
+<tr>
+<td><code>assert_ne!(a, b)</code></td>
+<td><code>a != b</code></td>
+<td>both <code>a</code> and <code>b</code></td>
+</tr>
+</tbody></table>
+<p>Reach for <code>assert_eq!</code> by default. When it fails, the message shows you both values, so it does most of the debugging for you.</p>
+<blockquote>
+<p><strong>Remember:</strong> prefer assert_eq!, its failure message hands you the two values for free.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §11.1 How to Write Tests</span></div><div class="body"><h3>Test the panic</h3>
+<p>Sometimes the correct behavior is to panic. In the <code>adoption</code> crate, an adopter under eighteen should be rejected, loudly.</p>
+<img class="slide" src="img/SceneShouldPanic.webp" alt="" /><pre><code class="language-rust">pub fn new(age: u8) -&gt; Application {
+    assert!(age &gt;= 18, &quot;adopter must be 18 or older&quot;);
+    Application { age }
+}
+
+#[test]
+#[should_panic(expected = &quot;18 or older&quot;)]
+fn rejects_minors() {
+    Application::new(15);
+}
+</code></pre>
+<ul>
+<li><strong>The panic.</strong> <code>Application::new</code> uses <code>assert!</code> to reject anyone under 18. It panics with a clear message.</li>
+<li><strong><code>#[should_panic]</code></strong> flips the test around. Normally a panic means failure. With this attribute, the test passes <em>only if</em> the code panics.</li>
+<li><strong><code>expected = &quot;18 or older&quot;</code></strong> makes it precise. The panic message has to contain this text, so a different, accidental panic still fails the test.</li>
+<li><strong>The call.</strong> Passing <code>15</code> to <code>new</code> must panic, and that is exactly what makes <code>rejects_minors</code> go green.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> #[should_panic(expected = ...)] tests that the unhappy path fails the right way.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §11.1 How to Write Tests</span></div><div class="body"><h3>Tests can return errors</h3>
+<p>Some functions hand back a <code>Result</code>. Here <code>confirm</code> gives you the fee on success, or an <code>Err</code> when the shelter is full.</p>
+<img class="slide" src="img/SceneResultTests.webp" alt="" /><pre><code class="language-rust">fn confirm(s: &amp;Shelter, a: &amp;App) -&gt; Result&lt;u32, String&gt; {
+    if !s.has_room() { return Err(&quot;shelter is full&quot;.into()); }
+    Ok(adoption_fee(a.age))
+}
+
+#[test]
+fn confirm_succeeds() -&gt; Result&lt;(), String&gt; {
+    let fee = confirm(&amp;shelter, &amp;app)?;
+    assert_eq!(fee, 100);
+    Ok(())
+}
+</code></pre>
+<ul>
+<li><strong>A test can return <code>Result</code> too.</strong> Give it the return type <code>Result&lt;(), String&gt;</code>. When the test returns <code>Ok(())</code>, it counts as passed.</li>
+<li><strong>Now <code>?</code> earns its keep.</strong> The question mark operator unwraps an <code>Ok</code> value, or returns the <code>Err</code> and fails the test for you. No <code>unwrap</code>, no manual match.</li>
+<li><strong>Then assert like normal.</strong> Once you have the <code>fee</code>, check it with <code>assert_eq!</code> exactly as before.</li>
+<li><strong><code>Ok(())</code> ends it.</strong> That final line is how a <code>Result</code> test says &quot;we made it, passed.&quot;</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> return Result from a test so ? can short-circuit a failure for you.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-rustDk">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Organizing</h2><span class="book-chip">Book · §11.3</span></div>
+
+      <div class="body divider-intro"><p>Tests don&#39;t all live in the same place, and the place changes what they can see. There are two homes: one inside the file, one in its own folder.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §11.3 Test Organization</span></div><div class="body"><h3>Two homes for tests</h3>
+<p>Unit tests live inside the file they test. Integration tests live in their own folder and use your crate from the outside, like a real user would.</p>
+<img class="slide" src="img/SceneUnitVsIntegration.webp" alt="" /><pre><code class="language-rust">// src/lib.rs
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn fee_for_kitten() {
+        assert_eq!(adoption_fee(0), 150);
+    }
+}
+</code></pre>
+<pre><code class="language-rust">// tests/adoption.rs
+use adoption::*;
+
+#[test]
+fn shelter_flow() {
+    let s = Shelter::new(10);
+    assert!(confirm(&amp;s, &amp;app).is_ok());
+}
+</code></pre>
+<ul>
+<li><strong>Unit tests</strong> sit in a <code>#[cfg(test)] mod tests</code> block in the same file. Because they live inside the crate, they can reach private functions.</li>
+<li><strong>Integration tests</strong> go in <code>tests/adoption.rs</code>. They <code>use adoption::*</code> to pull your crate in from outside, so they only see your public API. That makes them the honest test of what you actually ship.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Unit test</th>
+<th>Integration test</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>lives in</td>
+<td><code>src/lib.rs</code>, in <code>mod tests</code></td>
+<td>a file under <code>tests/</code></td>
+</tr>
+<tr>
+<td>sees</td>
+<td>everything, even private</td>
+<td>only the public API</td>
+</tr>
+<tr>
+<td>feels like</td>
+<td>testing from the inside</td>
+<td>testing like a user</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>Remember:</strong> unit tests see everything, integration tests see only your api.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-rust">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Running</h2><span class="book-chip">Book · §11.2</span></div>
+
+      <div class="body divider-intro"><p><code>cargo test</code> runs the whole suite by default, but you rarely need all of it while you work. Here is how to run just the slice you care about.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §11.2 Running Tests</span></div><div class="body"><h3>Run the slice you need</h3>
+<p>By itself, <code>cargo test</code> runs every test in the crate. A few flags let you narrow that down.</p>
+<img class="slide" src="img/SceneRunningTests.webp" alt="" /><pre><code>$ cargo test
+$ cargo test kitten
+$ cargo test -- --ignored
+$ cargo test -- --show-output
+</code></pre>
+<ul>
+<li><strong><code>cargo test</code></strong> on its own runs everything.</li>
+<li><strong><code>cargo test kitten</code></strong> runs only the tests whose names contain <code>kitten</code>. Great while you&#39;re iterating on one thing.</li>
+<li><strong><code>#[ignore]</code> plus <code>--ignored</code></strong> is for the slow tests. Tag them with <code>#[ignore]</code> so they sit out normal runs, then run them on demand with <code>cargo test -- --ignored</code>.</li>
+<li><strong><code>--show-output</code></strong> brings back the noise. Passing tests stay quiet by default. This flag prints their <code>println!</code> lines too, when you want to see them.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Runs</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>cargo test</code></td>
+<td>every test</td>
+</tr>
+<tr>
+<td><code>cargo test kitten</code></td>
+<td>tests with <code>kitten</code> in the name</td>
+</tr>
+<tr>
+<td><code>cargo test -- --ignored</code></td>
+<td>only the <code>#[ignore]</code>-tagged ones</td>
+</tr>
+<tr>
+<td><code>cargo test -- --show-output</code></td>
+<td>all, and prints their output</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>Remember:</strong> run the slice you need, not the whole suite every time.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §11.2 Running Tests</span></div><div class="body"><h3>Read the result</h3>
+<p>Here is what a run looks like: one line per test, then a tidy summary at the bottom.</p>
+<img class="slide" src="img/SceneTestOutput.webp" alt="" /><pre><code>$ cargo test
+running 3 tests
+test tests::kitten_fee_is_150 ... ok
+test tests::adult_fee_is_100 ... ok
+test tests::senior_fee_is_50 ... FAILED
+
+---- tests::senior_fee_is_50 ----
+assertion `left == right` failed
+  left:  100
+  right: 50
+
+test result: FAILED. 2 passed; 1 failed
+</code></pre>
+<ul>
+<li><strong>Green <code>ok</code> means passed.</strong> That little hit of green is the whole point of writing them.</li>
+<li><strong>Red <code>FAILED</code> means one broke,</strong> and <code>assert_eq!</code> doesn&#39;t just say so. It shows you the exact values: <code>left</code> was <code>100</code>, <code>right</code> was <code>50</code>. The senior fee should have been <code>50</code>, so the function returned the wrong number.</li>
+<li><strong>The summary line</strong> wraps it up: <code>2 passed; 1 failed</code>.</li>
+</ul>
+<p>You know what broke, and what the wrong value was, before you even open the file.</p>
+<blockquote>
+<p><strong>Remember:</strong> red shows the exact left and right values, so you debug before you open the code.</p>
+</blockquote>
+</div></section>
+<section class="scene quote"><div class="body"><p>The whole episode in one line:</p>
+<blockquote>
+<p>Tests are not extra. They are the project. Write them, and you get to change your code and prove it still works, every time.</p>
+</blockquote>
+</div></section>
+<section class="appendix">
+      <h2 class="ap-title">Cheatsheet <span class="accent">recap</span></h2>
+      <p class="ap-sub">One line per idea, in order. Skim this when you just need the reminder.</p>
+      <table class="ck-table"><thead><tr><th>Idea</th><th>Remember</th></tr></thead><tbody><tr><td class="ck-scene">Why test at all?</td><td class="ck-text">tests are the confidence to change code, not a chore on top of it.</td></tr>
+<tr><td class="ck-scene">Your first test</td><td class="ck-text">a test is a plain function with #[test] on top, living in a cfg(test) module.</td></tr>
+<tr><td class="ck-scene">Pick the right assertion</td><td class="ck-text">prefer assert_eq!, its failure message hands you the two values for free.</td></tr>
+<tr><td class="ck-scene">Test the panic</td><td class="ck-text">#[should_panic(expected = ...)] tests that the unhappy path fails the right way.</td></tr>
+<tr><td class="ck-scene">Tests can return errors</td><td class="ck-text">return Result from a test so ? can short-circuit a failure for you.</td></tr>
+<tr><td class="ck-scene">Two homes for tests</td><td class="ck-text">unit tests see everything, integration tests see only your api.</td></tr>
+<tr><td class="ck-scene">Run the slice you need</td><td class="ck-text">run the slice you need, not the whole suite every time.</td></tr>
+<tr><td class="ck-scene">Read the result</td><td class="ck-text">red shows the exact left and right values, so you debug before you open the code.</td></tr></tbody></table>
+      <div class="ap-foot"><strong>Maps to:</strong> The Rust Programming Language, Chapter 11.<br/><strong>Practice:</strong> Rustlings <code>17_tests</code>.</div>
+    </section>
+</main>
+<button class="save-pdf" onclick="window.print()">Save as PDF</button>
+
+<div class="zoom-mbar-bg" aria-hidden="true"></div>
+<div class="zoom-panel" data-zoom-panel aria-label="Zoom controls">
+  <button type="button" class="zoom-in" aria-label="Zoom in" title="Zoom in">+</button>
+  <div class="zoom-level" role="button" tabindex="0" title="Reset zoom" aria-label="Reset zoom">100%</div>
+  <button type="button" class="zoom-out" aria-label="Zoom out" title="Zoom out">−</button>
+</div>
+<script>
+(function(){
+  var doc=document.querySelector('.doc');
+  var panel=document.querySelector('[data-zoom-panel]');
+  if(!doc||!panel)return;
+  var label=panel.querySelector('.zoom-level');
+  var KEY='rfz_notes_zoom',MIN=0.5,MAX=2,STEP=0.1,z=1;
+  try{var s=parseFloat(localStorage.getItem(KEY));if(s>=MIN&&s<=MAX)z=s;}catch(e){}
+  function clamp(v){return Math.min(MAX,Math.max(MIN,Math.round(v*100)/100));}
+  function isMobile(){return window.matchMedia&&window.matchMedia('(max-width:640px)').matches;}
+  function apply(){var m=isMobile()&&z!==1;doc.style.zoom=z;doc.style.width=m?('calc(100% / '+z+')'):'';doc.style.maxWidth=m?'none':'';label.textContent=Math.round(z*100)+'%';try{localStorage.setItem(KEY,String(z));}catch(e){}}
+  panel.querySelector('.zoom-in').addEventListener('click',function(){z=clamp(z+STEP);apply();});
+  panel.querySelector('.zoom-out').addEventListener('click',function(){z=clamp(z-STEP);apply();});
+  function reset(){z=1;apply();}
+  label.addEventListener('click',reset);
+  label.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();reset();}});
+  window.addEventListener('resize',apply);
+  apply();
+})();
+</script>
+</body>
+</html>
