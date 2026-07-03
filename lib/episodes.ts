@@ -171,7 +171,6 @@ const SERIES_1_SEED: EpisodeSeed[] = [
     num: "06",
     title: "Generics, traits & lifetimes",
     status: "shipped",
-    latest: true,
     bookCh: "Ch 10",
     bookTitle: "Generic Types, Traits, and Lifetimes",
     rustlings: ["14_generics", "15_traits", "16_lifetimes", "23_conversions"],
@@ -190,7 +189,7 @@ const SERIES_1_SEED: EpisodeSeed[] = [
   {
     num: "07",
     title: "Closures & iterators",
-    status: "upcoming",
+    status: "shipped",
     bookCh: "Ch 13",
     bookTitle: "Functional Features: Iterators and Closures",
     rustlings: ["18_iterators"],
@@ -208,7 +207,8 @@ const SERIES_1_SEED: EpisodeSeed[] = [
   {
     num: "08",
     title: "Project structure: modules + cargo",
-    status: "upcoming",
+    status: "shipped",
+    latest: true,
     bookCh: "Ch 7 + 14",
     bookTitle: "Managing Growing Projects, More about Cargo",
     rustlings: ["10_modules", "22_clippy"],
