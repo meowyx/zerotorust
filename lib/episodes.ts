@@ -208,7 +208,6 @@ const SERIES_1_SEED: EpisodeSeed[] = [
     num: "08",
     title: "Project structure: modules + cargo",
     status: "shipped",
-    latest: true,
     bookCh: "Ch 7 + 14",
     bookTitle: "Managing Growing Projects, More about Cargo",
     rustlings: ["10_modules", "22_clippy"],
@@ -227,7 +226,7 @@ const SERIES_1_SEED: EpisodeSeed[] = [
   {
     num: "09",
     title: "Testing",
-    status: "upcoming",
+    status: "shipped",
     bookCh: "Ch 11",
     bookTitle: "Writing Automated Tests",
     rustlings: ["17_tests"],
@@ -245,7 +244,8 @@ const SERIES_1_SEED: EpisodeSeed[] = [
   {
     num: "10",
     title: "Smart pointers",
-    status: "upcoming",
+    status: "shipped",
+    latest: true,
     bookCh: "Ch 15",
     bookTitle: "Smart Pointers",
     rustlings: ["19_smart_pointers"],
