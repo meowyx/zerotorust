@@ -262,7 +262,7 @@ const SERIES_1_SEED: EpisodeSeed[] = [
   {
     num: "11",
     title: "Fearless concurrency",
-    status: "upcoming",
+    status: "scaffolded",
     bookCh: "Ch 16",
     bookTitle: "Fearless Concurrency",
     rustlings: ["20_threads", "19_smart_pointers"],
@@ -279,7 +279,7 @@ const SERIES_1_SEED: EpisodeSeed[] = [
   {
     num: "12",
     title: "Async Rust (finale)",
-    status: "upcoming",
+    status: "scaffolded",
     bookCh: "Ch 17 + beyond",
     bookTitle: "Fundamentals of Asynchronous Programming (2024 ed.)",
     rustlings: [],
@@ -310,6 +310,8 @@ const NOTES_SLUG: Record<string, string> = {
   "08": "rust-modules-cargo",
   "09": "rust-testing",
   "10": "rust-smart-pointers",
+  "11": "rust-concurrency",
+  "12": "rust-async",
 };
 
 const series1: Episode[] = SERIES_1_SEED.map((e) => ({

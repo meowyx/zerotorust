@@ -26,6 +26,8 @@ const EPISODES = [
   "rust-modules-cargo",
   "rust-testing",
   "rust-smart-pointers",
+  "rust-concurrency",
+  "rust-async",
 ];
 
 // ---- text helpers -----------------------------------------------------------
@@ -136,18 +138,28 @@ function buildEpisode(slug: string): { html: string; count: number } {
     "<b>Covers:</b> " + chipText,
   ];
 
-  // cheatsheet appendix
+  // cheatsheet appendix. The deck card is a fixed 1280x720, which holds about
+  // a dozen rows; longer episodes get the recap split across several slides.
   const apInner = first(/<section class="appendix">([\s\S]*?)<\/section>/, main);
   const rowRe = /<td class="ck-scene">([\s\S]*?)<\/td>\s*<td class="ck-text">([\s\S]*?)<\/td>/g;
-  const rows = [...apInner.matchAll(rowRe)]
-    .map((m) => '<tr><td class="idea">' + inline(m[1]) + "</td><td>" + inline(m[2]) + "</td></tr>")
-    .join("");
-  const cheatHtml =
-    '<div class="ck">' +
-    '<h2>Cheatsheet <span class="accent">recap</span></h2>' +
-    '<p class="sub">One line per idea, in order. The pause-for-questions slide.</p>' +
-    '<table><thead><tr><th>Idea</th><th>Remember</th></tr></thead><tbody>' + rows + "</tbody></table>" +
-    "</div>";
+  const rowCells = [...apInner.matchAll(rowRe)]
+    .map((m) => '<tr><td class="idea">' + inline(m[1]) + "</td><td>" + inline(m[2]) + "</td></tr>");
+  const ROWS_PER_SLIDE = 11;
+  const cheatParts = Math.max(1, Math.ceil(rowCells.length / ROWS_PER_SLIDE));
+  const perPart = Math.ceil(rowCells.length / cheatParts);
+  const cheatHtmls = Array.from({ length: cheatParts }, (_, i) => {
+    const partLabel = cheatParts > 1 ? ' <span class="ck-part">' + (i + 1) + " / " + cheatParts + "</span>" : "";
+    return (
+      '<div class="ck">' +
+      '<h2>Cheatsheet <span class="accent">recap</span>' + partLabel + "</h2>" +
+      '<p class="sub">One line per idea, in order. The pause-for-questions slide.</p>' +
+      '<table><thead><tr><th>Idea</th><th>Remember</th></tr></thead><tbody>' +
+      rowCells.slice(i * perPart, (i + 1) * perPart).join("") +
+      "</tbody></table>" +
+      "</div>"
+    );
+  });
+  const cheatHtml = cheatHtmls[0];
   const apFoot = first(/<div class="ap-foot">([\s\S]*?)<\/div>/, apInner);
   const footNotes = apFoot
     .split(/<br\s*\/?>/)
@@ -168,7 +180,14 @@ function buildEpisode(slug: string): { html: string; count: number } {
     if (/\bcover\b/.test(cls)) {
       slides.push({ type: "cover", title: titleText, notes: coverNotes });
     } else if (/\bappendix\b/.test(cls)) {
-      slides.push({ type: "cheatsheet", title: "Cheatsheet recap", notes: cheatNotes });
+      cheatHtmls.forEach((html, i) => {
+        slides.push({
+          type: "cheatsheet",
+          title: "Cheatsheet recap" + (cheatHtmls.length > 1 ? " (" + (i + 1) + "/" + cheatHtmls.length + ")" : ""),
+          notes: i === 0 ? cheatNotes : ["Recap, continued."],
+          composed: html,
+        });
+      });
     } else if (/\bquote\b/.test(cls)) {
       const bq = inline(first(/<blockquote>([\s\S]*?)<\/blockquote>/, inner).replace(/<\/?p>/g, ""));
       const lead = inner.replace(/<blockquote>[\s\S]*?<\/blockquote>/g, "").replace(/<img\b[\s\S]*?>/g, "");
@@ -315,6 +334,7 @@ button{font-family:inherit;}
 .ck{width:100%;height:100%;padding:56px 70px;display:flex;flex-direction:column;color:var(--ink);}
 .ck h2{font-size:48px;font-weight:800;color:#16181d;margin:0 0 4px;letter-spacing:-0.01em;}
 .ck h2 .accent{font-family:var(--serif);font-style:italic;color:var(--rust);font-weight:400;}
+.ck h2 .ck-part{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--muted);letter-spacing:.06em;vertical-align:middle;margin-left:10px;}
 .ck .sub{font-size:17px;color:var(--soft);margin:0 0 18px;}
 .ck table{width:100%;border-collapse:collapse;font-size:16.5px;}
 .ck th{text-align:left;background:#f3f3f4;color:var(--ink);font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.04em;padding:8px 12px;border:1px solid var(--line);}
@@ -471,7 +491,7 @@ button{font-family:inherit;}
 
   function bodyHTML(s){
     if (s.type === 'cover') return DATA.cover;
-    if (s.type === 'cheatsheet') return DATA.cheat;
+    if (s.type === 'cheatsheet') return s.composed || DATA.cheat;
     if (s.composed) return s.composed;
     return '<img class="full" src="' + s.img + '" alt="' + stripT(s.title) + '" />';
   }

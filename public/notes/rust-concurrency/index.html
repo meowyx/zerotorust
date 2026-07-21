@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Fearless Concurrency · MeowyTheDev companion guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@1&family=Caveat:wght@500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink:#1c1e22; --soft:#43474e; --muted:#888d96; --line:#e3e4e8;
+  --rust:#c8542a; --code-bg:#f5f5f4; --code-fg:#24292e;
+  --sans:"Bricolage Grotesque",system-ui,-apple-system,sans-serif;
+  --serif:"Instrument Serif",Georgia,serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:#e9e9ec;color:var(--ink);font-family:var(--sans);}
+.accent{font-family:var(--serif);font-style:italic;color:var(--rust);font-weight:400;}
+.doc{max-width:182mm;margin:8mm auto;padding:16mm;background:#fff;box-shadow:0 4px 24px rgba(0,0,0,0.18);}
+
+.cover{position:relative;min-height:240mm;display:flex;flex-direction:column;justify-content:center;break-after:page;}
+.divider{break-before:page;padding-top:6mm;}
+.appendix{break-before:page;padding-top:4mm;}
+.scene{margin:0 0 9mm;}
+.scene.quote{break-before:page;padding-top:8mm;}
+.slide,.body pre,.body table,.body blockquote{break-inside:avoid;}
+.body h3{break-after:avoid;}
+
+.book-chip{display:inline-block;font-family:var(--mono);font-size:8pt;letter-spacing:0.02em;color:var(--soft);background:#fff;border:1px solid var(--line);padding:3px 9px;border-radius:5px;white-space:nowrap;}
+.scene-chip{margin-bottom:3mm;}
+.slide{display:block;width:100%;max-width:100%;border-radius:8px;border:1px solid var(--line);}
+
+.body h3{font-size:19pt;font-weight:700;color:#16181d;margin:0 0 3mm;line-height:1.15;letter-spacing:-0.01em;}
+.body p{font-size:11pt;line-height:1.62;color:var(--soft);margin:0 0 3mm;}
+.body p strong,.body li strong{color:var(--ink);font-weight:700;}
+.body em{font-family:var(--serif);font-style:italic;color:var(--ink);}
+.body ul,.body ol{margin:3mm 0;padding-left:6mm;}
+.body li{margin:0 0 2mm;line-height:1.55;font-size:11pt;color:var(--soft);}
+.body code{font-family:var(--mono);font-size:0.86em;background:var(--code-bg);padding:0.08em 0.32em;border-radius:4px;color:#9a3a18;}
+.body pre{background:var(--code-bg);color:var(--code-fg);border:1px solid var(--line);border-radius:8px;padding:4mm 5mm;white-space:pre-wrap;overflow-wrap:break-word;font-family:var(--mono);font-size:9.5pt;line-height:1.5;margin:4mm 0;}
+.body pre code{background:none;padding:0;color:inherit;font-size:inherit;}
+.body table{width:100%;border-collapse:collapse;margin:4mm 0;font-size:10pt;}
+.body th{text-align:left;background:#f3f3f4;color:var(--ink);font-family:var(--mono);font-size:8pt;text-transform:uppercase;letter-spacing:0.02em;padding:2.4mm 3mm;border:1px solid var(--line);}
+.body td{padding:2.4mm 3mm;border:1px solid var(--line);vertical-align:top;color:var(--soft);overflow-wrap:break-word;}
+.body blockquote{margin:5mm 0 0;background:#f7f7f6;border-left:3px solid var(--rust);border-radius:0 6px 6px 0;padding:3.5mm 5mm;font-size:11pt;color:var(--ink);}
+.body blockquote p{margin:0;color:var(--ink);} .body blockquote strong{color:#16181d;}
+
+.cover-eyebrow{font-family:var(--mono);font-size:9.5pt;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);}
+.cover-title{font-size:40pt;line-height:1.06;font-weight:800;color:#16181d;margin:6mm 0 0;letter-spacing:-0.01em;padding-right:34mm;}
+.cover-tagline{font-family:var(--serif);font-style:italic;font-size:18pt;color:var(--soft);margin:7mm 0 0;max-width:150mm;line-height:1.4;}
+.cover-chip{margin-top:14mm;align-self:flex-start;font-family:var(--mono);font-size:9.5pt;color:var(--soft);background:#fff;border:1px solid var(--line);padding:6px 12px;border-radius:6px;}
+.cover-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);padding-top:5mm;font-size:9pt;color:var(--muted);}
+.cover-foot .ep{font-family:var(--mono);font-weight:700;color:var(--rust);letter-spacing:0.1em;}
+.cover-foot-r{font-family:var(--mono);font-size:8.5pt;color:var(--muted);}
+.cover-num{position:absolute;top:13mm;right:0;font-family:var(--mono);font-weight:800;font-size:54pt;color:#dadbe0;}
+
+.divider-head{display:flex;align-items:center;gap:14px;margin-bottom:4mm;}
+.divider .kicker{font-family:var(--mono);font-size:9pt;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);}
+.divider-title{font-size:30pt;font-weight:800;color:#16181d;margin:0;letter-spacing:-0.01em;}
+.divider-intro{margin-top:5mm;} .divider-intro p{font-size:11.5pt;}
+
+.ap-title{font-size:26pt;font-weight:800;color:#16181d;margin:0 0 2mm;}
+.ap-sub{font-size:11pt;color:var(--soft);max-width:150mm;margin:0 0 5mm;}
+.ck-table{width:100%;border-collapse:collapse;font-size:10pt;}
+.ck-table th{text-align:left;background:#f3f3f4;color:var(--ink);font-family:var(--mono);font-size:8pt;text-transform:uppercase;letter-spacing:0.03em;padding:2.6mm 3mm;border:1px solid var(--line);}
+.ck-scene{font-weight:700;color:#16181d;width:40%;}
+.ck-table td{padding:2.6mm 3mm;border:1px solid var(--line);color:var(--soft);vertical-align:top;overflow-wrap:break-word;}
+.ap-foot{margin-top:7mm;font-size:10pt;background:#f7f7f6;border:1px solid var(--line);border-radius:8px;padding:4mm 5mm;line-height:1.7;}
+
+/* "Save as PDF" button: screen only */
+.save-pdf{position:fixed;right:18px;bottom:18px;z-index:50;font-family:var(--sans);font-size:13px;font-weight:700;color:#fff;background:var(--rust);border:none;border-radius:8px;padding:11px 16px;box-shadow:0 3px 12px rgba(0,0,0,0.25);cursor:pointer;}
+.save-pdf:hover{background:#b0461f;}
+/* running header/footer: print only (repeat on every printed page) */
+.print-running{display:none;}
+
+@page{size:A4;margin:16mm 14mm 14mm;}
+@media print{
+  html,body{background:#fff;}
+  .doc{max-width:none;margin:0;padding:0;background:#fff;box-shadow:none;}
+  .save-pdf{display:none !important;}
+  .print-running{display:flex;position:fixed;left:0;right:0;align-items:center;justify-content:space-between;font-size:8pt;color:var(--soft);font-family:var(--mono);}
+  .print-running.top{top:6mm;} .print-running.bot{bottom:6mm;}
+  .print-running .brand{display:flex;align-items:center;gap:6px;font-family:var(--sans);font-weight:700;color:var(--ink);}
+  .print-running .xh{display:flex;align-items:center;gap:5px;}
+  .print-running .muted{color:var(--muted);}
+}
+
+/* frosted-glass zoom panel: screen only, hidden in print */
+.zoom-panel{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:60;display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:16px;background:rgba(255,255,255,0.55);-webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blur(14px) saturate(1.3);border:1px solid rgba(255,255,255,0.7);box-shadow:0 10px 30px rgba(28,30,34,0.18),inset 0 1px 0 rgba(255,255,255,0.65);font-family:var(--sans);}
+.zoom-panel button{width:40px;height:40px;border:none;cursor:pointer;border-radius:11px;background:rgba(255,255,255,0.5);color:var(--ink);font-size:19px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;transition:background .15s,transform .1s;}
+.zoom-panel button:hover{background:rgba(255,255,255,0.95);}
+.zoom-panel button:active{transform:scale(0.93);}
+.zoom-level{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--soft);text-align:center;padding:3px 0;cursor:pointer;user-select:none;letter-spacing:0.02em;border-radius:8px;}
+.zoom-level:hover{color:var(--rust);background:rgba(255,255,255,0.5);}
+.zoom-mbar-bg{display:none;}
+/* phones: sticky bottom toolbar holding zoom (left) + Save as PDF (right) */
+@media (max-width:640px){.zoom-mbar-bg{display:block;position:fixed;left:0;right:0;bottom:0;height:58px;background:rgba(255,255,255,0.55);-webkit-backdrop-filter:blur(16px) saturate(1.4);backdrop-filter:blur(16px) saturate(1.4);border-top:1px solid rgba(255,255,255,0.7);box-shadow:0 -8px 30px rgba(28,30,34,0.12);z-index:59;}.zoom-panel{left:14px;right:auto;top:auto;bottom:10px;transform:none;flex-direction:row-reverse;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;border:none;box-shadow:none;padding:0;}.zoom-panel button{width:38px;height:38px;background:rgba(0,0,0,0.05);color:var(--ink);}.zoom-panel button:hover{background:rgba(0,0,0,0.1);}.zoom-level{color:var(--soft);}.zoom-level:hover{color:var(--rust);background:transparent;}.save-pdf{right:14px !important;bottom:10px !important;z-index:60 !important;}body{padding-bottom:70px;}}
+@media print{.zoom-panel{display:none !important;}.doc{zoom:1 !important;width:auto !important;}}
+
+/* notes-mobile-css: screen-only mobile reflow, print styles left untouched */
+@media screen and (max-width: 640px) {
+  html, body { background: #fff; }
+  .doc { max-width: 100%; margin: 0; padding: 22px 16px; box-shadow: none; }
+  .cover { min-height: auto; padding: 6px 0 22px; }
+  .cover-title { font-size: 30pt; padding-right: 0; }
+  .cover-tagline { font-size: 15pt; }
+  .cover-num { font-size: 38pt; top: 6px; }
+  .divider-title { font-size: 24pt; }
+  .body h3 { font-size: 17pt; }
+  .body p, .body li { font-size: 12pt; }
+  .body pre { font-size: 8.5pt; padding: 3mm 3.5mm; }
+  .ap-title { font-size: 22pt; }
+}
+</style>
+<link rel="icon" type="image/png" href="/icon" />
+</head>
+<body>
+<div class="print-running top"><span class="brand"><svg viewBox="0 0 28 20" width="18" height="13" aria-hidden="true"><rect width="28" height="20" rx="5" fill="#FF0033"/><path d="M11 6l7 4-7 4z" fill="#fff"/></svg>MeowyTheDev</span><span class="muted">RUST FROM ZERO · EP.11</span></div>
+<div class="print-running bot"><span class="xh"><svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="#2b1d12" d="M18.9 2H22l-7.6 8.7L23.3 22h-6.9l-5.4-7-6.2 7H1.7l8.1-9.3L1 2h7l4.9 6.5z"/></svg>@me256ow</span><span class="muted">companion guide</span></div>
+<main class="doc">
+<section class="cover">
+      <div class="cover-eyebrow">MeowyTheDev <span class="dot">·</span> Rust from Zero</div>
+      <h1 class="cover-title"><span class="accent">Fearless</span> Concurrency</h1>
+      <p class="cover-tagline">threads, channels, locks, and the two words that make it all safe.</p>
+      <div class="cover-chip">The Rust Programming Language <span class="dot">·</span> Chapter 16</div>
+      <div class="cover-foot"><span class="ep">EP.11</span><span class="cover-foot-r">companion guide · watch on the Rust from Zero playlist</span></div>
+      <div class="cover-num">11</div>
+    </section>
+<section class="divider tone-rust">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Threads</h2><span class="book-chip">Book · §16.1</span></div>
+
+      <div class="body divider-intro"><p>One program, many workers. First the bug that makes concurrency scary, then <code>thread::spawn</code>, <code>join</code>, and <code>move</code>: create a worker, wait for it, and hand it what it needs.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 16</span></div><div class="body"><h3>One jar, two hands</h3>
+<p>Here&#39;s the cat cafe on a Friday night. One tip jar behind the counter, two baristas on the same shift, and the bug that makes every language nervous.</p>
+<img class="slide" src="img/SceneWhyFearless.webp" alt="" /><ul>
+<li><strong>Both baristas read 12.</strong> They look in the jar at the same moment, so they see the same number.</li>
+<li><strong>Both write 13.</strong> Each drops a tip in and writes back what they computed. Two tips went in, the jar says thirteen. One tip vanished.</li>
+<li><strong>That is a data race:</strong> two threads, one piece of data, at least one of them writing, nobody taking turns.</li>
+</ul>
+<p>In most languages this compiles, ships, and falls over once a week in production. Rust refusing to compile it is the gift this episode is about.</p>
+<blockquote>
+<p><strong>Remember:</strong> a data race is two threads, one value, at least one write. most languages let it ship.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 16</span></div><div class="body"><h3>Concurrent vs parallel</h3>
+<p>Two words get mixed up constantly, and they are not the same thing. The cafe makes the difference easy to see.</p>
+<img class="slide" src="img/SceneConcurrentVsParallel.webp" alt="" /><table>
+<thead>
+<tr>
+<th>Word</th>
+<th>In the cafe</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>concurrent</strong></td>
+<td>one barista, two orders, taking turns. progress on both, one hand.</td>
+</tr>
+<tr>
+<td><strong>parallel</strong></td>
+<td>two baristas, two orders, at the same instant, on two cores.</td>
+</tr>
+</tbody></table>
+<ul>
+<li><strong>Threads give you parallel.</strong> Real operating system threads, scheduled on real cores.</li>
+<li><strong>Async gives you concurrent.</strong> That is next episode. This one is threads.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> a thread is a second pair of hands.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §16.1 Threads</span></div><div class="body"><h3>spawn starts a worker</h3>
+<p>The standard library ships real threads. Hand a closure to <code>thread::spawn</code> and it starts running immediately, beside the code that called it.</p>
+<img class="slide" src="img/SceneSpawn.webp" alt="" /><pre><code class="language-rust">use std::thread;
+use std::time::Duration;
+
+thread::spawn(|| {
+    for i in 1..5 {
+        println!(&quot;barista 2: drink {i}&quot;);
+        thread::sleep(Duration::from_millis(1));
+    }
+});
+
+println!(&quot;main: closing up&quot;);
+</code></pre>
+<ul>
+<li><strong>Everything inside the closure is the new thread&#39;s whole job.</strong> Four drinks, then done.</li>
+<li><strong>spawn does not wait.</strong> The very next line runs while the barista is still working.</li>
+<li><strong>The catch:</strong> when <code>main</code> returns, the spawned thread is cut off mid drink. The run prints one drink, then <code>main: closing up</code>, and drinks 2, 3, 4 never happen. No warning, no error.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> when main ends, every spawned thread ends with it.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §16.1 Threads</span></div><div class="body"><h3>join waits for your barista</h3>
+<p><code>spawn</code> hands something back: a <code>JoinHandle</code>. Think of it as your receipt for that thread.</p>
+<img class="slide" src="img/SceneJoin.webp" alt="" /><pre><code class="language-rust">let handle = thread::spawn(|| {
+    for i in 1..5 {
+        println!(&quot;barista 2: drink {i}&quot;);
+        thread::sleep(Duration::from_millis(1));
+    }
+});
+
+println!(&quot;main: taking orders&quot;);
+
+handle.join().unwrap();
+println!(&quot;main: closing up&quot;);
+</code></pre>
+<ul>
+<li><strong><code>join()</code> blocks right there</strong> until the thread is done. Now nothing gets lost: all four drinks land before main closes up.</li>
+<li><strong>It returns a <code>Result</code></strong>, because the thread might have panicked instead of finishing. Hence the <code>unwrap()</code>.</li>
+<li><strong>Where you put it matters.</strong> Move the <code>join</code> up, right after <code>spawn</code>, and there is no parallelism left. Nothing overlapped. You just waited.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> join blocks until the thread is done; where you put it decides your parallelism.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §16.1 Threads</span></div><div class="body"><h3>move hands it over</h3>
+<p>The barista needs the order list, so the closure has to get at something <code>main</code> owns. Without help, the closure only borrows it, and the compiler will not take that bet: the thread might outlive <code>main</code>.</p>
+<img class="slide" src="img/SceneMove.webp" alt="" /><pre><code class="language-rust">let orders = vec![&quot;latte&quot;, &quot;cold brew&quot;, &quot;catnip tea&quot;];
+
+let handle = thread::spawn(move || {
+    println!(&quot;barista 2 has: {orders:?}&quot;);
+});
+
+handle.join().unwrap();
+
+// println!(&quot;{orders:?}&quot;);  // error: moved into the thread
+</code></pre>
+<ul>
+<li><strong>One word fixes it.</strong> <code>move</code> tells the closure to take ownership of everything it touches.</li>
+<li><strong>Inside the thread the list is fully owned.</strong> No reference points back at <code>main</code> to go stale.</li>
+<li><strong>Out here, main cannot touch it anymore.</strong> Same rule as episode two. It just crossed a thread boundary.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> spawn = create. move = give. join = wait.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">std · thread::scope</span></div><div class="body"><h3>scope borrows instead</h3>
+<p><code>move</code> is not always what you want. Sometimes you need the list back afterwards. <code>thread::scope</code> makes a promise to the compiler: every thread started inside finishes before the block returns.</p>
+<img class="slide" src="img/SceneThreadScope.webp" alt="" /><pre><code class="language-rust">let orders = vec![&quot;latte&quot;, &quot;cold brew&quot;];
+
+thread::scope(|s| {
+    s.spawn(|| println!(&quot;barista 2: {orders:?}&quot;));
+    s.spawn(|| println!(&quot;barista 3: {orders:?}&quot;));
+});
+
+println!(&quot;main still owns: {orders:?}&quot;); // never moved
+</code></pre>
+<ul>
+<li><strong>Scoped threads can borrow.</strong> No <code>move</code>, no clone, no <code>Arc</code>. Plain references, because the compiler knows they cannot outlive the scope.</li>
+<li><strong>When the block ends, both baristas are already done</strong>, and main still owns everything.</li>
+<li><strong>Two tools, not a better one:</strong> short work that finishes here takes <code>scope</code>; work that outlives the function is what <code>move</code> is for.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> finishes here? scope. outlives you? move.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-teal">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Channels</h2><span class="book-chip">Book · §16.2</span></div>
+
+      <div class="body divider-intro"><p>Don&#39;t share it, send it. A channel moves values from thread to thread, one owner the whole way, so there is nothing to race on.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §16.2 Message passing</span></div><div class="body"><h3>Put it on the rail</h3>
+<p>The standard library calls this <code>mpsc</code>: many producers, single consumer. One call gives you two ends, and you move values from one to the other instead of sharing them.</p>
+<img class="slide" src="img/SceneChannel.webp" alt="" /><pre><code class="language-rust">use std::sync::mpsc;
+
+let (tx, rx) = mpsc::channel();
+
+thread::spawn(move || {
+    tx.send(String::from(&quot;table 3: latte&quot;)).unwrap();
+});
+
+let ticket = rx.recv().unwrap();
+println!(&quot;counter got: {ticket}&quot;);
+</code></pre>
+<ul>
+<li><strong><code>tx</code> is the sending end, <code>rx</code> the receiving end.</strong> The barista sends a ticket down the rail.</li>
+<li><strong><code>send</code> returns a <code>Result</code></strong>, because the receiving end might be gone.</li>
+<li><strong><code>recv</code> blocks</strong> until a ticket shows up. <code>try_recv</code> checks and returns straight away instead.</li>
+</ul>
+<p>Nothing is shared here. The ticket has exactly one owner the whole way down the rail. That is the trick, and it is the thesis of this chapter.</p>
+<blockquote>
+<p><strong>Remember:</strong> one owner, all the way down the rail.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §16.2 Message passing</span></div><div class="body"><h3>Once it&#39;s sent, it&#39;s gone</h3>
+<p><code>send</code> takes ownership. Not a copy, not a loan: the ticket is on the rail now and the barista has nothing.</p>
+<img class="slide" src="img/SceneSendMoves.webp" alt="" /><pre><code class="language-rust">let (tx, rx) = mpsc::channel();
+
+thread::spawn(move || {
+    let ticket = String::from(&quot;table 3: latte&quot;);
+    tx.send(ticket).unwrap();
+    // println!(&quot;{ticket}&quot;);  // error: borrow of moved value
+});
+
+println!(&quot;{}&quot;, rx.recv().unwrap());
+</code></pre>
+<ul>
+<li><strong>Peeking afterwards does not compile.</strong> Same &quot;borrow of moved value&quot; error you met in episode two.</li>
+<li><strong>And that is the whole point.</strong> If both ends could hold the ticket, you would be back at two hands in one jar.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> send it. don&#39;t share it.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §16.2 Message passing</span></div><div class="body"><h3>The rail is an iterator</h3>
+<p>At the counter you do not call <code>recv</code> over and over. The receiving end is just an iterator: you loop over it directly.</p>
+<img class="slide" src="img/SceneChannelLoop.webp" alt="" /><pre><code class="language-rust">let (tx, rx) = mpsc::channel();
+
+thread::spawn(move || {
+    for drink in [&quot;latte&quot;, &quot;cold brew&quot;, &quot;catnip tea&quot;] {
+        tx.send(drink).unwrap();
+    }
+});
+
+for ticket in rx {
+    println!(&quot;counter: {ticket}&quot;);
+}
+</code></pre>
+<ul>
+<li><strong>Every turn of the loop blocks</strong> until the next ticket lands. No <code>recv</code>, no <code>unwrap</code>.</li>
+<li><strong>It ends on its own.</strong> When every sender has been dropped, the channel closes and the loop finishes.</li>
+<li><strong>Flip side:</strong> a forgotten sender hangs your program. The counter waits forever on a rail nobody uses.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> rx is an iterator; the loop ends when the last sender is dropped.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §16.2 Message passing</span></div><div class="body"><h3>Four hands, one counter</h3>
+<p>Four baristas now. Each one needs their own end of the rail, so you clone the sender, and each clone moves into its own thread.</p>
+<img class="slide" src="img/SceneManyProducers.webp" alt="" /><pre><code class="language-rust">let (tx, rx) = mpsc::channel();
+
+for id in 0..4 {
+    let tx = tx.clone();
+    thread::spawn(move || {
+        tx.send(format!(&quot;barista {id}: ready&quot;)).unwrap();
+    });
+}
+drop(tx); // close the last sender
+
+for ticket in rx {
+    println!(&quot;counter: {ticket}&quot;);
+}
+</code></pre>
+<ul>
+<li><strong>Then drop the original.</strong> Main is still holding a sender, and while it holds one the rail never closes.</li>
+<li><strong>One consumer reads them all.</strong> The loop runs until all four have finished, then ends by itself.</li>
+<li><strong>Order is not guaranteed.</strong> Tickets arrive in whatever order the scheduler feels like. Do not write code that depends on it.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> clone the sender, drop the original, never rely on arrival order.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-rustDk">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Shared state</h2><span class="book-chip">Book · §16.3</span></div>
+
+      <div class="body divider-intro"><p>One tip jar, four baristas. Sometimes the data really is shared, and then you need a lock, a thread-safe way to share the lock, and one warning about what Rust cannot catch.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §16.3 Mutex&lt;T&gt;</span></div><div class="body"><h3>Mutex: one hand at a time</h3>
+<p>Here&#39;s the tip jar with a lid, and the design decision that makes Rust&#39;s mutex special: the lid and the jar are one value. Single-threaded first, exactly like the book does it.</p>
+<img class="slide" src="img/SceneMutex.webp" alt="" /><pre><code class="language-rust">use std::sync::Mutex;
+
+let tips = Mutex::new(0);
+
+{
+    let mut jar = tips.lock().unwrap();
+    *jar += 5;
+} // &lt;- lid goes back on
+
+println!(&quot;tips = {}&quot;, *tips.lock().unwrap());
+</code></pre>
+<ul>
+<li><strong><code>lock()</code> asks for the lid.</strong> If someone else has it, you wait right here until they put it back.</li>
+<li><strong>It returns a <code>Result</code></strong> because a thread can panic while holding the lid (the book calls this poisoning).</li>
+<li><strong>What you get is a guard.</strong> <code>*jar</code> is the number inside, and when the guard goes out of scope the lid goes back on. There is no unlock call to forget.</li>
+</ul>
+<p>So there is no path to that number that skips the lock. The type will not let you write one.</p>
+<blockquote>
+<p><strong>Remember:</strong> you cannot touch the data without taking the lock.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §16.3 Arc&lt;T&gt;</span></div><div class="body"><h3>Rc stops at the door</h3>
+<p>Four baristas need the same jar. Many owners: last episode that meant reach for <code>Rc</code>. So you clone one handle per barista, hand them out, spawn, and it does not compile.</p>
+<img class="slide" src="img/SceneWhyArc.webp" alt="" /><pre><code class="language-rust">use std::rc::Rc;
+
+let tips = Rc::new(Mutex::new(0));
+
+for _ in 0..4 {
+    let tips = Rc::clone(&amp;tips);
+    thread::spawn(move || {
+        *tips.lock().unwrap() += 1;
+    });
+}
+// error: `Rc&lt;Mutex&lt;i32&gt;&gt;` cannot be sent between threads safely
+</code></pre>
+<ul>
+<li><strong>Not at runtime, not sometimes.</strong> The compiler stops you before anything runs.</li>
+<li><strong>The reason:</strong> <code>Rc</code> keeps its count with plain arithmetic. Two threads bumping it at once would lose a count, so Rust refuses.</li>
+<li><strong>That is the bug from the very first scene</strong>, caught at compile time instead of once a week in production.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> rc is single-threaded on purpose; it cannot be sent between threads.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §16.3 Arc&lt;T&gt;</span></div><div class="body"><h3>Arc + Mutex, the pattern</h3>
+<p><code>Arc</code>: atomic reference count. Same idea as <code>Rc</code>, but the count itself is thread safe. <code>Arc</code> shares the jar, <code>Mutex</code> takes turns.</p>
+<img class="slide" src="img/SceneArcMutex.webp" alt="" /><pre><code class="language-rust">use std::sync::{Arc, Mutex};
+
+let tips = Arc::new(Mutex::new(0));
+let mut hands = vec![];
+
+for _ in 0..4 {
+    let tips = Arc::clone(&amp;tips);
+    hands.push(thread::spawn(move || {
+        *tips.lock().unwrap() += 1;
+    }));
+}
+for h in hands { h.join().unwrap(); }
+
+println!(&quot;tips = {}&quot;, *tips.lock().unwrap());
+</code></pre>
+<ul>
+<li><strong>Cloning an <code>Arc</code> is cheap.</strong> It bumps a counter, it does not copy the jar, and there is still only one jar.</li>
+<li><strong>All four reach for the same lock.</strong> Four baristas, one jar, one hand in it at a time.</li>
+<li><strong>Collect the handles and join every one</strong> before you read the total.</li>
+</ul>
+<p>The answer is 4. Every time. Run it a thousand times and it is still 4. No lost tip: this is the pattern you will reach for again and again.</p>
+<blockquote>
+<p><strong>Remember:</strong> arc shares it. mutex takes turns.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §16.3</span></div><div class="body"><h3>The pairs you already know</h3>
+<p>If <code>Arc</code> and <code>Mutex</code> feel familiar, they should. You met their single-threaded twins in episode ten.</p>
+<img class="slide" src="img/SceneRcVsArc.webp" alt="" /><table>
+<thead>
+<tr>
+<th>One thread (ep.10)</th>
+<th>Many threads (ep.11)</th>
+<th>The job</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Rc&lt;T&gt;</code></td>
+<td><code>Arc&lt;T&gt;</code></td>
+<td>many owners of one value</td>
+</tr>
+<tr>
+<td><code>RefCell&lt;T&gt;</code></td>
+<td><code>Mutex&lt;T&gt;</code></td>
+<td>mutate through a shared handle</td>
+</tr>
+</tbody></table>
+<ul>
+<li><strong>Same two jobs.</strong> The right-hand column is the left-hand column with the counting and the borrowing made thread safe.</li>
+<li><strong>You pay a little for it.</strong> Atomics and locks are not free. Use them when you actually share.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> same two jobs. one pair crosses threads.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §16.3</span></div><div class="body"><h3>Deadlock, the one it can&#39;t catch</h3>
+<p>One more thing about locks, and it is the thing Rust does not fix for you. Two locks, two threads, opposite order.</p>
+<img class="slide" src="img/SceneDeadlock.webp" alt="" /><pre><code class="language-rust">// thread A
+let a = jar.lock().unwrap();
+let b = till.lock().unwrap();
+
+// thread B
+let b = till.lock().unwrap();
+let a = jar.lock().unwrap();
+
+// A holds the jar, waiting on the till.
+// B holds the till, waiting on the jar. neither moves.
+</code></pre>
+<ul>
+<li><strong>This compiles. It runs.</strong> And then it just stops, with no error and no panic.</li>
+<li><strong>Rust prevents data races. It does not prevent deadlock.</strong></li>
+<li><strong>The fix is boring and always works:</strong> every thread takes its locks in the same order.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> always take your locks in the same order.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-rust">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Send &amp; Sync</h2><span class="book-chip">Book · §16.4</span></div>
+
+      <div class="body divider-intro"><p>Two words the compiler counts on. Every rule in this episode has been enforced by two traits you never wrote. Time to meet them.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §16.4 Send</span></div><div class="body"><h3>Send: safe to hand over</h3>
+<p>You have already been using this word without seeing it. <code>Send</code> means the value is safe to move to another thread: ownership can cross the boundary.</p>
+<img class="slide" src="img/SceneSend.webp" alt="" /><pre><code class="language-rust">pub fn spawn&lt;F, T&gt;(f: F) -&gt; JoinHandle&lt;T&gt;
+where F: FnOnce() -&gt; T + Send + &#39;static
+// you never write it. the compiler works it out.
+</code></pre>
+<ul>
+<li><strong>Almost every type you write is <code>Send</code>.</strong> Numbers, strings, vectors, your own structs (if their fields are). You get it for free.</li>
+<li><strong>The one you have met that is not: <code>Rc</code>.</strong> Its count is plain arithmetic, so it stays on one thread.</li>
+<li><strong>The compiler derives it</strong> from what a type is made of. Writing it by hand takes <code>unsafe</code>, and you won&#39;t.</li>
+</ul>
+<p>You only notice <code>Send</code> when it is missing, and then it is a compile error, not a crash.</p>
+<blockquote>
+<p><strong>Remember:</strong> Send = you can give it away.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §16.4 Sync</span></div><div class="body"><h3>Sync: safe to share</h3>
+<p><code>Sync</code> is the other half. Not &quot;can I move it&quot; but &quot;can we all look at it&quot;: safe for many threads to hold a reference to at once.</p>
+<img class="slide" src="img/SceneSync.webp" alt="" /><pre><code class="language-rust">// the whole definition, one line:
+// T is Sync if &amp;T is Send.
+</code></pre>
+<ul>
+<li><strong>Plain data is <code>Sync</code>.</strong> Nobody has to take turns just to look.</li>
+<li><strong><code>Mutex</code> is <code>Sync</code></strong>, because taking the lock is what keeps the readers apart. That is exactly why it exists: it takes something you cannot share and makes it shareable.</li>
+<li><strong><code>RefCell</code> is not.</strong> It tracks borrows with an ordinary counter, and two threads would trample it.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> Sync = many can look at once.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §16.4</span></div><div class="body"><h3>Who&#39;s what</h3>
+<p>The whole family in one place. You do not memorize this table; you meet it one compile error at a time.</p>
+<img class="slide" src="img/SceneSendSyncFamily.webp" alt="" /><table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Send</th>
+<th>Sync</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>i32</code>, <code>String</code>, <code>Vec&lt;T&gt;</code></td>
+<td>yes</td>
+<td>yes</td>
+<td>plain data is both</td>
+</tr>
+<tr>
+<td><code>Rc&lt;T&gt;</code></td>
+<td>no</td>
+<td>no</td>
+<td>its count is plain arithmetic</td>
+</tr>
+<tr>
+<td><code>RefCell&lt;T&gt;</code></td>
+<td>yes</td>
+<td>no</td>
+<td>move it, yes. share it, no</td>
+</tr>
+<tr>
+<td><code>Arc&lt;T&gt;</code></td>
+<td>yes</td>
+<td>yes</td>
+<td>when T is both</td>
+</tr>
+<tr>
+<td><code>Mutex&lt;T&gt;</code></td>
+<td>yes</td>
+<td>yes</td>
+<td>the lock is what makes it safe</td>
+</tr>
+</tbody></table>
+<ul>
+<li><strong><code>RefCell</code> is the interesting row.</strong> You can move it to another thread; you cannot share it with two. That row is what makes the two words click.</li>
+<li><strong>You will never write these two words yourself.</strong> You will only ever read them in an error message.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> you feel Send and Sync only when they&#39;re missing.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-teal">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Put it together</h2><span class="book-chip">Book · Ch 16</span></div>
+
+      <div class="body divider-intro"><p>Closing out the cafe. Four orders on the board, and tonight&#39;s total to compute: split the work, run it in parallel, combine the results, and know which tool to reach for next time.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 16</span></div><div class="body"><h3>Hand out the work</h3>
+<p>Closing time. Four amounts in cents, and you want the total. Split the work so nothing is shared, and you do not need a lock at all.</p>
+<img class="slide" src="img/SceneParallelSplit.webp" alt="" /><pre><code class="language-rust">let cents: Vec&lt;u32&gt; = orders.iter()
+    .map(|o| o.cents).collect();
+
+let mut hands = vec![];
+for chunk in cents.chunks(2) {
+    let chunk = chunk.to_vec();
+    hands.push(thread::spawn(move || {
+        chunk.iter().sum::&lt;u32&gt;()
+    }));
+}
+</code></pre>
+<ul>
+<li><strong><code>chunks(2)</code> hands you slices that do not overlap.</strong> One per barista.</li>
+<li><strong>Each thread owns its slice:</strong> <code>to_vec()</code> copies it in. Two small copies, no borrowing across threads.</li>
+<li><strong>Notice what is missing.</strong> No <code>Arc</code>, no <code>Mutex</code>. Nothing is shared, so there is nothing to lock.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> share nothing and there is nothing to lock.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 16</span></div><div class="body"><h3>Then add it up</h3>
+<p>Here is the part people miss: whatever the closure returns comes straight back out of <code>join</code>. So main collects the subtotals and adds them up itself.</p>
+<img class="slide" src="img/SceneParallelReduce.webp" alt="" /><pre><code class="language-rust">let mut total = 0;
+
+for h in hands {
+    total += h.join().unwrap();
+}
+
+println!(&quot;tonight: {total} cents&quot;);
+</code></pre>
+<ul>
+<li><strong>Main is the only thread touching <code>total</code></strong>, so no lock there either.</li>
+<li><strong>One number falls out the end.</strong> Split it, work in parallel, combine. That is the whole shape.</li>
+<li><strong>In real code</strong>, for pure data work like this, most people reach for the <code>rayon</code> crate: <code>cents.par_iter().sum()</code>. Under that one line is exactly what you just wrote by hand.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> split. work. combine.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 16</span></div><div class="body"><h3>Move it or share it</h3>
+<p>Two tools, and people agonise over which one. The answer is usually obvious: the shape of the problem picks the tool.</p>
+<img class="slide" src="img/SceneChannelsVsLocks.webp" alt="" /><table>
+<thead>
+<tr>
+<th></th>
+<th>Channel</th>
+<th>Lock</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>What it does</strong></td>
+<td>moves the data, one owner at a time</td>
+<td>shares the data, everyone takes turns</td>
+</tr>
+<tr>
+<td><strong>Reach for it when</strong></td>
+<td>work flows from one stage to the next</td>
+<td>one running total that everybody updates</td>
+</tr>
+<tr>
+<td><strong>Looks like</strong></td>
+<td><code>tx.send(order)</code></td>
+<td><code>*tips.lock().unwrap() += 1</code></td>
+</tr>
+</tbody></table>
+<ul>
+<li><strong>There is more in the box:</strong> a single counter has atomics (<code>AtomicUsize</code>), and many readers with few writers has <code>RwLock&lt;T&gt;</code>. Signposts, not today&#39;s lesson.</li>
+<li><strong>Same rules underneath all of them:</strong> ownership, borrowing, and the compiler checking your work.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> passing work along? channel. one running total? lock.</p>
+</blockquote>
+</div></section>
+<section class="scene quote"><div class="body"><p>The whole episode in one line:</p>
+<blockquote>
+<p>Threads do parallel work. Fearlessly. Spawn, channels, locks, and the borrow checker scaling to threads.</p>
+</blockquote>
+</div></section>
+<section class="appendix">
+      <h2 class="ap-title">Cheatsheet <span class="accent">recap</span></h2>
+      <p class="ap-sub">One line per idea, in order. Skim this when you just need the reminder.</p>
+      <table class="ck-table"><thead><tr><th>Idea</th><th>Remember</th></tr></thead><tbody><tr><td class="ck-scene">One jar, two hands</td><td class="ck-text">a data race is two threads, one value, at least one write. most languages let it ship.</td></tr>
+<tr><td class="ck-scene">Concurrent vs parallel</td><td class="ck-text">a thread is a second pair of hands.</td></tr>
+<tr><td class="ck-scene">spawn starts a worker</td><td class="ck-text">when main ends, every spawned thread ends with it.</td></tr>
+<tr><td class="ck-scene">join waits for your barista</td><td class="ck-text">join blocks until the thread is done; placement decides your parallelism.</td></tr>
+<tr><td class="ck-scene">move hands it over</td><td class="ck-text">spawn = create. move = give. join = wait.</td></tr>
+<tr><td class="ck-scene">scope borrows instead</td><td class="ck-text">finishes here? scope. outlives you? move.</td></tr>
+<tr><td class="ck-scene">Put it on the rail</td><td class="ck-text">one owner, all the way down the rail.</td></tr>
+<tr><td class="ck-scene">Once it&#39;s sent, it&#39;s gone</td><td class="ck-text">send it. don&#39;t share it.</td></tr>
+<tr><td class="ck-scene">The rail is an iterator</td><td class="ck-text">rx is an iterator; the loop ends when the last sender is dropped.</td></tr>
+<tr><td class="ck-scene">Four hands, one counter</td><td class="ck-text">clone the sender, drop the original, never rely on arrival order.</td></tr>
+<tr><td class="ck-scene">Mutex: one hand at a time</td><td class="ck-text">you cannot touch the data without taking the lock.</td></tr>
+<tr><td class="ck-scene">Rc stops at the door</td><td class="ck-text">rc is single-threaded on purpose; it cannot be sent between threads.</td></tr>
+<tr><td class="ck-scene">Arc + Mutex, the pattern</td><td class="ck-text">arc shares it. mutex takes turns.</td></tr>
+<tr><td class="ck-scene">The pairs you already know</td><td class="ck-text">same two jobs. one pair crosses threads.</td></tr>
+<tr><td class="ck-scene">Deadlock, the one it can&#39;t catch</td><td class="ck-text">always take your locks in the same order.</td></tr>
+<tr><td class="ck-scene">Send: safe to hand over</td><td class="ck-text">Send = you can give it away.</td></tr>
+<tr><td class="ck-scene">Sync: safe to share</td><td class="ck-text">Sync = many can look at once.</td></tr>
+<tr><td class="ck-scene">Who&#39;s what</td><td class="ck-text">you feel Send and Sync only when they&#39;re missing.</td></tr>
+<tr><td class="ck-scene">Hand out the work</td><td class="ck-text">share nothing and there is nothing to lock.</td></tr>
+<tr><td class="ck-scene">Then add it up</td><td class="ck-text">split. work. combine.</td></tr>
+<tr><td class="ck-scene">Move it or share it</td><td class="ck-text">passing work along? channel. one running total? lock.</td></tr></tbody></table>
+      <div class="ap-foot"><strong>Maps to:</strong> The Rust Programming Language, Chapter 16.<br/><strong>Practice:</strong> Rustlings <code>20_threads</code>, plus a second pass over <code>19_smart_pointers</code>.</div>
+    </section>
+</main>
+<button class="save-pdf" onclick="window.print()">Save as PDF</button>
+
+<div class="zoom-mbar-bg" aria-hidden="true"></div>
+<div class="zoom-panel" data-zoom-panel aria-label="Zoom controls">
+  <button type="button" class="zoom-in" aria-label="Zoom in" title="Zoom in">+</button>
+  <div class="zoom-level" role="button" tabindex="0" title="Reset zoom" aria-label="Reset zoom">100%</div>
+  <button type="button" class="zoom-out" aria-label="Zoom out" title="Zoom out">−</button>
+</div>
+<script>
+(function(){
+  var doc=document.querySelector('.doc');
+  var panel=document.querySelector('[data-zoom-panel]');
+  if(!doc||!panel)return;
+  var label=panel.querySelector('.zoom-level');
+  var KEY='rfz_notes_zoom',MIN=0.5,MAX=2,STEP=0.1,z=1;
+  try{var s=parseFloat(localStorage.getItem(KEY));if(s>=MIN&&s<=MAX)z=s;}catch(e){}
+  function clamp(v){return Math.min(MAX,Math.max(MIN,Math.round(v*100)/100));}
+  function isMobile(){return window.matchMedia&&window.matchMedia('(max-width:640px)').matches;}
+  function apply(){var m=isMobile()&&z!==1;doc.style.zoom=z;doc.style.width=m?('calc(100% / '+z+')'):'';doc.style.maxWidth=m?'none':'';label.textContent=Math.round(z*100)+'%';try{localStorage.setItem(KEY,String(z));}catch(e){}}
+  panel.querySelector('.zoom-in').addEventListener('click',function(){z=clamp(z+STEP);apply();});
+  panel.querySelector('.zoom-out').addEventListener('click',function(){z=clamp(z-STEP);apply();});
+  function reset(){z=1;apply();}
+  label.addEventListener('click',reset);
+  label.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();reset();}});
+  window.addEventListener('resize',apply);
+  apply();
+})();
+</script>
+</body>
+</html>

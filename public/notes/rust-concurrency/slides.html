@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Fearless Concurrency · Slides (EP.11)</title>
+<!-- "Add to Home Screen" on iPhone launches this chromeless, the practical
+     way to get a fullscreen-like deck where iOS blocks the Fullscreen API -->
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Rust EP.11" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="icon" type="image/png" href="/icon" />
+<style>
+:root{
+  --ink:#1c1e22; --soft:#43474e; --muted:#888d96; --line:#e3e4e8;
+  --rust:#c8542a; --code-bg:#f5f5f4;
+  --sans:"Bricolage Grotesque",system-ui,-apple-system,sans-serif;
+  --serif:"Instrument Serif",Georgia,serif;
+  --mono:"JetBrains Mono",ui-monospace,monospace;
+  --stage:#0e0f12; --panel:#16181d; --sline:#26282e; --sink:#e8e6e2; --smuted:#9a9aaa;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;height:100%;background:var(--stage);color:var(--sink);font-family:var(--sans);overflow:hidden;}
+button{font-family:inherit;}
+
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh;}
+
+.progress{flex:none;height:3px;background:#1d1f24;}
+.progress > i{display:block;height:100%;background:var(--rust);width:0;transition:width .25s ease;}
+
+.topbar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 18px;}
+.brand{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--sink);}
+.brand svg{display:block;}
+.brand .sep{color:#4a4d55;font-weight:400;}
+.brand .ep{font-family:var(--mono);color:var(--rust);font-weight:700;letter-spacing:.08em;}
+.hint{font-family:var(--mono);font-size:11px;color:#6b6e76;white-space:nowrap;}
+.hint b{color:#9a9aaa;font-weight:700;}
+
+.middle{flex:1;display:flex;min-height:0;min-width:0;}
+.viewport{flex:1;display:grid;place-items:center;min-width:0;min-height:0;position:relative;overflow:hidden;}
+
+/* sized in JS to the scaled deck size so grid centering uses the real footprint */
+.scaler{position:relative;flex:none;}
+.deck{position:absolute;top:0;left:0;width:1280px;height:720px;transform-origin:top left;border-radius:14px;overflow:hidden;background:#fff;
+  box-shadow:0 30px 90px -30px rgba(0,0,0,.85),0 0 0 1px rgba(255,255,255,.05);cursor:pointer;}
+.deck img.full{display:block;width:100%;height:100%;object-fit:contain;background:#fff;}
+
+/* composed: cover */
+.cv{width:100%;height:100%;padding:78px 86px;display:flex;flex-direction:column;justify-content:center;position:relative;color:var(--ink);}
+.cv-eyebrow{font-family:var(--mono);font-size:17px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);}
+.cv-title{font-size:96px;line-height:1.04;font-weight:800;color:#16181d;margin:18px 0 0;letter-spacing:-0.01em;}
+.cv-title .accent{font-family:var(--serif);font-style:italic;color:var(--rust);font-weight:400;}
+.cv-tag{font-family:var(--serif);font-style:italic;font-size:34px;color:var(--soft);margin:26px 0 0;max-width:760px;line-height:1.32;}
+.cv-chip{margin-top:40px;align-self:flex-start;font-family:var(--mono);font-size:16px;color:var(--soft);background:#fff;border:1px solid var(--line);padding:9px 16px;border-radius:8px;}
+.cv-foot{position:absolute;left:86px;right:86px;bottom:54px;display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);padding-top:18px;font-size:15px;color:var(--muted);}
+.cv-foot .ep{font-family:var(--mono);font-weight:700;color:var(--rust);letter-spacing:.12em;}
+.cv-num{position:absolute;top:54px;right:86px;font-family:var(--mono);font-weight:800;font-size:120px;color:#e6e7ec;line-height:1;}
+
+/* composed: cheatsheet */
+.ck{width:100%;height:100%;padding:56px 70px;display:flex;flex-direction:column;color:var(--ink);}
+.ck h2{font-size:48px;font-weight:800;color:#16181d;margin:0 0 4px;letter-spacing:-0.01em;}
+.ck h2 .accent{font-family:var(--serif);font-style:italic;color:var(--rust);font-weight:400;}
+.ck h2 .ck-part{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--muted);letter-spacing:.06em;vertical-align:middle;margin-left:10px;}
+.ck .sub{font-size:17px;color:var(--soft);margin:0 0 18px;}
+.ck table{width:100%;border-collapse:collapse;font-size:16.5px;}
+.ck th{text-align:left;background:#f3f3f4;color:var(--ink);font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.04em;padding:8px 12px;border:1px solid var(--line);}
+.ck td{padding:7px 12px;border:1px solid var(--line);color:var(--soft);vertical-align:top;}
+.ck td.idea{font-weight:700;color:#16181d;width:38%;}
+.ck code{font-family:var(--mono);font-size:.9em;background:var(--code-bg);padding:.06em .3em;border-radius:4px;color:#9a3a18;}
+
+/* composed: text card for slides with no still (divider / pull-quote / image-less scene) */
+.txt{width:100%;height:100%;padding:64px 78px;display:flex;flex-direction:column;justify-content:center;color:var(--ink);}
+.txt-kicker{font-family:var(--mono);font-size:17px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:18px;}
+.txt-title{font-size:74px;line-height:1.04;font-weight:800;color:#16181d;margin:0;letter-spacing:-0.01em;}
+.txt-title.txt-title-sm{font-size:50px;}
+.txt-title .accent{font-family:var(--serif);font-style:italic;color:var(--rust);font-weight:400;}
+.txt-lead{font-family:var(--serif);font-style:italic;font-size:30px;line-height:1.4;color:var(--soft);margin:26px 0 0;max-width:880px;}
+.txt-points{margin:26px 0 0;padding-left:24px;max-width:900px;}
+.txt-points li{font-size:22px;line-height:1.5;color:var(--soft);margin:0 0 12px;}
+.txt-points li b{color:var(--ink);font-weight:700;}
+.txt code{font-family:var(--mono);font-size:.9em;background:var(--code-bg);padding:.06em .3em;border-radius:4px;color:#9a3a18;}
+.txt-quote{justify-content:center;}
+.txt-quote-text{font-family:var(--serif);font-style:italic;font-size:46px;line-height:1.28;color:#16181d;margin:0;max-width:980px;}
+
+/* notes drawer */
+.notes{flex:none;width:0;overflow:hidden;background:var(--panel);border-left:1px solid var(--sline);transition:width .18s ease,height .18s ease;}
+.notes.open{width:380px;}
+.notes-inner{width:380px;height:100%;overflow:auto;padding:24px 24px 40px;}
+.n-kicker{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#6b6e76;margin-bottom:8px;}
+.n-title{font-size:23px;font-weight:800;color:var(--sink);margin:0 0 14px;letter-spacing:-0.01em;}
+.n-points{margin:0;padding-left:18px;}
+.n-points li{font-size:14.5px;line-height:1.6;color:#c4c4cc;margin:0 0 9px;}
+.n-points li b{color:#fff;font-weight:700;}
+.notes-inner code{font-family:var(--mono);font-size:.86em;background:#22252b;padding:.08em .34em;border-radius:4px;color:#e7a884;}
+.n-remember{margin-top:18px;border-left:3px solid var(--rust);background:rgba(200,84,42,.10);border-radius:0 8px 8px 0;padding:12px 14px;font-size:14.5px;line-height:1.55;color:#f0e6df;}
+.n-remember span{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--rust);font-weight:700;margin-bottom:5px;}
+.n-empty{color:#6b6e76;font-size:14px;font-style:italic;}
+
+/* bottom controls */
+.controls{flex:none;display:flex;align-items:center;gap:10px;padding:10px 16px;border-top:1px solid var(--sline);background:#101216;}
+.controls .counter{font-family:var(--mono);font-size:13px;color:var(--smuted);min-width:66px;}
+.controls .counter b{color:var(--sink);}
+.controls .ctitle{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;color:#c4c4cc;}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--sline);background:#1a1c22;color:var(--sink);
+  font-size:13px;font-weight:600;border-radius:9px;padding:8px 13px;cursor:pointer;transition:background .14s,border-color .14s,color .14s;}
+.btn:hover{background:#23262d;border-color:#3a3d45;}
+.btn:disabled{opacity:.38;cursor:not-allowed;}
+.btn.icon{padding:8px 12px;font-size:17px;line-height:1;}
+.btn.on{background:rgba(200,84,42,.16);border-color:rgba(200,84,42,.55);color:#f0b69e;}
+.btn .k{font-family:var(--mono);font-size:10px;color:#7e818a;}
+
+/* grid overview */
+.grid{position:fixed;inset:0;z-index:80;background:rgba(8,9,11,.97);overflow:auto;padding:36px 40px 56px;display:none;}
+.grid.open{display:block;}
+.grid-head{display:flex;align-items:center;justify-content:space-between;max-width:1320px;margin:0 auto 22px;}
+.grid-head h2{font-size:20px;margin:0;color:var(--sink);font-weight:800;}
+.grid-inner{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;max-width:1320px;margin:0 auto;}
+.thumb{position:relative;aspect-ratio:16/9;border-radius:9px;overflow:hidden;border:1px solid var(--sline);background:#fff;cursor:pointer;transition:transform .12s,outline-color .12s;outline:2px solid transparent;}
+.thumb:hover{transform:translateY(-2px);}
+.thumb.current{outline-color:var(--rust);}
+.thumb img{width:100%;height:100%;object-fit:contain;}
+.thumb .composed{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--ink);padding:10px;text-align:center;}
+.thumb .composed .big{font-size:22px;font-weight:800;color:#16181d;}
+.thumb .composed .big .accent{font-family:var(--serif);font-style:italic;color:var(--rust);font-weight:400;}
+.thumb .num{position:absolute;top:6px;left:8px;font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:rgba(14,15,18,.78);border-radius:5px;padding:2px 6px;}
+
+@media (max-width:760px){
+  .hint{display:none;}
+  .controls .ctitle{display:none;}
+  .controls{flex-wrap:wrap;gap:8px;padding:8px 10px;}
+  .btn{padding:9px 12px;}
+  .btn .k{display:none;}            /* no keyboard on touch */
+  #btnFull{display:none;}           /* fullscreen is niche on phones, unsupported on iOS */
+  /* stack the slide on top and slide notes up from the bottom, so the
+     control bar stays reachable instead of being covered by an overlay */
+  .middle{flex-direction:column;}
+  .notes{width:auto;height:0;border-left:none;border-top:1px solid var(--sline);}
+  .notes.open{width:auto;height:46vh;}
+  .notes-inner{width:auto;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="progress"><i id="bar"></i></div>
+
+  <div class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 28 20" width="20" height="14" aria-hidden="true"><rect width="28" height="20" rx="5" fill="#FF0033"/><path d="M11 6l7 4-7 4z" fill="#fff"/></svg>
+      MeowyTheDev <span class="sep">·</span> Rust from Zero <span class="sep">·</span> <span class="ep">EP.11</span>
+    </div>
+    <div class="hint"><b>←</b> <b>→</b> move · <b>N</b> notes · <b>G</b> grid · <b>F</b> fullscreen</div>
+  </div>
+
+  <div class="middle">
+    <div class="viewport" id="viewport">
+      <div class="scaler" id="scaler">
+        <div class="deck" id="deck" role="group" aria-label="slide"></div>
+      </div>
+    </div>
+    <aside class="notes" id="notes" aria-label="Speaker notes">
+      <div class="notes-inner" id="notesInner"></div>
+    </aside>
+  </div>
+
+  <div class="controls">
+    <button class="btn icon" id="prev" title="Previous (left arrow)" aria-label="Previous slide">‹</button>
+    <button class="btn icon" id="next" title="Next (right arrow)" aria-label="Next slide">›</button>
+    <div class="counter"><b id="cur">1</b> / <span id="total">1</span></div>
+    <div class="ctitle" id="ctitle"></div>
+    <button class="btn" id="btnNotes" title="Toggle speaker notes (N)">Notes <span class="k">N</span></button>
+    <button class="btn" id="btnGrid" title="Slide overview (G)">Grid <span class="k">G</span></button>
+    <button class="btn" id="btnFull" title="Fullscreen (F)">Fullscreen <span class="k">F</span></button>
+  </div>
+</div>
+
+<div class="grid" id="grid">
+  <div class="grid-head">
+    <h2>All slides</h2>
+    <button class="btn" id="gridClose">Close <span class="k">Esc</span></button>
+  </div>
+  <div class="grid-inner" id="gridInner"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var DATA = {"ep":"11","title":"Fearless Concurrency","cover":"\u003cdiv class=\"cv\">\u003cdiv class=\"cv-eyebrow\">MeowyTheDev · Rust from Zero\u003c/div>\u003ch1 class=\"cv-title\">\u003cspan class=\"accent\">Fearless\u003c/span> Concurrency\u003c/h1>\u003cp class=\"cv-tag\">threads, channels, locks, and the two words that make it all safe.\u003c/p>\u003cdiv class=\"cv-chip\">The Rust Programming Language \u003cspan class=\"dot\">·\u003c/span> Chapter 16\u003c/div>\u003cdiv class=\"cv-foot\">\u003cspan class=\"ep\">EP.11\u003c/span>\u003cspan>companion slides · watch on the Rust from Zero playlist\u003c/span>\u003c/div>\u003cdiv class=\"cv-num\">11\u003c/div>\u003c/div>","coverBig":"\u003cspan class=\"accent\">Fearless\u003c/span> Concurrency","cheat":"\u003cdiv class=\"ck\">\u003ch2>Cheatsheet \u003cspan class=\"accent\">recap\u003c/span> \u003cspan class=\"ck-part\">1 / 2\u003c/span>\u003c/h2>\u003cp class=\"sub\">One line per idea, in order. The pause-for-questions slide.\u003c/p>\u003ctable>\u003cthead>\u003ctr>\u003cth>Idea\u003c/th>\u003cth>Remember\u003c/th>\u003c/tr>\u003c/thead>\u003ctbody>\u003ctr>\u003ctd class=\"idea\">One jar, two hands\u003c/td>\u003ctd>a data race is two threads, one value, at least one write. most languages let it ship.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Concurrent vs parallel\u003c/td>\u003ctd>a thread is a second pair of hands.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">spawn starts a worker\u003c/td>\u003ctd>when main ends, every spawned thread ends with it.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">join waits for your barista\u003c/td>\u003ctd>join blocks until the thread is done; placement decides your parallelism.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">move hands it over\u003c/td>\u003ctd>spawn = create. move = give. join = wait.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">scope borrows instead\u003c/td>\u003ctd>finishes here? scope. outlives you? move.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Put it on the rail\u003c/td>\u003ctd>one owner, all the way down the rail.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Once it&#39;s sent, it&#39;s gone\u003c/td>\u003ctd>send it. don&#39;t share it.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">The rail is an iterator\u003c/td>\u003ctd>rx is an iterator; the loop ends when the last sender is dropped.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Four hands, one counter\u003c/td>\u003ctd>clone the sender, drop the original, never rely on arrival order.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Mutex: one hand at a time\u003c/td>\u003ctd>you cannot touch the data without taking the lock.\u003c/td>\u003c/tr>\u003c/tbody>\u003c/table>\u003c/div>","slides":[{"type":"cover","title":"Fearless Concurrency","notes":["\u003cb>Episode 11.\u003c/b> threads, channels, locks, and the two words that make it all safe.","\u003cb>Covers:\u003c/b> The Rust Programming Language · Chapter 16"]},{"type":"divider","img":"","kicker":"Chapter · Book · §16.1","title":"Threads","notes":["Chapter break: \u003cb>Threads\u003c/b>.","One program, many workers. First the bug that makes concurrency scary, then \u003ccode>thread::spawn\u003c/code>, \u003ccode>join\u003c/code>, and \u003ccode>move\u003c/code>: create a worker, wait for it, and hand it what it needs."],"composed":"\u003cdiv class=\"txt\">\u003cdiv class=\"txt-kicker\">Chapter\u003c/div>\u003ch1 class=\"txt-title\">Threads\u003c/h1>\u003cp class=\"txt-lead\">One program, many workers. First the bug that makes concurrency scary, then \u003ccode>thread::spawn\u003c/code>, \u003ccode>join\u003c/code>, and \u003ccode>move\u003c/code>: create a worker, wait for it, and hand it what it needs.\u003c/p>\u003c/div>"},{"type":"image","img":"img/SceneWhyFearless.webp","kicker":"Book · Ch 16","title":"One jar, two hands","notes":["Here&#39;s the cat cafe on a Friday night. One tip jar behind the counter, two baristas on the same shift, and the bug that makes every language nervous.","\u003cb>Both baristas read 12.\u003c/b> They look in the jar at the same moment, so they see the same number.","\u003cb>Both write 13.\u003c/b> Each drops a tip in and writes back what they computed. Two tips went in, the jar says thirteen. One tip vanished.","\u003cb>That is a data race:\u003c/b> two threads, one piece of data, at least one of them writing, nobody taking turns.","In most languages this compiles, ships, and falls over once a week in production. Rust refusing to compile it is the gift this episode is about."],"remember":"a data race is two threads, one value, at least one write. most languages let it ship."},{"type":"image","img":"img/SceneConcurrentVsParallel.webp","kicker":"Book · Ch 16","title":"Concurrent vs parallel","notes":["Two words get mixed up constantly, and they are not the same thing. The cafe makes the difference easy to see.","\u003cb>Threads give you parallel.\u003c/b> Real operating system threads, scheduled on real cores.","\u003cb>Async gives you concurrent.\u003c/b> That is next episode. This one is threads."],"remember":"a thread is a second pair of hands."},{"type":"image","img":"img/SceneSpawn.webp","kicker":"Book · §16.1 Threads","title":"spawn starts a worker","notes":["The standard library ships real threads. Hand a closure to \u003ccode>thread::spawn\u003c/code> and it starts running immediately, beside the code that called it.","\u003cb>Everything inside the closure is the new thread&#39;s whole job.\u003c/b> Four drinks, then done.","\u003cb>spawn does not wait.\u003c/b> The very next line runs while the barista is still working.","\u003cb>The catch:\u003c/b> when \u003ccode>main\u003c/code> returns, the spawned thread is cut off mid drink. The run prints one drink, then \u003ccode>main: closing up\u003c/code>, and drinks 2, 3, 4 never happen. No warning, no error."],"remember":"when main ends, every spawned thread ends with it."},{"type":"image","img":"img/SceneJoin.webp","kicker":"Book · §16.1 Threads","title":"join waits for your barista","notes":["\u003ccode>spawn\u003c/code> hands something back: a \u003ccode>JoinHandle\u003c/code>. Think of it as your receipt for that thread.","\u003cb>\u003ccode>join()\u003c/code> blocks right there\u003c/b> until the thread is done. Now nothing gets lost: all four drinks land before main closes up.","\u003cb>It returns a \u003ccode>Result\u003c/code>\u003c/b>, because the thread might have panicked instead of finishing. Hence the \u003ccode>unwrap()\u003c/code>.","\u003cb>Where you put it matters.\u003c/b> Move the \u003ccode>join\u003c/code> up, right after \u003ccode>spawn\u003c/code>, and there is no parallelism left. Nothing overlapped. You just waited."],"remember":"join blocks until the thread is done; where you put it decides your parallelism."},{"type":"image","img":"img/SceneMove.webp","kicker":"Book · §16.1 Threads","title":"move hands it over","notes":["The barista needs the order list, so the closure has to get at something \u003ccode>main\u003c/code> owns. Without help, the closure only borrows it, and the compiler will not take that bet: the thread might outlive \u003ccode>main\u003c/code>.","\u003cb>One word fixes it.\u003c/b> \u003ccode>move\u003c/code> tells the closure to take ownership of everything it touches.","\u003cb>Inside the thread the list is fully owned.\u003c/b> No reference points back at \u003ccode>main\u003c/code> to go stale.","\u003cb>Out here, main cannot touch it anymore.\u003c/b> Same rule as episode two. It just crossed a thread boundary."],"remember":"spawn = create. move = give. join = wait."},{"type":"image","img":"img/SceneThreadScope.webp","kicker":"std · thread::scope","title":"scope borrows instead","notes":["\u003ccode>move\u003c/code> is not always what you want. Sometimes you need the list back afterwards. \u003ccode>thread::scope\u003c/code> makes a promise to the compiler: every thread started inside finishes before the block returns.","\u003cb>Scoped threads can borrow.\u003c/b> No \u003ccode>move\u003c/code>, no clone, no \u003ccode>Arc\u003c/code>. Plain references, because the compiler knows they cannot outlive the scope.","\u003cb>When the block ends, both baristas are already done\u003c/b>, and main still owns everything.","\u003cb>Two tools, not a better one:\u003c/b> short work that finishes here takes \u003ccode>scope\u003c/code>; work that outlives the function is what \u003ccode>move\u003c/code> is for."],"remember":"finishes here? scope. outlives you? move."},{"type":"divider","img":"","kicker":"Chapter · Book · §16.2","title":"Channels","notes":["Chapter break: \u003cb>Channels\u003c/b>.","Don&#39;t share it, send it. A channel moves values from thread to thread, one owner the whole way, so there is nothing to race on."],"composed":"\u003cdiv class=\"txt\">\u003cdiv class=\"txt-kicker\">Chapter\u003c/div>\u003ch1 class=\"txt-title\">Channels\u003c/h1>\u003cp class=\"txt-lead\">Don&#39;t share it, send it. A channel moves values from thread to thread, one owner the whole way, so there is nothing to race on.\u003c/p>\u003c/div>"},{"type":"image","img":"img/SceneChannel.webp","kicker":"Book · §16.2 Message passing","title":"Put it on the rail","notes":["The standard library calls this \u003ccode>mpsc\u003c/code>: many producers, single consumer. One call gives you two ends, and you move values from one to the other instead of sharing them.","\u003cb>\u003ccode>tx\u003c/code> is the sending end, \u003ccode>rx\u003c/code> the receiving end.\u003c/b> The barista sends a ticket down the rail.","\u003cb>\u003ccode>send\u003c/code> returns a \u003ccode>Result\u003c/code>\u003c/b>, because the receiving end might be gone.","\u003cb>\u003ccode>recv\u003c/code> blocks\u003c/b> until a ticket shows up. \u003ccode>try_recv\u003c/code> checks and returns straight away instead.","Nothing is shared here. The ticket has exactly one owner the whole way down the rail. That is the trick, and it is the thesis of this chapter."],"remember":"one owner, all the way down the rail."},{"type":"image","img":"img/SceneSendMoves.webp","kicker":"Book · §16.2 Message passing","title":"Once it&#39;s sent, it&#39;s gone","notes":["\u003ccode>send\u003c/code> takes ownership. Not a copy, not a loan: the ticket is on the rail now and the barista has nothing.","\u003cb>Peeking afterwards does not compile.\u003c/b> Same &quot;borrow of moved value&quot; error you met in episode two.","\u003cb>And that is the whole point.\u003c/b> If both ends could hold the ticket, you would be back at two hands in one jar."],"remember":"send it. don&#39;t share it."},{"type":"image","img":"img/SceneChannelLoop.webp","kicker":"Book · §16.2 Message passing","title":"The rail is an iterator","notes":["At the counter you do not call \u003ccode>recv\u003c/code> over and over. The receiving end is just an iterator: you loop over it directly.","\u003cb>Every turn of the loop blocks\u003c/b> until the next ticket lands. No \u003ccode>recv\u003c/code>, no \u003ccode>unwrap\u003c/code>.","\u003cb>It ends on its own.\u003c/b> When every sender has been dropped, the channel closes and the loop finishes.","\u003cb>Flip side:\u003c/b> a forgotten sender hangs your program. The counter waits forever on a rail nobody uses."],"remember":"rx is an iterator; the loop ends when the last sender is dropped."},{"type":"image","img":"img/SceneManyProducers.webp","kicker":"Book · §16.2 Message passing","title":"Four hands, one counter","notes":["Four baristas now. Each one needs their own end of the rail, so you clone the sender, and each clone moves into its own thread.","\u003cb>Then drop the original.\u003c/b> Main is still holding a sender, and while it holds one the rail never closes.","\u003cb>One consumer reads them all.\u003c/b> The loop runs until all four have finished, then ends by itself.","\u003cb>Order is not guaranteed.\u003c/b> Tickets arrive in whatever order the scheduler feels like. Do not write code that depends on it."],"remember":"clone the sender, drop the original, never rely on arrival order."},{"type":"divider","img":"","kicker":"Chapter · Book · §16.3","title":"Shared state","notes":["Chapter break: \u003cb>Shared state\u003c/b>.","One tip jar, four baristas. Sometimes the data really is shared, and then you need a lock, a thread-safe way to share the lock, and one warning about what Rust cannot catch."],"composed":"\u003cdiv class=\"txt\">\u003cdiv class=\"txt-kicker\">Chapter\u003c/div>\u003ch1 class=\"txt-title\">Shared state\u003c/h1>\u003cp class=\"txt-lead\">One tip jar, four baristas. Sometimes the data really is shared, and then you need a lock, a thread-safe way to share the lock, and one warning about what Rust cannot catch.\u003c/p>\u003c/div>"},{"type":"image","img":"img/SceneMutex.webp","kicker":"Book · §16.3 Mutex&lt;T&gt;","title":"Mutex: one hand at a time","notes":["Here&#39;s the tip jar with a lid, and the design decision that makes Rust&#39;s mutex special: the lid and the jar are one value. Single-threaded first, exactly like the book does it.","\u003cb>\u003ccode>lock()\u003c/code> asks for the lid.\u003c/b> If someone else has it, you wait right here until they put it back.","\u003cb>It returns a \u003ccode>Result\u003c/code>\u003c/b> because a thread can panic while holding the lid (the book calls this poisoning).","\u003cb>What you get is a guard.\u003c/b> \u003ccode>*jar\u003c/code> is the number inside, and when the guard goes out of scope the lid goes back on. There is no unlock call to forget.","So there is no path to that number that skips the lock. The type will not let you write one."],"remember":"you cannot touch the data without taking the lock."},{"type":"image","img":"img/SceneWhyArc.webp","kicker":"Book · §16.3 Arc&lt;T&gt;","title":"Rc stops at the door","notes":["Four baristas need the same jar. Many owners: last episode that meant reach for \u003ccode>Rc\u003c/code>. So you clone one handle per barista, hand them out, spawn, and it does not compile.","\u003cb>Not at runtime, not sometimes.\u003c/b> The compiler stops you before anything runs.","\u003cb>The reason:\u003c/b> \u003ccode>Rc\u003c/code> keeps its count with plain arithmetic. Two threads bumping it at once would lose a count, so Rust refuses.","\u003cb>That is the bug from the very first scene\u003c/b>, caught at compile time instead of once a week in production."],"remember":"rc is single-threaded on purpose; it cannot be sent between threads."},{"type":"image","img":"img/SceneArcMutex.webp","kicker":"Book · §16.3 Arc&lt;T&gt;","title":"Arc + Mutex, the pattern","notes":["\u003ccode>Arc\u003c/code>: atomic reference count. Same idea as \u003ccode>Rc\u003c/code>, but the count itself is thread safe. \u003ccode>Arc\u003c/code> shares the jar, \u003ccode>Mutex\u003c/code> takes turns.","\u003cb>Cloning an \u003ccode>Arc\u003c/code> is cheap.\u003c/b> It bumps a counter, it does not copy the jar, and there is still only one jar.","\u003cb>All four reach for the same lock.\u003c/b> Four baristas, one jar, one hand in it at a time.","\u003cb>Collect the handles and join every one\u003c/b> before you read the total.","The answer is 4. Every time. Run it a thousand times and it is still 4. No lost tip: this is the pattern you will reach for again and again."],"remember":"arc shares it. mutex takes turns."},{"type":"image","img":"img/SceneRcVsArc.webp","kicker":"Book · §16.3","title":"The pairs you already know","notes":["If \u003ccode>Arc\u003c/code> and \u003ccode>Mutex\u003c/code> feel familiar, they should. You met their single-threaded twins in episode ten.","\u003cb>Same two jobs.\u003c/b> The right-hand column is the left-hand column with the counting and the borrowing made thread safe.","\u003cb>You pay a little for it.\u003c/b> Atomics and locks are not free. Use them when you actually share."],"remember":"same two jobs. one pair crosses threads."},{"type":"image","img":"img/SceneDeadlock.webp","kicker":"Book · §16.3","title":"Deadlock, the one it can&#39;t catch","notes":["One more thing about locks, and it is the thing Rust does not fix for you. Two locks, two threads, opposite order.","\u003cb>This compiles. It runs.\u003c/b> And then it just stops, with no error and no panic.","\u003cb>Rust prevents data races. It does not prevent deadlock.\u003c/b>","\u003cb>The fix is boring and always works:\u003c/b> every thread takes its locks in the same order."],"remember":"always take your locks in the same order."},{"type":"divider","img":"","kicker":"Chapter · Book · §16.4","title":"Send &amp; Sync","notes":["Chapter break: \u003cb>Send &amp; Sync\u003c/b>.","Two words the compiler counts on. Every rule in this episode has been enforced by two traits you never wrote. Time to meet them."],"composed":"\u003cdiv class=\"txt\">\u003cdiv class=\"txt-kicker\">Chapter\u003c/div>\u003ch1 class=\"txt-title\">Send &amp; Sync\u003c/h1>\u003cp class=\"txt-lead\">Two words the compiler counts on. Every rule in this episode has been enforced by two traits you never wrote. Time to meet them.\u003c/p>\u003c/div>"},{"type":"image","img":"img/SceneSend.webp","kicker":"Book · §16.4 Send","title":"Send: safe to hand over","notes":["You have already been using this word without seeing it. \u003ccode>Send\u003c/code> means the value is safe to move to another thread: ownership can cross the boundary.","\u003cb>Almost every type you write is \u003ccode>Send\u003c/code>.\u003c/b> Numbers, strings, vectors, your own structs (if their fields are). You get it for free.","\u003cb>The one you have met that is not: \u003ccode>Rc\u003c/code>.\u003c/b> Its count is plain arithmetic, so it stays on one thread.","\u003cb>The compiler derives it\u003c/b> from what a type is made of. Writing it by hand takes \u003ccode>unsafe\u003c/code>, and you won&#39;t.","You only notice \u003ccode>Send\u003c/code> when it is missing, and then it is a compile error, not a crash."],"remember":"Send = you can give it away."},{"type":"image","img":"img/SceneSync.webp","kicker":"Book · §16.4 Sync","title":"Sync: safe to share","notes":["\u003ccode>Sync\u003c/code> is the other half. Not &quot;can I move it&quot; but &quot;can we all look at it&quot;: safe for many threads to hold a reference to at once.","\u003cb>Plain data is \u003ccode>Sync\u003c/code>.\u003c/b> Nobody has to take turns just to look.","\u003cb>\u003ccode>Mutex\u003c/code> is \u003ccode>Sync\u003c/code>\u003c/b>, because taking the lock is what keeps the readers apart. That is exactly why it exists: it takes something you cannot share and makes it shareable.","\u003cb>\u003ccode>RefCell\u003c/code> is not.\u003c/b> It tracks borrows with an ordinary counter, and two threads would trample it."],"remember":"Sync = many can look at once."},{"type":"image","img":"img/SceneSendSyncFamily.webp","kicker":"Book · §16.4","title":"Who&#39;s what","notes":["The whole family in one place. You do not memorize this table; you meet it one compile error at a time.","\u003cb>\u003ccode>RefCell\u003c/code> is the interesting row.\u003c/b> You can move it to another thread; you cannot share it with two. That row is what makes the two words click.","\u003cb>You will never write these two words yourself.\u003c/b> You will only ever read them in an error message."],"remember":"you feel Send and Sync only when they&#39;re missing."},{"type":"divider","img":"","kicker":"Chapter · Book · Ch 16","title":"Put it together","notes":["Chapter break: \u003cb>Put it together\u003c/b>.","Closing out the cafe. Four orders on the board, and tonight&#39;s total to compute: split the work, run it in parallel, combine the results, and know which tool to reach for next time."],"composed":"\u003cdiv class=\"txt\">\u003cdiv class=\"txt-kicker\">Chapter\u003c/div>\u003ch1 class=\"txt-title\">Put it together\u003c/h1>\u003cp class=\"txt-lead\">Closing out the cafe. Four orders on the board, and tonight&#39;s total to compute: split the work, run it in parallel, combine the results, and know which tool to reach for next time.\u003c/p>\u003c/div>"},{"type":"image","img":"img/SceneParallelSplit.webp","kicker":"Book · Ch 16","title":"Hand out the work","notes":["Closing time. Four amounts in cents, and you want the total. Split the work so nothing is shared, and you do not need a lock at all.","\u003cb>\u003ccode>chunks(2)\u003c/code> hands you slices that do not overlap.\u003c/b> One per barista.","\u003cb>Each thread owns its slice:\u003c/b> \u003ccode>to_vec()\u003c/code> copies it in. Two small copies, no borrowing across threads.","\u003cb>Notice what is missing.\u003c/b> No \u003ccode>Arc\u003c/code>, no \u003ccode>Mutex\u003c/code>. Nothing is shared, so there is nothing to lock."],"remember":"share nothing and there is nothing to lock."},{"type":"image","img":"img/SceneParallelReduce.webp","kicker":"Book · Ch 16","title":"Then add it up","notes":["Here is the part people miss: whatever the closure returns comes straight back out of \u003ccode>join\u003c/code>. So main collects the subtotals and adds them up itself.","\u003cb>Main is the only thread touching \u003ccode>total\u003c/code>\u003c/b>, so no lock there either.","\u003cb>One number falls out the end.\u003c/b> Split it, work in parallel, combine. That is the whole shape.","\u003cb>In real code\u003c/b>, for pure data work like this, most people reach for the \u003ccode>rayon\u003c/code> crate: \u003ccode>cents.par_iter().sum()\u003c/code>. Under that one line is exactly what you just wrote by hand."],"remember":"split. work. combine."},{"type":"image","img":"img/SceneChannelsVsLocks.webp","kicker":"Book · Ch 16","title":"Move it or share it","notes":["Two tools, and people agonise over which one. The answer is usually obvious: the shape of the problem picks the tool.","\u003cb>There is more in the box:\u003c/b> a single counter has atomics (\u003ccode>AtomicUsize\u003c/code>), and many readers with few writers has \u003ccode>RwLock&lt;T&gt;\u003c/code>. Signposts, not today&#39;s lesson.","\u003cb>Same rules underneath all of them:\u003c/b> ownership, borrowing, and the compiler checking your work."],"remember":"passing work along? channel. one running total? lock."},{"type":"quote","img":"","kicker":"Takeaway","title":"The big idea","notes":["The whole episode in one line:","Threads do parallel work. Fearlessly. Spawn, channels, locks, and the borrow checker scaling to threads."],"composed":"\u003cdiv class=\"txt txt-quote\">\u003cdiv class=\"txt-kicker\">Takeaway\u003c/div>\u003cp class=\"txt-quote-text\">Threads do parallel work. Fearlessly. Spawn, channels, locks, and the borrow checker scaling to threads.\u003c/p>\u003cp class=\"txt-lead\">The whole episode in one line:\u003c/p>\u003c/div>"},{"type":"cheatsheet","title":"Cheatsheet recap (1/2)","notes":["Recap: one line per idea, in order. Good place to pause for questions.","\u003cb>Maps to:\u003c/b> The Rust Programming Language, Chapter 16.","\u003cb>Practice:\u003c/b> Rustlings \u003ccode>20_threads\u003c/code>, plus a second pass over \u003ccode>19_smart_pointers\u003c/code>."],"composed":"\u003cdiv class=\"ck\">\u003ch2>Cheatsheet \u003cspan class=\"accent\">recap\u003c/span> \u003cspan class=\"ck-part\">1 / 2\u003c/span>\u003c/h2>\u003cp class=\"sub\">One line per idea, in order. The pause-for-questions slide.\u003c/p>\u003ctable>\u003cthead>\u003ctr>\u003cth>Idea\u003c/th>\u003cth>Remember\u003c/th>\u003c/tr>\u003c/thead>\u003ctbody>\u003ctr>\u003ctd class=\"idea\">One jar, two hands\u003c/td>\u003ctd>a data race is two threads, one value, at least one write. most languages let it ship.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Concurrent vs parallel\u003c/td>\u003ctd>a thread is a second pair of hands.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">spawn starts a worker\u003c/td>\u003ctd>when main ends, every spawned thread ends with it.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">join waits for your barista\u003c/td>\u003ctd>join blocks until the thread is done; placement decides your parallelism.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">move hands it over\u003c/td>\u003ctd>spawn = create. move = give. join = wait.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">scope borrows instead\u003c/td>\u003ctd>finishes here? scope. outlives you? move.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Put it on the rail\u003c/td>\u003ctd>one owner, all the way down the rail.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Once it&#39;s sent, it&#39;s gone\u003c/td>\u003ctd>send it. don&#39;t share it.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">The rail is an iterator\u003c/td>\u003ctd>rx is an iterator; the loop ends when the last sender is dropped.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Four hands, one counter\u003c/td>\u003ctd>clone the sender, drop the original, never rely on arrival order.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Mutex: one hand at a time\u003c/td>\u003ctd>you cannot touch the data without taking the lock.\u003c/td>\u003c/tr>\u003c/tbody>\u003c/table>\u003c/div>"},{"type":"cheatsheet","title":"Cheatsheet recap (2/2)","notes":["Recap, continued."],"composed":"\u003cdiv class=\"ck\">\u003ch2>Cheatsheet \u003cspan class=\"accent\">recap\u003c/span> \u003cspan class=\"ck-part\">2 / 2\u003c/span>\u003c/h2>\u003cp class=\"sub\">One line per idea, in order. The pause-for-questions slide.\u003c/p>\u003ctable>\u003cthead>\u003ctr>\u003cth>Idea\u003c/th>\u003cth>Remember\u003c/th>\u003c/tr>\u003c/thead>\u003ctbody>\u003ctr>\u003ctd class=\"idea\">Rc stops at the door\u003c/td>\u003ctd>rc is single-threaded on purpose; it cannot be sent between threads.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Arc + Mutex, the pattern\u003c/td>\u003ctd>arc shares it. mutex takes turns.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">The pairs you already know\u003c/td>\u003ctd>same two jobs. one pair crosses threads.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Deadlock, the one it can&#39;t catch\u003c/td>\u003ctd>always take your locks in the same order.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Send: safe to hand over\u003c/td>\u003ctd>Send = you can give it away.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Sync: safe to share\u003c/td>\u003ctd>Sync = many can look at once.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Who&#39;s what\u003c/td>\u003ctd>you feel Send and Sync only when they&#39;re missing.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Hand out the work\u003c/td>\u003ctd>share nothing and there is nothing to lock.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Then add it up\u003c/td>\u003ctd>split. work. combine.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Move it or share it\u003c/td>\u003ctd>passing work along? channel. one running total? lock.\u003c/td>\u003c/tr>\u003c/tbody>\u003c/table>\u003c/div>"}]};
+  var SLIDES = DATA.slides;
+  function stripT(s){ return (s || '').replace(/<[^>]+>/g, ''); }
+
+  // ---- element refs ----
+  var deck = document.getElementById('deck');
+  var scaler = document.getElementById('scaler');
+  var viewport = document.getElementById('viewport');
+  var bar = document.getElementById('bar');
+  var curEl = document.getElementById('cur');
+  var totalEl = document.getElementById('total');
+  var ctitle = document.getElementById('ctitle');
+  var notes = document.getElementById('notes');
+  var notesInner = document.getElementById('notesInner');
+  var grid = document.getElementById('grid');
+  var gridInner = document.getElementById('gridInner');
+  var btnNotes = document.getElementById('btnNotes');
+  var btnGrid = document.getElementById('btnGrid');
+  var btnFull = document.getElementById('btnFull');
+  var prevBtn = document.getElementById('prev');
+  var nextBtn = document.getElementById('next');
+
+  var NOTES_KEY = 'rfz_slides_notes';
+  var idx = 0;
+  var notesOpen = false;
+  try { notesOpen = localStorage.getItem(NOTES_KEY) === '1'; } catch(e){}
+
+  totalEl.textContent = SLIDES.length;
+
+  function bodyHTML(s){
+    if (s.type === 'cover') return DATA.cover;
+    if (s.type === 'cheatsheet') return s.composed || DATA.cheat;
+    if (s.composed) return s.composed;
+    return '<img class="full" src="' + s.img + '" alt="' + stripT(s.title) + '" />';
+  }
+
+  function notesHTML(s){
+    var pts = (s.notes || []).map(function(n){ return '<li>' + n + '</li>'; }).join('');
+    var html = '';
+    if (s.kicker) html += '<div class="n-kicker">' + s.kicker + '</div>';
+    html += '<h2 class="n-title">' + (s.title || '') + '</h2>';
+    if (pts) html += '<ul class="n-points">' + pts + '</ul>';
+    else html += '<p class="n-empty">No notes for this slide.</p>';
+    if (s.remember) html += '<div class="n-remember"><span>Remember</span>' + s.remember + '</div>';
+    return html;
+  }
+
+  function fit(){
+    var availW = viewport.clientWidth;
+    var availH = viewport.clientHeight;
+    var scale = Math.min(availW / 1280, availH / 720) * 0.955;
+    if (!isFinite(scale) || scale <= 0) scale = 0.1;
+    deck.style.transform = 'scale(' + scale + ')';
+    scaler.style.width = (1280 * scale) + 'px';
+    scaler.style.height = (720 * scale) + 'px';
+  }
+
+  function render(){
+    var s = SLIDES[idx];
+    deck.innerHTML = bodyHTML(s);
+    notesInner.innerHTML = notesHTML(s);
+    curEl.textContent = (idx + 1);
+    ctitle.innerHTML = s.title || '';
+    bar.style.width = (((idx + 1) / SLIDES.length) * 100) + '%';
+    prevBtn.disabled = (idx === 0);
+    nextBtn.disabled = (idx === SLIDES.length - 1);
+    var hash = '#' + (idx + 1);
+    if (location.hash !== hash) {
+      try { history.replaceState(null, '', hash); } catch(e){ location.hash = hash; }
+    }
+    updateGridCurrent();
+    fit();
+  }
+
+  function go(n){
+    var t = Math.max(0, Math.min(SLIDES.length - 1, n));
+    if (t === idx) return;
+    idx = t;
+    render();
+  }
+  function next(){ go(idx + 1); }
+  function prev(){ go(idx - 1); }
+
+  function setNotes(open){
+    notesOpen = open;
+    notes.classList.toggle('open', open);
+    btnNotes.classList.toggle('on', open);
+    try { localStorage.setItem(NOTES_KEY, open ? '1' : '0'); } catch(e){}
+    setTimeout(fit, 200);
+  }
+  function toggleNotes(){ setNotes(!notesOpen); }
+
+  function setGrid(open){
+    grid.classList.toggle('open', open);
+    btnGrid.classList.toggle('on', open);
+    if (open) updateGridCurrent();
+  }
+  function toggleGrid(){ setGrid(!grid.classList.contains('open')); }
+
+  function updateGridCurrent(){
+    var kids = gridInner.children;
+    for (var i = 0; i < kids.length; i++){
+      kids[i].classList.toggle('current', i === idx);
+    }
+  }
+
+  function buildGrid(){
+    var html = '';
+    for (var i = 0; i < SLIDES.length; i++){
+      var s = SLIDES[i];
+      var inner;
+      if (s.type === 'cover') inner = '<div class="composed"><div class="big">' + DATA.coverBig + '</div></div>';
+      else if (s.type === 'cheatsheet') inner = '<div class="composed"><div class="big">Cheatsheet <span class="accent">recap</span></div></div>';
+      else if (s.composed) inner = '<div class="composed"><div class="big">' + (s.title || '') + '</div></div>';
+      else inner = '<img src="' + s.img + '" alt="" loading="lazy" />';
+      html += '<div class="thumb" data-i="' + i + '" title="' + stripT(s.title) + '">' + inner + '<span class="num">' + (i + 1) + '</span></div>';
+    }
+    gridInner.innerHTML = html;
+  }
+
+  function toggleFull(){
+    var el = document.documentElement;
+    if (!document.fullscreenElement){
+      (el.requestFullscreen || el.webkitRequestFullscreen || function(){}).call(el);
+    } else {
+      (document.exitFullscreen || document.webkitExitFullscreen || function(){}).call(document);
+    }
+  }
+
+  // ---- events ----
+  nextBtn.addEventListener('click', next);
+  prevBtn.addEventListener('click', prev);
+  btnNotes.addEventListener('click', toggleNotes);
+  btnGrid.addEventListener('click', toggleGrid);
+  btnFull.addEventListener('click', toggleFull);
+  document.getElementById('gridClose').addEventListener('click', function(){ setGrid(false); });
+
+  deck.addEventListener('click', next);
+
+  gridInner.addEventListener('click', function(e){
+    var t = e.target.closest('.thumb');
+    if (!t) return;
+    go(parseInt(t.getAttribute('data-i'), 10));
+    setGrid(false);
+  });
+
+  document.addEventListener('keydown', function(e){
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ' || k === 'Spacebar'){ e.preventDefault(); next(); }
+    else if (k === 'ArrowLeft' || k === 'PageUp'){ e.preventDefault(); prev(); }
+    else if (k === 'Home'){ e.preventDefault(); go(0); }
+    else if (k === 'End'){ e.preventDefault(); go(SLIDES.length - 1); }
+    else if (k === 'n' || k === 'N'){ toggleNotes(); }
+    else if (k === 'g' || k === 'G'){ toggleGrid(); }
+    else if (k === 'f' || k === 'F'){ toggleFull(); }
+    else if (k === 'Escape'){ if (grid.classList.contains('open')) setGrid(false); }
+  });
+
+  // basic swipe
+  var sx = null;
+  viewport.addEventListener('touchstart', function(e){ sx = e.touches[0].clientX; }, {passive:true});
+  viewport.addEventListener('touchend', function(e){
+    if (sx === null) return;
+    var dx = e.changedTouches[0].clientX - sx;
+    if (Math.abs(dx) > 50){ dx < 0 ? next() : prev(); }
+    sx = null;
+  }, {passive:true});
+
+  window.addEventListener('resize', fit);
+  window.addEventListener('hashchange', function(){
+    var n = parseInt((location.hash || '').replace('#',''), 10);
+    if (!isNaN(n) && (n - 1) !== idx) go(n - 1);
+  });
+
+  // ---- init ----
+  (function start(){
+    var n = parseInt((location.hash || '').replace('#',''), 10);
+    if (!isNaN(n)) idx = Math.max(0, Math.min(SLIDES.length - 1, n - 1));
+    buildGrid();
+    setNotes(notesOpen);
+    render();
+  })();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,937 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Async Rust · MeowyTheDev companion guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@1&family=Caveat:wght@500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink:#1c1e22; --soft:#43474e; --muted:#888d96; --line:#e3e4e8;
+  --rust:#c8542a; --code-bg:#f5f5f4; --code-fg:#24292e;
+  --sans:"Bricolage Grotesque",system-ui,-apple-system,sans-serif;
+  --serif:"Instrument Serif",Georgia,serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:#e9e9ec;color:var(--ink);font-family:var(--sans);}
+.accent{font-family:var(--serif);font-style:italic;color:var(--rust);font-weight:400;}
+.doc{max-width:182mm;margin:8mm auto;padding:16mm;background:#fff;box-shadow:0 4px 24px rgba(0,0,0,0.18);}
+
+.cover{position:relative;min-height:240mm;display:flex;flex-direction:column;justify-content:center;break-after:page;}
+.divider{break-before:page;padding-top:6mm;}
+.appendix{break-before:page;padding-top:4mm;}
+.scene{margin:0 0 9mm;}
+.scene.quote{break-before:page;padding-top:8mm;}
+.slide,.body pre,.body table,.body blockquote{break-inside:avoid;}
+.body h3{break-after:avoid;}
+
+.book-chip{display:inline-block;font-family:var(--mono);font-size:8pt;letter-spacing:0.02em;color:var(--soft);background:#fff;border:1px solid var(--line);padding:3px 9px;border-radius:5px;white-space:nowrap;}
+.scene-chip{margin-bottom:3mm;}
+.slide{display:block;width:100%;max-width:100%;border-radius:8px;border:1px solid var(--line);}
+
+.body h3{font-size:19pt;font-weight:700;color:#16181d;margin:0 0 3mm;line-height:1.15;letter-spacing:-0.01em;}
+.body p{font-size:11pt;line-height:1.62;color:var(--soft);margin:0 0 3mm;}
+.body p strong,.body li strong{color:var(--ink);font-weight:700;}
+.body em{font-family:var(--serif);font-style:italic;color:var(--ink);}
+.body ul,.body ol{margin:3mm 0;padding-left:6mm;}
+.body li{margin:0 0 2mm;line-height:1.55;font-size:11pt;color:var(--soft);}
+.body code{font-family:var(--mono);font-size:0.86em;background:var(--code-bg);padding:0.08em 0.32em;border-radius:4px;color:#9a3a18;}
+.body pre{background:var(--code-bg);color:var(--code-fg);border:1px solid var(--line);border-radius:8px;padding:4mm 5mm;white-space:pre-wrap;overflow-wrap:break-word;font-family:var(--mono);font-size:9.5pt;line-height:1.5;margin:4mm 0;}
+.body pre code{background:none;padding:0;color:inherit;font-size:inherit;}
+.body table{width:100%;border-collapse:collapse;margin:4mm 0;font-size:10pt;}
+.body th{text-align:left;background:#f3f3f4;color:var(--ink);font-family:var(--mono);font-size:8pt;text-transform:uppercase;letter-spacing:0.02em;padding:2.4mm 3mm;border:1px solid var(--line);}
+.body td{padding:2.4mm 3mm;border:1px solid var(--line);vertical-align:top;color:var(--soft);overflow-wrap:break-word;}
+.body blockquote{margin:5mm 0 0;background:#f7f7f6;border-left:3px solid var(--rust);border-radius:0 6px 6px 0;padding:3.5mm 5mm;font-size:11pt;color:var(--ink);}
+.body blockquote p{margin:0;color:var(--ink);} .body blockquote strong{color:#16181d;}
+
+.cover-eyebrow{font-family:var(--mono);font-size:9.5pt;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);}
+.cover-title{font-size:40pt;line-height:1.06;font-weight:800;color:#16181d;margin:6mm 0 0;letter-spacing:-0.01em;padding-right:34mm;}
+.cover-tagline{font-family:var(--serif);font-style:italic;font-size:18pt;color:var(--soft);margin:7mm 0 0;max-width:150mm;line-height:1.4;}
+.cover-chip{margin-top:14mm;align-self:flex-start;font-family:var(--mono);font-size:9.5pt;color:var(--soft);background:#fff;border:1px solid var(--line);padding:6px 12px;border-radius:6px;}
+.cover-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);padding-top:5mm;font-size:9pt;color:var(--muted);}
+.cover-foot .ep{font-family:var(--mono);font-weight:700;color:var(--rust);letter-spacing:0.1em;}
+.cover-foot-r{font-family:var(--mono);font-size:8.5pt;color:var(--muted);}
+.cover-num{position:absolute;top:13mm;right:0;font-family:var(--mono);font-weight:800;font-size:54pt;color:#dadbe0;}
+
+.divider-head{display:flex;align-items:center;gap:14px;margin-bottom:4mm;}
+.divider .kicker{font-family:var(--mono);font-size:9pt;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);}
+.divider-title{font-size:30pt;font-weight:800;color:#16181d;margin:0;letter-spacing:-0.01em;}
+.divider-intro{margin-top:5mm;} .divider-intro p{font-size:11.5pt;}
+
+.ap-title{font-size:26pt;font-weight:800;color:#16181d;margin:0 0 2mm;}
+.ap-sub{font-size:11pt;color:var(--soft);max-width:150mm;margin:0 0 5mm;}
+.ck-table{width:100%;border-collapse:collapse;font-size:10pt;}
+.ck-table th{text-align:left;background:#f3f3f4;color:var(--ink);font-family:var(--mono);font-size:8pt;text-transform:uppercase;letter-spacing:0.03em;padding:2.6mm 3mm;border:1px solid var(--line);}
+.ck-scene{font-weight:700;color:#16181d;width:40%;}
+.ck-table td{padding:2.6mm 3mm;border:1px solid var(--line);color:var(--soft);vertical-align:top;overflow-wrap:break-word;}
+.ap-foot{margin-top:7mm;font-size:10pt;background:#f7f7f6;border:1px solid var(--line);border-radius:8px;padding:4mm 5mm;line-height:1.7;}
+
+/* "Save as PDF" button: screen only */
+.save-pdf{position:fixed;right:18px;bottom:18px;z-index:50;font-family:var(--sans);font-size:13px;font-weight:700;color:#fff;background:var(--rust);border:none;border-radius:8px;padding:11px 16px;box-shadow:0 3px 12px rgba(0,0,0,0.25);cursor:pointer;}
+.save-pdf:hover{background:#b0461f;}
+/* running header/footer: print only (repeat on every printed page) */
+.print-running{display:none;}
+
+@page{size:A4;margin:16mm 14mm 14mm;}
+@media print{
+  html,body{background:#fff;}
+  .doc{max-width:none;margin:0;padding:0;background:#fff;box-shadow:none;}
+  .save-pdf{display:none !important;}
+  .print-running{display:flex;position:fixed;left:0;right:0;align-items:center;justify-content:space-between;font-size:8pt;color:var(--soft);font-family:var(--mono);}
+  .print-running.top{top:6mm;} .print-running.bot{bottom:6mm;}
+  .print-running .brand{display:flex;align-items:center;gap:6px;font-family:var(--sans);font-weight:700;color:var(--ink);}
+  .print-running .xh{display:flex;align-items:center;gap:5px;}
+  .print-running .muted{color:var(--muted);}
+}
+
+/* frosted-glass zoom panel: screen only, hidden in print */
+.zoom-panel{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:60;display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:16px;background:rgba(255,255,255,0.55);-webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blur(14px) saturate(1.3);border:1px solid rgba(255,255,255,0.7);box-shadow:0 10px 30px rgba(28,30,34,0.18),inset 0 1px 0 rgba(255,255,255,0.65);font-family:var(--sans);}
+.zoom-panel button{width:40px;height:40px;border:none;cursor:pointer;border-radius:11px;background:rgba(255,255,255,0.5);color:var(--ink);font-size:19px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;transition:background .15s,transform .1s;}
+.zoom-panel button:hover{background:rgba(255,255,255,0.95);}
+.zoom-panel button:active{transform:scale(0.93);}
+.zoom-level{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--soft);text-align:center;padding:3px 0;cursor:pointer;user-select:none;letter-spacing:0.02em;border-radius:8px;}
+.zoom-level:hover{color:var(--rust);background:rgba(255,255,255,0.5);}
+.zoom-mbar-bg{display:none;}
+/* phones: sticky bottom toolbar holding zoom (left) + Save as PDF (right) */
+@media (max-width:640px){.zoom-mbar-bg{display:block;position:fixed;left:0;right:0;bottom:0;height:58px;background:rgba(255,255,255,0.55);-webkit-backdrop-filter:blur(16px) saturate(1.4);backdrop-filter:blur(16px) saturate(1.4);border-top:1px solid rgba(255,255,255,0.7);box-shadow:0 -8px 30px rgba(28,30,34,0.12);z-index:59;}.zoom-panel{left:14px;right:auto;top:auto;bottom:10px;transform:none;flex-direction:row-reverse;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;border:none;box-shadow:none;padding:0;}.zoom-panel button{width:38px;height:38px;background:rgba(0,0,0,0.05);color:var(--ink);}.zoom-panel button:hover{background:rgba(0,0,0,0.1);}.zoom-level{color:var(--soft);}.zoom-level:hover{color:var(--rust);background:transparent;}.save-pdf{right:14px !important;bottom:10px !important;z-index:60 !important;}body{padding-bottom:70px;}}
+@media print{.zoom-panel{display:none !important;}.doc{zoom:1 !important;width:auto !important;}}
+
+/* notes-mobile-css: screen-only mobile reflow, print styles left untouched */
+@media screen and (max-width: 640px) {
+  html, body { background: #fff; }
+  .doc { max-width: 100%; margin: 0; padding: 22px 16px; box-shadow: none; }
+  .cover { min-height: auto; padding: 6px 0 22px; }
+  .cover-title { font-size: 30pt; padding-right: 0; }
+  .cover-tagline { font-size: 15pt; }
+  .cover-num { font-size: 38pt; top: 6px; }
+  .divider-title { font-size: 24pt; }
+  .body h3 { font-size: 17pt; }
+  .body p, .body li { font-size: 12pt; }
+  .body pre { font-size: 8.5pt; padding: 3mm 3.5mm; }
+  .ap-title { font-size: 22pt; }
+}
+</style>
+<link rel="icon" type="image/png" href="/icon" />
+</head>
+<body>
+<div class="print-running top"><span class="brand"><svg viewBox="0 0 28 20" width="18" height="13" aria-hidden="true"><rect width="28" height="20" rx="5" fill="#FF0033"/><path d="M11 6l7 4-7 4z" fill="#fff"/></svg>MeowyTheDev</span><span class="muted">RUST FROM ZERO · EP.12</span></div>
+<div class="print-running bot"><span class="xh"><svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="#2b1d12" d="M18.9 2H22l-7.6 8.7L23.3 22h-6.9l-5.4-7-6.2 7H1.7l8.1-9.3L1 2h7l4.9 6.5z"/></svg>@me256ow</span><span class="muted">companion guide</span></div>
+<main class="doc">
+<section class="cover">
+      <div class="cover-eyebrow">MeowyTheDev <span class="dot">·</span> Rust from Zero</div>
+      <h1 class="cover-title"><span class="accent">Async</span> Rust</h1>
+      <p class="cover-tagline">the finale: futures, .await, tokio, and overlapping every wait.</p>
+      <div class="cover-chip">The Rust Programming Language <span class="dot">·</span> Chapter 17 (2024 ed.)</div>
+      <div class="cover-foot"><span class="ep">EP.12</span><span class="cover-foot-r">companion guide · watch on the Rust from Zero playlist</span></div>
+      <div class="cover-num">12</div>
+    </section>
+<section class="divider tone-rust">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Why async</h2><span class="book-chip">Book · Ch 17</span></div>
+
+      <div class="body divider-intro"><p>Your program spends its life waiting. This chapter puts a clock on that waiting, then shows the same five requests running 4.8x faster on a single thread.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 17</span></div><div class="body"><h3>Mostly waiting</h3>
+<p>Here is one network call. Your program asks for a cat fact, and then it waits, about a second. Of that second, the CPU work is about a millisecond. The rest is your program sitting still.</p>
+<img class="slide" src="img/SceneWaiting.webp" alt="" /><ul>
+<li><strong>Waiting dominates.</strong> Roughly 1ms of work against roughly 999ms of waiting, per request.</li>
+<li><strong>Do it five times in a row</strong> and that is 5.21 seconds of your life, and almost none of it is work.</li>
+<li><strong>Async is how you stop paying for the waiting.</strong></li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> waiting is not work. stop paying for it.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §17.1</span></div><div class="body"><h3>One after another</h3>
+<p>This is the naive program: one fetch function, called five times in a loop, each turn waiting for the last.</p>
+<img class="slide" src="img/SceneSequentialCost.webp" alt="" /><pre><code class="language-rust">async fn fetch_fact(id: u32)
+  -&gt; Result&lt;String, reqwest::Error&gt;
+{
+    let body = reqwest::get(FACTS_URL).await?
+        .text().await?;
+    Ok(format!(&quot;fact #{id}: {body}&quot;))
+}
+
+#[tokio::main]
+async fn main() {
+    for id in 1..=5 {
+        let fact = fetch_fact(id).await; // waits here
+        println!(&quot;{fact:?}&quot;);
+    }
+}   // 5.21s
+</code></pre>
+<ul>
+<li><strong>The <code>.await</code> inside the loop is the blocking line.</strong> Stop here; nothing else happens until the fact arrives.</li>
+<li><strong>Five requests, five waits, 5.21 seconds.</strong> The program is right, and it is five times slower than it needs to be.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> correct, and five times slower than it needs to be.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 17</span></div><div class="body"><h3>Two timelines</h3>
+<p>The same five requests, arranged two ways. Sequential: each bar starts only when the one above it finishes. Concurrent: all five start together, because waiting is the one thing that stacks.</p>
+<img class="slide" src="img/SceneSpeedDemo.webp" alt="" /><table>
+<thead>
+<tr>
+<th>Shape</th>
+<th>Wall clock</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>sequential, one wait after another</td>
+<td>5.21s</td>
+</tr>
+<tr>
+<td>concurrent, five waits overlapping</td>
+<td>1.08s</td>
+</tr>
+</tbody></table>
+<ul>
+<li><strong>4.8x faster.</strong> Same code, same requests, same single thread.</li>
+<li><strong>That is the whole episode in one picture.</strong></li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> same code, same thread. five waits at once.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §17.6</span></div><div class="body"><h3>Threads vs tasks</h3>
+<p>Last episode you spawned threads, so a fair question: why not spawn five threads and call it done? Because a thread and a task are not the same tool.</p>
+<img class="slide" src="img/SceneThreadsVsAsync.webp" alt="" /><table>
+<thead>
+<tr>
+<th>An OS thread (ep.11)</th>
+<th>A task (ep.12)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>thread::spawn</code>, the OS makes a real thread</td>
+<td><code>tokio::spawn</code>, your program makes a value</td>
+</tr>
+<tr>
+<td>~8 KB stack, paid up front, per thread</td>
+<td>~a few hundred bytes, a struct, not a stack</td>
+</tr>
+<tr>
+<td>the kernel picks who runs</td>
+<td>the runtime switches at every <code>.await</code>, for free</td>
+</tr>
+<tr>
+<td>best for CPU work across cores</td>
+<td>best for I/O work, thousands of waits</td>
+</tr>
+</tbody></table>
+<ul>
+<li><strong>A waiting task costs nothing.</strong> Thousands fit on one thread.</li>
+<li><strong>Threads split CPU work. Async overlaps waiting.</strong> Most servers need the second one.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> threads for cpu. async for i/o.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-teal">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">async and .await</h2><span class="book-chip">Book · §17.1</span></div>
+
+      <div class="body divider-intro"><p>Two keywords, one new mental model: an <code>async fn</code> hands back a plan, not an answer, and <code>.await</code> marks the spots where that plan can pause.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §17.1</span></div><div class="body"><h3>The async keyword</h3>
+<p>One keyword. Put <code>async</code> in front of <code>fn</code>, and the function changes what it hands back.</p>
+<img class="slide" src="img/SceneAsyncFn.webp" alt="" /><pre><code class="language-rust">async fn fetch_fact(id: u32)
+  -&gt; Result&lt;String, reqwest::Error&gt;
+{
+    let body = reqwest::get(FACTS_URL).await?
+        .text().await?;
+}
+
+// what the compiler actually returns:
+fn fetch_fact(id: u32) -&gt;
+    impl Future&lt;Output = Result&lt;String, ..&gt;&gt;
+</code></pre>
+<ul>
+<li><strong>You wrote <code>Result&lt;String, ..&gt;</code></strong>, but calling this does not give you a Result. It gives you a future that will produce one.</li>
+<li><strong>Your Result is still in there:</strong> it arrives as the future&#39;s <code>Output</code>.</li>
+<li><strong>async is a promise about later.</strong> The body has not run yet.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> async fn returns a plan, not an answer.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §17.1</span></div><div class="body"><h3>Where it pauses</h3>
+<p>Inside the function there are two waits: one for the response, one for the text. <code>.await</code> marks a spot the function can stop at.</p>
+<img class="slide" src="img/SceneAwait.webp" alt="" /><pre><code class="language-rust">async fn fetch_fact(id: u32)
+  -&gt; Result&lt;String, reqwest::Error&gt;
+{
+    let body = reqwest::get(FACTS_URL)
+        .await?        // pause 1: waiting on the server
+        .text()
+        .await?;       // pause 2: waiting on the bytes
+    Ok(format!(&quot;fact #{id}: {body}&quot;))
+}
+</code></pre>
+<ul>
+<li><strong>The first <code>.await</code> says:</strong> the server has not answered yet, so put me down and run something else. The task is parked; the thread moves on.</li>
+<li><strong>When the bytes arrive</strong>, the runtime picks the function back up on the exact line it stopped on, same locals and all.</li>
+<li><strong>The <code>?</code> still works the way it did in episode five.</strong> Errors go up.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> .await means pause here, not stop everything.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §17.1</span></div><div class="body"><h3>Nothing runs yet</h3>
+<p>This line looks like it starts a network request. It does not. Nothing has left your computer.</p>
+<img class="slide" src="img/SceneLazyFuture.webp" alt="" /><pre><code class="language-rust">#[tokio::main]
+async fn main() {
+    let fut = fetch_fact(1);   // nothing has run
+    println!(&quot;still nothing&quot;);
+
+    let fact = fut.await;      // now it runs
+}
+
+// warning: unused implementer of `Future` that must be used
+</code></pre>
+<ul>
+<li><strong>In other languages the call would already be in flight.</strong> In Rust you are holding a value that has not started.</li>
+<li><strong>The work starts on the <code>.await</code></strong>, and not one moment before. That is what lazy means here.</li>
+<li><strong>Forget the await and the compiler tells you outright:</strong> futures do nothing unless awaited.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> futures do nothing unless awaited.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §17.5</span></div><div class="body"><h3>Future is a trait</h3>
+<p><code>Future</code> is not magic syntax. It is a trait, like the ones you wrote in episode six, with one real method on it.</p>
+<img class="slide" src="img/SceneFutureTrait.webp" alt="" /><pre><code class="language-rust">pub trait Future {
+    type Output;
+
+    fn poll(self: Pin&lt;&amp;mut Self&gt;, cx: &amp;mut Context)
+        -&gt; Poll&lt;Self::Output&gt;;
+}
+
+enum Poll&lt;T&gt; {
+    Ready(T),   // here is your value
+    Pending,    // ask me again later
+}
+</code></pre>
+<ul>
+<li><strong><code>poll</code> is the runtime asking one question:</strong> are you finished, or should I come back later?</li>
+<li><strong>The answer is one of two things:</strong> <code>Ready</code> with your value inside, or <code>Pending</code>.</li>
+<li><strong>Your async fn is a future.</strong> <code>.await</code> is you handing it to the runtime to poll. (<code>Pin</code> keeps it in place; next scene.)</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> ready, or ask again later. that is the whole trait.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §17.5</span></div><div class="body"><h3>A state machine</h3>
+<p>So what is the compiler actually building? Take your function and mark every <code>.await</code> in it. Each one is a place the function can stop, and the compiler turns the whole body into states.</p>
+<img class="slide" src="img/SceneStateMachine.webp" alt="" /><ul>
+<li><strong>The states for <code>fetch_fact</code>:</strong> start, waiting on <code>get</code>, waiting on <code>text</code>, done. <code>poll</code> returning <code>Pending</code> loops on the waiting states.</li>
+<li><strong>The state holds your local variables</strong> (<code>id</code>, <code>body</code>), so when it resumes the function still knows where it was.</li>
+<li><strong>You never write this.</strong> You write straight-line code and get the machine for free.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> you write straight lines. the compiler writes the states.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §17.5 Pin</span></div><div class="body"><h3>It cannot move</h3>
+<p>Remember the state that held your locals? Sometimes one of those locals points at another one, and that is why <code>Pin</code> exists.</p>
+<img class="slide" src="img/ScenePinning.webp" alt="" /><pre><code class="language-rust">// roughly what the compiler built for you:
+struct FetchFactFuture {
+    body: String,
+    slice: &amp;str,  // borrows from body
+}
+
+// so poll asks for a promise, not a plain &amp;mut:
+fn poll(self: Pin&lt;&amp;mut Self&gt;, ..)
+
+// Unpin: safe to move anyway. automatic, like Send.
+let futures = vec![Box::pin(fetch_fact(1)), ..];
+</code></pre>
+<ul>
+<li><strong>Move that struct to a new address</strong> and the string moves with it, but the internal pointer does not. Broken.</li>
+<li><strong><code>Pin</code> is the promise it will not move.</strong> A promise, not a lock.</li>
+<li><strong>Where you meet it:</strong> reading signatures, and <code>Box::pin</code> when you put futures in a collection. You read <code>Pin</code>; you rarely write it.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> you read Pin in signatures. you rarely write it.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-rustDk">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Runtimes</h2><span class="book-chip">Tokio · tutorial</span></div>
+
+      <div class="body divider-intro"><p>Somebody has to poll the future, and Rust ships no one to do it. You pick a runtime. This chapter is the two errors that teach you why, and the two-line Tokio setup.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §17.1</span></div><div class="body"><h3>Two errors, day one</h3>
+<p>Try to await in a normal <code>main</code>, and the compiler stops you. Make <code>main</code> async, and it stops you again, for the opposite reason. Both errors show up before you have added a runtime.</p>
+<img class="slide" src="img/SceneNoRuntime.webp" alt="" /><pre><code class="language-rust">fn main() {
+    let fact = fetch_fact(1).await;
+}
+// error: `await` is only allowed inside `async` functions
+
+async fn main() {
+    let fact = fetch_fact(1).await;
+}
+// error: `main` function is not allowed to be `async`
+</code></pre>
+<ul>
+<li><strong>The real question underneath both:</strong> who polls the future?</li>
+<li><strong>Rust does not ship that something.</strong> You pick it, and it is called a runtime.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> no runtime, no async.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Tokio</span></div><div class="body"><h3>What a runtime is</h3>
+<p>A runtime is three jobs in one crate, and none of them are mysterious.</p>
+<img class="slide" src="img/SceneWhyTokio.webp" alt="" /><table>
+<thead>
+<tr>
+<th>Job</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>executor</strong></td>
+<td>keeps a list of tasks and polls them</td>
+</tr>
+<tr>
+<td><strong>reactor</strong></td>
+<td>watches sockets and timers, says which task is ready</td>
+</tr>
+<tr>
+<td><strong>scheduler</strong></td>
+<td>picks which ready task runs next, on which thread</td>
+</tr>
+</tbody></table>
+<ul>
+<li><strong>Rust ships no runtime on purpose:</strong> a web server and a microcontroller need different ones.</li>
+<li><strong>Tokio is the one most people pick</strong>, used by AWS, Discord, and Cloudflare.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> no runtime in std. you add the one you want.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Tokio · #[tokio::main]</span></div><div class="body"><h3>The tokio setup</h3>
+<p>Two steps, and your main can await. First the dependency, with the full feature set while you are learning. Then one attribute above <code>main</code>.</p>
+<img class="slide" src="img/SceneTokioMain.webp" alt="" /><pre><code class="language-rust"># Cargo.toml
+tokio = { version = &quot;1&quot;, features = [&quot;full&quot;] }
+</code></pre>
+<pre><code class="language-rust">#[tokio::main]
+async fn main() {
+    let fact = fetch_fact(1).await?;
+    println!(&quot;{fact}&quot;);
+}
+
+// what the attribute expands to:
+fn main() {
+    Runtime::new().unwrap().block_on(async {..})
+}
+</code></pre>
+<ul>
+<li><strong>The attribute is not new syntax.</strong> It wraps your body in a runtime and blocks on it.</li>
+<li><strong>One macro, and the whole rest of the episode works.</strong></li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> one attribute. main can await.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Tokio · time::sleep</span></div><div class="body"><h3>The smallest wait</h3>
+<p>Sleeping is the smallest possible version of waiting, so it is the easiest place to see the difference between holding a thread and yielding it.</p>
+<img class="slide" src="img/SceneTokioSleep.webp" alt="" /><pre><code class="language-rust">use tokio::time::{sleep, Duration};
+
+async fn nap() {
+    sleep(Duration::from_millis(500)).await;
+    println!(&quot;awake&quot;);
+}
+</code></pre>
+<ul>
+<li><strong>Tokio&#39;s sleep is a future.</strong> <code>.await</code> on it and your task steps aside for half a second.</li>
+<li><strong>The thread is free that whole time.</strong> Other tasks run on it, and yours comes back when the timer fires.</li>
+<li><strong>Remember this one.</strong> It comes back later as the gotcha everybody hits.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> yield the thread. never hold it.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-rust">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Concurrent tasks</h2><span class="book-chip">Book · §17.2–17.3</span></div>
+
+      <div class="body divider-intro"><p>Many waits, one wall clock. Join a fixed pair, join a whole batch, spawn background tasks, connect them with channels, race them, and give them deadlines.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §17.2</span></div><div class="body"><h3>Both at once</h3>
+<p>Here is the slow way, spelled out: two facts, two awaits, one after the other, 2.10s. The join macro takes both futures at once and awaits them together.</p>
+<img class="slide" src="img/SceneJoinMacro.webp" alt="" /><pre><code class="language-rust">let a = fetch_fact(1).await?;
+let b = fetch_fact(2).await?;
+// 2.10s
+
+let (a, b) = tokio::join!(
+    fetch_fact(1),
+    fetch_fact(2),
+);
+// 1.05s
+</code></pre>
+<ul>
+<li><strong>You get a tuple back, in the order you asked for</strong>, and it finishes when the slower one finishes.</li>
+<li><strong>No new threads.</strong> One task, holding two waits at the same time.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> one task. two waits. one wall clock.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §17.3</span></div><div class="body"><h3>Drive them all</h3>
+<p>The join macro is for a fixed handful. When the count is a number you compute, you need <code>join_all</code>.</p>
+<img class="slide" src="img/SceneJoinAll.webp" alt="" /><pre><code class="language-rust">use futures::future::join_all;
+
+#[tokio::main]
+async fn main() {
+    let futures = (1..=5).map(fetch_fact);
+
+    let facts = join_all(futures).await;
+    // Vec&lt;Result&lt;String, reqwest::Error&gt;&gt;
+    // 1.08s
+}
+</code></pre>
+<ul>
+<li><strong>Map over the ids and call <code>fetch_fact</code> on each.</strong> Nothing runs yet; this is a collection of plans (iterators, ep.07).</li>
+<li><strong><code>join_all</code> drives every one of them to the end.</strong></li>
+<li><strong>One vec of results comes back</strong>, in the order you started them.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> n futures in. one vec out.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Tokio · spawn</span></div><div class="body"><h3>Start it, walk away</h3>
+<p><code>join!</code> waits right here. Sometimes you want the work started and your code to keep going. <code>tokio::spawn</code> hands the future to the runtime as its own task.</p>
+<img class="slide" src="img/SceneSpawn.webp" alt="" /><pre><code class="language-rust">#[tokio::main]
+async fn main() {
+    let handle = tokio::spawn(fetch_fact(1));
+    // a spawned task runs on its own
+
+    println!(&quot;doing other work&quot;);
+
+    let fact = handle.await??;
+    println!(&quot;{fact:?}&quot;);
+}
+</code></pre>
+<ul>
+<li><strong>It starts immediately</strong>, whether you are watching or not. Unlike a bare future, a spawned task runs on its own.</li>
+<li><strong>You get back a handle.</strong> Do your other work, then await the handle when you actually need the answer.</li>
+<li><strong>Two question marks:</strong> one for the fetch, one for the task itself, which could have panicked before it answered.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> spawn starts it. the handle collects it.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §17.6</span></div><div class="body"><h3>Join vs spawn</h3>
+<p>You have two ways to run things at once now, and they are not the same tool. Pick by how long the work lives.</p>
+<img class="slide" src="img/SceneSpawnVsJoin.webp" alt="" /><table>
+<thead>
+<tr>
+<th><code>join!</code>, wait right here</th>
+<th><code>spawn</code>, hand it off</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>same task, everything stays on this one</td>
+<td>new task, the runtime owns it now</td>
+</tr>
+<tr>
+<td>you wait here, the line does not finish early</td>
+<td>runs in background, keeps going without you</td>
+</tr>
+<tr>
+<td>no <code>Send</code> needed, nothing moves between threads</td>
+<td>needs <code>Send + &#39;static</code>, it may move threads</td>
+</tr>
+<tr>
+<td>use for: a fixed set you need now</td>
+<td>use for: work that outlives this line</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>Remember:</strong> join to wait. spawn to leave.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Tokio · sync::mpsc</span></div><div class="body"><h3>Tasks that talk</h3>
+<p>You sent messages between threads in episode eleven. Tasks do the same thing, with an await on it. This is also where <code>async move</code> earns its keep.</p>
+<img class="slide" src="img/SceneAsyncChannels.webp" alt="" /><pre><code class="language-rust">use tokio::sync::mpsc;
+
+#[tokio::main]
+async fn main() {
+    let (tx, mut rx) = mpsc::channel(32);
+
+    for id in 1..=5 {
+        let tx = tx.clone();
+        tokio::spawn(async move {
+            let fact = fetch_fact(id).await;
+            tx.send(fact).await.unwrap();
+        });
+    }
+
+    drop(tx);  // or recv() never returns None
+
+    while let Some(fact) = rx.recv().await {
+        println!(&quot;{fact:?}&quot;);
+    }
+}
+</code></pre>
+<ul>
+<li><strong>The channel has a buffer (32)</strong>, and sending waits for room: <code>send</code> is a future too.</li>
+<li><strong><code>async move</code> hands each task its own clone</strong> of the sender, so it owns what it uses.</li>
+<li><strong>Drop the original sender</strong> or the loop below waits forever, the same trip-up as episode eleven.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> every sender gone, then the loop ends.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §17.3</span></div><div class="body"><h3>First one wins</h3>
+<p><code>join!</code> waits for everything. Sometimes you only want whichever answer arrives first. <code>select!</code> takes branches: each one is a future, and a body that runs if that future wins.</p>
+<img class="slide" src="img/SceneSelectRace.webp" alt="" /><pre><code class="language-rust">tokio::select! {
+    fact = fetch_fact(1) =&gt; {
+        println!(&quot;fact first: {fact:?}&quot;);
+    }
+    _ = sleep(Duration::from_millis(500)) =&gt; {
+        println!(&quot;too slow&quot;);
+    }
+}
+
+// the losing future is dropped right here.
+// futures::select hands back an Either instead.
+</code></pre>
+<ul>
+<li><strong>Here the fetch races a half-second sleep.</strong> Whichever finishes first runs its body.</li>
+<li><strong>The loser is dropped where it stands.</strong> It does not finish quietly in the background. Cancellation surprises people; expect it.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> one winner. the other stops mid step.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Tokio · time::timeout</span></div><div class="body"><h3>Give it a deadline</h3>
+<p>A request that never answers is worse than one that fails. You already have the parts: race the fetch against a sleep. That is exactly what Tokio&#39;s <code>timeout</code> is.</p>
+<img class="slide" src="img/SceneTimeout.webp" alt="" /><pre><code class="language-rust">use tokio::time::{timeout, Duration};
+
+let result = timeout(
+    Duration::from_millis(500),
+    fetch_fact(1),
+).await;
+
+match result {
+    Ok(fact) =&gt; println!(&quot;{fact:?}&quot;),
+    Err(_)   =&gt; println!(&quot;timed out&quot;),
+}
+</code></pre>
+<ul>
+<li><strong>One call:</strong> a duration, and the future you want to limit.</li>
+<li><strong>You get a <code>Result</code>.</strong> <code>Ok</code> means it finished in time, <code>Err</code> means it ran out. Errors are values, still.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> a deadline is a race you already know how to write.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Tokio · task::yield_now</span></div><div class="body"><h3>Nobody preempts you</h3>
+<p>Async is cooperative. A task keeps the thread until it hits an await, and not one moment sooner. So a loop with no await inside it never lets go.</p>
+<img class="slide" src="img/SceneYieldStarvation.webp" alt="" /><pre><code class="language-rust">async fn hog() {
+    loop {
+        heavy_step();
+    }  // never lets go
+}
+
+async fn polite() {
+    loop {
+        heavy_step();
+        yield_now().await;
+    }
+}
+</code></pre>
+<ul>
+<li><strong>The other tasks are ready, and they wait anyway.</strong> One hog starves the whole lane.</li>
+<li><strong><code>yield_now()</code> is an await that does nothing</strong> except hand the runtime back for a moment. Same work, same thread, and now everybody gets a turn.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> await is the handoff. no await, no sharing.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-teal">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">The real demo</h2><span class="book-chip">reqwest + tokio</span></div>
+
+      <div class="body divider-intro"><p>The whole program, and the clock. Every piece already showed up once; now it is forty lines, one await, and 5.21s becoming 1.08s in a terminal.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">reqwest + tokio</span></div><div class="body"><h3>The whole program</h3>
+<p>Here is the finished thing, top to bottom. One worker function, one shaping line in main, one await.</p>
+<img class="slide" src="img/SceneDemoProgram.webp" alt="" /><pre><code class="language-rust">use futures::future::join_all;
+
+// any endpoint you trust. this one returns plain text.
+const FACTS_URL: &amp;str = &quot;https://api.example.com/cat-fact&quot;;
+
+async fn fetch_fact(id: u32)
+  -&gt; Result&lt;String, reqwest::Error&gt;
+{
+    let body = reqwest::get(FACTS_URL).await?
+        .text().await?;
+    Ok(format!(&quot;fact #{id}: {body}&quot;))
+}
+
+#[tokio::main]
+async fn main() {
+    let futures = (1..=5).map(fetch_fact);
+    let facts = join_all(futures).await;
+    for fact in facts {
+        println!(&quot;{fact:?}&quot;);
+    }
+}
+</code></pre>
+<ul>
+<li><strong>The worker:</strong> one async fn, two awaits inside, a Result coming out the other end.</li>
+<li><strong>The shape lives in main:</strong> build five futures from the ids, hand the batch to <code>join_all</code>, await once.</li>
+<li><strong>Each item you print is the <code>Result</code> your fetch handed back.</strong></li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> one await. five facts.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">cargo run</span></div><div class="body"><h3>Run it twice</h3>
+<p>Same five fetches, two shapes. Run the sequential version first and watch the facts land one at a time. Then the concurrent one: all five land together, in one burst.</p>
+<img class="slide" src="img/SceneDemoRun.webp" alt="" /><pre><code>$ cargo run --bin sequential
+fact #1 ... fact #5
+elapsed: 5.21s   # five waits, back to back
+
+$ cargo run --bin concurrent
+fact #2, #4, #1, #5, #3
+elapsed: 1.08s   # one wait, five requests
+</code></pre>
+<ul>
+<li><strong>5.21 seconds:</strong> a second of waiting, five times over, exactly like the timeline said.</li>
+<li><strong>1.08 seconds, 4.8x faster.</strong> That is the whole point of the episode, on one screen. (Notice the concurrent facts arrive out of order.)</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> five waits became one wait.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §17.4</span></div><div class="body"><h3>One result at a time</h3>
+<p><code>join_all</code> gives you everything at the end. Sometimes you want each result the moment it arrives. A stream is an iterator that awaits.</p>
+<img class="slide" src="img/SceneStreams.webp" alt="" /><pre><code class="language-rust">use futures::stream::{self, StreamExt};
+
+let mut facts = stream::iter(1..=5)
+    .map(fetch_fact)
+    .buffer_unordered(5);
+
+while let Some(fact) = facts.next().await {
+    println!(&quot;{fact:?}&quot;);
+}
+
+// what a Stream actually is:
+// fn poll_next(..) -&gt; Poll&lt;Option&lt;Self::Item&gt;&gt;
+// Ready(Some(item)) / Ready(None) / Pending
+</code></pre>
+<ul>
+<li><strong><code>buffer_unordered(5)</code> says:</strong> run five at a time, and hand me each one as soon as it is done.</li>
+<li><strong>The loop reads like a normal <code>while let</code></strong>, with one await in it. Same idea as episode seven, plus a pause.</li>
+<li><strong>Three possible answers per poll:</strong> another item, no more items, or not yet. A future only had the last two.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> a stream is an iterator that awaits.</p>
+</blockquote>
+</div></section>
+<section class="divider tone-rustDk">
+      <div class="divider-head"><span class="kicker">Chapter</span><h2 class="divider-title">Gotchas</h2><span class="book-chip">Beyond the book</span></div>
+
+      <div class="body divider-intro"><p>The ones everybody hits once: blocking inside async, mixing runtimes, <code>Send</code> showing up in a task, async in traits, and knowing when not to use async at all.</p>
+</div>
+    </section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Tokio · spawn_blocking</span></div><div class="body"><h3>Never block the lane</h3>
+<p>This is the mistake everybody makes once: a normal sleep, sitting inside an async function.</p>
+<img class="slide" src="img/SceneBlockingGotcha.webp" alt="" /><pre><code class="language-rust">// the bug: blocks the whole thread
+std::thread::sleep(Duration::from_secs(1));
+
+// the fix for waiting: yields, others keep running
+tokio::time::sleep(Duration::from_secs(1)).await;
+
+// the fix for real cpu work:
+tokio::task::spawn_blocking(|| resize(photo)).await?;
+</code></pre>
+<ul>
+<li><strong><code>std::thread::sleep</code> does not yield anything.</strong> It holds the thread for a full second, and every task parked on that thread stops with it. One task freezes the whole lane.</li>
+<li><strong>Tokio&#39;s sleep hands the thread back</strong> and the other tasks keep moving.</li>
+<li><strong>For CPU work that cannot yield</strong>, hand it to <code>spawn_blocking</code> instead.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> never block inside async. spawn_blocking for real cpu work.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Tokio</span></div><div class="body"><h3>One runtime only</h3>
+<p>Second gotcha: you copy an example that uses a different executor, and everything compiles fine. Then it panics at runtime, with a message that reads like nonsense until you know this.</p>
+<img class="slide" src="img/SceneRuntimeMismatch.webp" alt="" /><pre><code class="language-rust">// compiles fine. panics at runtime.
+futures::executor::block_on(fetch_fact(1));
+
+// panic: there is no reactor running, must be
+// called from the context of a Tokio 1.x runtime
+
+// the fix:
+#[tokio::main]
+async fn main() {
+    let fact = fetch_fact(1).await?;
+}
+</code></pre>
+<ul>
+<li><strong>The future came from Tokio.</strong> It wants Tokio&#39;s reactor to watch its socket, and that executor does not have one.</li>
+<li><strong>Pick a runtime for the program, start it once, and stay inside it.</strong></li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> pick one runtime. then stay inside it.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · §17.6</span></div><div class="body"><h3>Tasks must be Send</h3>
+<p>You met <code>Send</code> and <code>Sync</code> last episode. They show up here in one specific place: the bound on <code>tokio::spawn</code>.</p>
+<img class="slide" src="img/SceneSendSync.webp" alt="" /><pre><code class="language-rust">pub fn spawn&lt;F&gt;(future: F) -&gt; JoinHandle&lt;F::Output&gt;
+where
+    F: Future + Send + &#39;static,
+
+let counter = Rc::new(0);
+tokio::spawn(async move {
+    sleep(ms(500)).await;
+    println!(&quot;{counter}&quot;);
+});
+// error: future cannot be sent between threads safely
+
+let counter = Arc::new(0);   // now it compiles
+</code></pre>
+<ul>
+<li><strong>spawn may move your task to another thread</strong>, so everything it holds across an await has to be safe to move.</li>
+<li><strong>An <code>Rc</code> held across the await fails.</strong> Swap it for an <code>Arc</code> and it compiles: the same fix as episode eleven.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> rc stays home. arc can travel.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">async-trait crate</span></div><div class="body"><h3>Traits want async</h3>
+<p>One last rough edge. You will want an async function inside a trait, and since Rust 1.75 that compiles. What it will not do is work behind a <code>dyn</code> trait object.</p>
+<img class="slide" src="img/SceneAsyncTrait.webp" alt="" /><pre><code class="language-rust">trait FactSource {
+    async fn fetch(&amp;self, id: u32) -&gt; String;
+}   // works since Rust 1.75
+
+let source: Box&lt;dyn FactSource&gt; = ...;
+// error: the trait cannot be made into an object
+
+#[async_trait]   // the workaround
+trait FactSource {
+    async fn fetch(&amp;self, id: u32) -&gt; String;
+}
+</code></pre>
+<ul>
+<li><strong>When you need the trait object</strong>, the <code>async-trait</code> crate rewrites the method for you, turning the body into a boxed future.</li>
+<li><strong>Name it, reach for it when you need it, move on.</strong></li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> async in traits: yes. dyn async: async-trait.</p>
+</blockquote>
+</div></section>
+<section class="scene"><div class="scene-chip"><span class="book-chip">Book · Ch 17</span></div><div class="body"><h3>When to go async</h3>
+<p>The closing decision, and the last teaching table of Series 1. Three rows, one question: what is your program doing while it waits?</p>
+<img class="slide" src="img/SceneWhenAsync.webp" alt="" /><table>
+<thead>
+<tr>
+<th>What it&#39;s doing</th>
+<th>Reach for</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>waiting on i/o</td>
+<td>async + tokio</td>
+<td>5 http requests, 1.08s</td>
+</tr>
+<tr>
+<td>burning cpu</td>
+<td>threads + rayon</td>
+<td>resize 500 photos</td>
+</tr>
+<tr>
+<td>one thing at a time</td>
+<td>a plain fn</td>
+<td>a cli that reads one file</td>
+</tr>
+</tbody></table>
+<ul>
+<li><strong>Waiting on the network, a disk, another service?</strong> Async: one thread, hundreds of open waits.</li>
+<li><strong>Real math across cores?</strong> Threads, and everything from episode eleven still applies.</li>
+<li><strong>Fast enough already?</strong> A plain function. No runtime needed.</li>
+</ul>
+<blockquote>
+<p><strong>Remember:</strong> async is for waiting. not for working.</p>
+</blockquote>
+</div></section>
+<section class="scene quote"><div class="body"><p>The whole episode, and the series close, in one line:</p>
+<blockquote>
+<p>Threads for CPU. Async for I/O. Await without blocking: that is the modern Rust pattern.</p>
+</blockquote>
+</div></section>
+<section class="appendix">
+      <h2 class="ap-title">Cheatsheet <span class="accent">recap</span></h2>
+      <p class="ap-sub">One line per idea, in order. Skim this when you just need the reminder.</p>
+      <table class="ck-table"><thead><tr><th>Idea</th><th>Remember</th></tr></thead><tbody><tr><td class="ck-scene">Mostly waiting</td><td class="ck-text">waiting is not work. stop paying for it.</td></tr>
+<tr><td class="ck-scene">One after another</td><td class="ck-text">correct, and five times slower than it needs to be.</td></tr>
+<tr><td class="ck-scene">Two timelines</td><td class="ck-text">same code, same thread. five waits at once.</td></tr>
+<tr><td class="ck-scene">Threads vs tasks</td><td class="ck-text">threads for cpu. async for i/o.</td></tr>
+<tr><td class="ck-scene">The async keyword</td><td class="ck-text">async fn returns a plan, not an answer.</td></tr>
+<tr><td class="ck-scene">Where it pauses</td><td class="ck-text">.await means pause here, not stop everything.</td></tr>
+<tr><td class="ck-scene">Nothing runs yet</td><td class="ck-text">futures do nothing unless awaited.</td></tr>
+<tr><td class="ck-scene">Future is a trait</td><td class="ck-text">ready, or ask again later. that is the whole trait.</td></tr>
+<tr><td class="ck-scene">A state machine</td><td class="ck-text">you write straight lines. the compiler writes the states.</td></tr>
+<tr><td class="ck-scene">It cannot move</td><td class="ck-text">you read Pin in signatures. you rarely write it.</td></tr>
+<tr><td class="ck-scene">Two errors, day one</td><td class="ck-text">no runtime, no async.</td></tr>
+<tr><td class="ck-scene">What a runtime is</td><td class="ck-text">no runtime in std. you add the one you want.</td></tr>
+<tr><td class="ck-scene">The tokio setup</td><td class="ck-text">one attribute. main can await.</td></tr>
+<tr><td class="ck-scene">The smallest wait</td><td class="ck-text">yield the thread. never hold it.</td></tr>
+<tr><td class="ck-scene">Both at once</td><td class="ck-text">one task. two waits. one wall clock.</td></tr>
+<tr><td class="ck-scene">Drive them all</td><td class="ck-text">n futures in. one vec out.</td></tr>
+<tr><td class="ck-scene">Start it, walk away</td><td class="ck-text">spawn starts it. the handle collects it.</td></tr>
+<tr><td class="ck-scene">Join vs spawn</td><td class="ck-text">join to wait. spawn to leave.</td></tr>
+<tr><td class="ck-scene">Tasks that talk</td><td class="ck-text">every sender gone, then the loop ends.</td></tr>
+<tr><td class="ck-scene">First one wins</td><td class="ck-text">one winner. the other stops mid step.</td></tr>
+<tr><td class="ck-scene">Give it a deadline</td><td class="ck-text">a deadline is a race you already know how to write.</td></tr>
+<tr><td class="ck-scene">Nobody preempts you</td><td class="ck-text">await is the handoff. no await, no sharing.</td></tr>
+<tr><td class="ck-scene">The whole program</td><td class="ck-text">one await. five facts.</td></tr>
+<tr><td class="ck-scene">Run it twice</td><td class="ck-text">five waits became one wait.</td></tr>
+<tr><td class="ck-scene">One result at a time</td><td class="ck-text">a stream is an iterator that awaits.</td></tr>
+<tr><td class="ck-scene">Never block the lane</td><td class="ck-text">never block inside async. spawn_blocking for real cpu work.</td></tr>
+<tr><td class="ck-scene">One runtime only</td><td class="ck-text">pick one runtime. then stay inside it.</td></tr>
+<tr><td class="ck-scene">Tasks must be Send</td><td class="ck-text">rc stays home. arc can travel.</td></tr>
+<tr><td class="ck-scene">Traits want async</td><td class="ck-text">async in traits: yes. dyn async: async-trait.</td></tr>
+<tr><td class="ck-scene">When to go async</td><td class="ck-text">async is for waiting. not for working.</td></tr></tbody></table>
+      <div class="ap-foot"><strong>Maps to:</strong> The Rust Programming Language, Chapter 17 (2024 edition), plus the Tokio tutorial.<br/><strong>Practice:</strong> no Rustlings folder for this one. Rebuild the five-fetch demo from memory instead, then time both shapes. Series 2 picks up from here.</div>
+    </section>
+</main>
+<button class="save-pdf" onclick="window.print()">Save as PDF</button>
+
+<div class="zoom-mbar-bg" aria-hidden="true"></div>
+<div class="zoom-panel" data-zoom-panel aria-label="Zoom controls">
+  <button type="button" class="zoom-in" aria-label="Zoom in" title="Zoom in">+</button>
+  <div class="zoom-level" role="button" tabindex="0" title="Reset zoom" aria-label="Reset zoom">100%</div>
+  <button type="button" class="zoom-out" aria-label="Zoom out" title="Zoom out">−</button>
+</div>
+<script>
+(function(){
+  var doc=document.querySelector('.doc');
+  var panel=document.querySelector('[data-zoom-panel]');
+  if(!doc||!panel)return;
+  var label=panel.querySelector('.zoom-level');
+  var KEY='rfz_notes_zoom',MIN=0.5,MAX=2,STEP=0.1,z=1;
+  try{var s=parseFloat(localStorage.getItem(KEY));if(s>=MIN&&s<=MAX)z=s;}catch(e){}
+  function clamp(v){return Math.min(MAX,Math.max(MIN,Math.round(v*100)/100));}
+  function isMobile(){return window.matchMedia&&window.matchMedia('(max-width:640px)').matches;}
+  function apply(){var m=isMobile()&&z!==1;doc.style.zoom=z;doc.style.width=m?('calc(100% / '+z+')'):'';doc.style.maxWidth=m?'none':'';label.textContent=Math.round(z*100)+'%';try{localStorage.setItem(KEY,String(z));}catch(e){}}
+  panel.querySelector('.zoom-in').addEventListener('click',function(){z=clamp(z+STEP);apply();});
+  panel.querySelector('.zoom-out').addEventListener('click',function(){z=clamp(z-STEP);apply();});
+  function reset(){z=1;apply();}
+  label.addEventListener('click',reset);
+  label.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();reset();}});
+  window.addEventListener('resize',apply);
+  apply();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Async Rust · Slides (EP.12)</title>
+<!-- "Add to Home Screen" on iPhone launches this chromeless, the practical
+     way to get a fullscreen-like deck where iOS blocks the Fullscreen API -->
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Rust EP.12" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="icon" type="image/png" href="/icon" />
+<style>
+:root{
+  --ink:#1c1e22; --soft:#43474e; --muted:#888d96; --line:#e3e4e8;
+  --rust:#c8542a; --code-bg:#f5f5f4;
+  --sans:"Bricolage Grotesque",system-ui,-apple-system,sans-serif;
+  --serif:"Instrument Serif",Georgia,serif;
+  --mono:"JetBrains Mono",ui-monospace,monospace;
+  --stage:#0e0f12; --panel:#16181d; --sline:#26282e; --sink:#e8e6e2; --smuted:#9a9aaa;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;height:100%;background:var(--stage);color:var(--sink);font-family:var(--sans);overflow:hidden;}
+button{font-family:inherit;}
+
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh;}
+
+.progress{flex:none;height:3px;background:#1d1f24;}
+.progress > i{display:block;height:100%;background:var(--rust);width:0;transition:width .25s ease;}
+
+.topbar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 18px;}
+.brand{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--sink);}
+.brand svg{display:block;}
+.brand .sep{color:#4a4d55;font-weight:400;}
+.brand .ep{font-family:var(--mono);color:var(--rust);font-weight:700;letter-spacing:.08em;}
+.hint{font-family:var(--mono);font-size:11px;color:#6b6e76;white-space:nowrap;}
+.hint b{color:#9a9aaa;font-weight:700;}
+
+.middle{flex:1;display:flex;min-height:0;min-width:0;}
+.viewport{flex:1;display:grid;place-items:center;min-width:0;min-height:0;position:relative;overflow:hidden;}
+
+/* sized in JS to the scaled deck size so grid centering uses the real footprint */
+.scaler{position:relative;flex:none;}
+.deck{position:absolute;top:0;left:0;width:1280px;height:720px;transform-origin:top left;border-radius:14px;overflow:hidden;background:#fff;
+  box-shadow:0 30px 90px -30px rgba(0,0,0,.85),0 0 0 1px rgba(255,255,255,.05);cursor:pointer;}
+.deck img.full{display:block;width:100%;height:100%;object-fit:contain;background:#fff;}
+
+/* composed: cover */
+.cv{width:100%;height:100%;padding:78px 86px;display:flex;flex-direction:column;justify-content:center;position:relative;color:var(--ink);}
+.cv-eyebrow{font-family:var(--mono);font-size:17px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);}
+.cv-title{font-size:96px;line-height:1.04;font-weight:800;color:#16181d;margin:18px 0 0;letter-spacing:-0.01em;}
+.cv-title .accent{font-family:var(--serif);font-style:italic;color:var(--rust);font-weight:400;}
+.cv-tag{font-family:var(--serif);font-style:italic;font-size:34px;color:var(--soft);margin:26px 0 0;max-width:760px;line-height:1.32;}
+.cv-chip{margin-top:40px;align-self:flex-start;font-family:var(--mono);font-size:16px;color:var(--soft);background:#fff;border:1px solid var(--line);padding:9px 16px;border-radius:8px;}
+.cv-foot{position:absolute;left:86px;right:86px;bottom:54px;display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);padding-top:18px;font-size:15px;color:var(--muted);}
+.cv-foot .ep{font-family:var(--mono);font-weight:700;color:var(--rust);letter-spacing:.12em;}
+.cv-num{position:absolute;top:54px;right:86px;font-family:var(--mono);font-weight:800;font-size:120px;color:#e6e7ec;line-height:1;}
+
+/* composed: cheatsheet */
+.ck{width:100%;height:100%;padding:56px 70px;display:flex;flex-direction:column;color:var(--ink);}
+.ck h2{font-size:48px;font-weight:800;color:#16181d;margin:0 0 4px;letter-spacing:-0.01em;}
+.ck h2 .accent{font-family:var(--serif);font-style:italic;color:var(--rust);font-weight:400;}
+.ck h2 .ck-part{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--muted);letter-spacing:.06em;vertical-align:middle;margin-left:10px;}
+.ck .sub{font-size:17px;color:var(--soft);margin:0 0 18px;}
+.ck table{width:100%;border-collapse:collapse;font-size:16.5px;}
+.ck th{text-align:left;background:#f3f3f4;color:var(--ink);font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.04em;padding:8px 12px;border:1px solid var(--line);}
+.ck td{padding:7px 12px;border:1px solid var(--line);color:var(--soft);vertical-align:top;}
+.ck td.idea{font-weight:700;color:#16181d;width:38%;}
+.ck code{font-family:var(--mono);font-size:.9em;background:var(--code-bg);padding:.06em .3em;border-radius:4px;color:#9a3a18;}
+
+/* composed: text card for slides with no still (divider / pull-quote / image-less scene) */
+.txt{width:100%;height:100%;padding:64px 78px;display:flex;flex-direction:column;justify-content:center;color:var(--ink);}
+.txt-kicker{font-family:var(--mono);font-size:17px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:18px;}
+.txt-title{font-size:74px;line-height:1.04;font-weight:800;color:#16181d;margin:0;letter-spacing:-0.01em;}
+.txt-title.txt-title-sm{font-size:50px;}
+.txt-title .accent{font-family:var(--serif);font-style:italic;color:var(--rust);font-weight:400;}
+.txt-lead{font-family:var(--serif);font-style:italic;font-size:30px;line-height:1.4;color:var(--soft);margin:26px 0 0;max-width:880px;}
+.txt-points{margin:26px 0 0;padding-left:24px;max-width:900px;}
+.txt-points li{font-size:22px;line-height:1.5;color:var(--soft);margin:0 0 12px;}
+.txt-points li b{color:var(--ink);font-weight:700;}
+.txt code{font-family:var(--mono);font-size:.9em;background:var(--code-bg);padding:.06em .3em;border-radius:4px;color:#9a3a18;}
+.txt-quote{justify-content:center;}
+.txt-quote-text{font-family:var(--serif);font-style:italic;font-size:46px;line-height:1.28;color:#16181d;margin:0;max-width:980px;}
+
+/* notes drawer */
+.notes{flex:none;width:0;overflow:hidden;background:var(--panel);border-left:1px solid var(--sline);transition:width .18s ease,height .18s ease;}
+.notes.open{width:380px;}
+.notes-inner{width:380px;height:100%;overflow:auto;padding:24px 24px 40px;}
+.n-kicker{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#6b6e76;margin-bottom:8px;}
+.n-title{font-size:23px;font-weight:800;color:var(--sink);margin:0 0 14px;letter-spacing:-0.01em;}
+.n-points{margin:0;padding-left:18px;}
+.n-points li{font-size:14.5px;line-height:1.6;color:#c4c4cc;margin:0 0 9px;}
+.n-points li b{color:#fff;font-weight:700;}
+.notes-inner code{font-family:var(--mono);font-size:.86em;background:#22252b;padding:.08em .34em;border-radius:4px;color:#e7a884;}
+.n-remember{margin-top:18px;border-left:3px solid var(--rust);background:rgba(200,84,42,.10);border-radius:0 8px 8px 0;padding:12px 14px;font-size:14.5px;line-height:1.55;color:#f0e6df;}
+.n-remember span{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--rust);font-weight:700;margin-bottom:5px;}
+.n-empty{color:#6b6e76;font-size:14px;font-style:italic;}
+
+/* bottom controls */
+.controls{flex:none;display:flex;align-items:center;gap:10px;padding:10px 16px;border-top:1px solid var(--sline);background:#101216;}
+.controls .counter{font-family:var(--mono);font-size:13px;color:var(--smuted);min-width:66px;}
+.controls .counter b{color:var(--sink);}
+.controls .ctitle{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;color:#c4c4cc;}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--sline);background:#1a1c22;color:var(--sink);
+  font-size:13px;font-weight:600;border-radius:9px;padding:8px 13px;cursor:pointer;transition:background .14s,border-color .14s,color .14s;}
+.btn:hover{background:#23262d;border-color:#3a3d45;}
+.btn:disabled{opacity:.38;cursor:not-allowed;}
+.btn.icon{padding:8px 12px;font-size:17px;line-height:1;}
+.btn.on{background:rgba(200,84,42,.16);border-color:rgba(200,84,42,.55);color:#f0b69e;}
+.btn .k{font-family:var(--mono);font-size:10px;color:#7e818a;}
+
+/* grid overview */
+.grid{position:fixed;inset:0;z-index:80;background:rgba(8,9,11,.97);overflow:auto;padding:36px 40px 56px;display:none;}
+.grid.open{display:block;}
+.grid-head{display:flex;align-items:center;justify-content:space-between;max-width:1320px;margin:0 auto 22px;}
+.grid-head h2{font-size:20px;margin:0;color:var(--sink);font-weight:800;}
+.grid-inner{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;max-width:1320px;margin:0 auto;}
+.thumb{position:relative;aspect-ratio:16/9;border-radius:9px;overflow:hidden;border:1px solid var(--sline);background:#fff;cursor:pointer;transition:transform .12s,outline-color .12s;outline:2px solid transparent;}
+.thumb:hover{transform:translateY(-2px);}
+.thumb.current{outline-color:var(--rust);}
+.thumb img{width:100%;height:100%;object-fit:contain;}
+.thumb .composed{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--ink);padding:10px;text-align:center;}
+.thumb .composed .big{font-size:22px;font-weight:800;color:#16181d;}
+.thumb .composed .big .accent{font-family:var(--serif);font-style:italic;color:var(--rust);font-weight:400;}
+.thumb .num{position:absolute;top:6px;left:8px;font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:rgba(14,15,18,.78);border-radius:5px;padding:2px 6px;}
+
+@media (max-width:760px){
+  .hint{display:none;}
+  .controls .ctitle{display:none;}
+  .controls{flex-wrap:wrap;gap:8px;padding:8px 10px;}
+  .btn{padding:9px 12px;}
+  .btn .k{display:none;}            /* no keyboard on touch */
+  #btnFull{display:none;}           /* fullscreen is niche on phones, unsupported on iOS */
+  /* stack the slide on top and slide notes up from the bottom, so the
+     control bar stays reachable instead of being covered by an overlay */
+  .middle{flex-direction:column;}
+  .notes{width:auto;height:0;border-left:none;border-top:1px solid var(--sline);}
+  .notes.open{width:auto;height:46vh;}
+  .notes-inner{width:auto;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="progress"><i id="bar"></i></div>
+
+  <div class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 28 20" width="20" height="14" aria-hidden="true"><rect width="28" height="20" rx="5" fill="#FF0033"/><path d="M11 6l7 4-7 4z" fill="#fff"/></svg>
+      MeowyTheDev <span class="sep">·</span> Rust from Zero <span class="sep">·</span> <span class="ep">EP.12</span>
+    </div>
+    <div class="hint"><b>←</b> <b>→</b> move · <b>N</b> notes · <b>G</b> grid · <b>F</b> fullscreen</div>
+  </div>
+
+  <div class="middle">
+    <div class="viewport" id="viewport">
+      <div class="scaler" id="scaler">
+        <div class="deck" id="deck" role="group" aria-label="slide"></div>
+      </div>
+    </div>
+    <aside class="notes" id="notes" aria-label="Speaker notes">
+      <div class="notes-inner" id="notesInner"></div>
+    </aside>
+  </div>
+
+  <div class="controls">
+    <button class="btn icon" id="prev" title="Previous (left arrow)" aria-label="Previous slide">‹</button>
+    <button class="btn icon" id="next" title="Next (right arrow)" aria-label="Next slide">›</button>
+    <div class="counter"><b id="cur">1</b> / <span id="total">1</span></div>
+    <div class="ctitle" id="ctitle"></div>
+    <button class="btn" id="btnNotes" title="Toggle speaker notes (N)">Notes <span class="k">N</span></button>
+    <button class="btn" id="btnGrid" title="Slide overview (G)">Grid <span class="k">G</span></button>
+    <button class="btn" id="btnFull" title="Fullscreen (F)">Fullscreen <span class="k">F</span></button>
+  </div>
+</div>
+
+<div class="grid" id="grid">
+  <div class="grid-head">
+    <h2>All slides</h2>
+    <button class="btn" id="gridClose">Close <span class="k">Esc</span></button>
+  </div>
+  <div class="grid-inner" id="gridInner"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var DATA = {"ep":"12","title":"Async Rust","cover":"\u003cdiv class=\"cv\">\u003cdiv class=\"cv-eyebrow\">MeowyTheDev · Rust from Zero\u003c/div>\u003ch1 class=\"cv-title\">\u003cspan class=\"accent\">Async\u003c/span> Rust\u003c/h1>\u003cp class=\"cv-tag\">the finale: futures, .await, tokio, and overlapping every wait.\u003c/p>\u003cdiv class=\"cv-chip\">The Rust Programming Language \u003cspan class=\"dot\">·\u003c/span> Chapter 17 (2024 ed.)\u003c/div>\u003cdiv class=\"cv-foot\">\u003cspan class=\"ep\">EP.12\u003c/span>\u003cspan>companion slides · watch on the Rust from Zero playlist\u003c/span>\u003c/div>\u003cdiv class=\"cv-num\">12\u003c/div>\u003c/div>","coverBig":"\u003cspan class=\"accent\">Async\u003c/span> Rust","cheat":"\u003cdiv class=\"ck\">\u003ch2>Cheatsheet \u003cspan class=\"accent\">recap\u003c/span> \u003cspan class=\"ck-part\">1 / 3\u003c/span>\u003c/h2>\u003cp class=\"sub\">One line per idea, in order. The pause-for-questions slide.\u003c/p>\u003ctable>\u003cthead>\u003ctr>\u003cth>Idea\u003c/th>\u003cth>Remember\u003c/th>\u003c/tr>\u003c/thead>\u003ctbody>\u003ctr>\u003ctd class=\"idea\">Mostly waiting\u003c/td>\u003ctd>waiting is not work. stop paying for it.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">One after another\u003c/td>\u003ctd>correct, and five times slower than it needs to be.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Two timelines\u003c/td>\u003ctd>same code, same thread. five waits at once.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Threads vs tasks\u003c/td>\u003ctd>threads for cpu. async for i/o.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">The async keyword\u003c/td>\u003ctd>async fn returns a plan, not an answer.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Where it pauses\u003c/td>\u003ctd>.await means pause here, not stop everything.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Nothing runs yet\u003c/td>\u003ctd>futures do nothing unless awaited.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Future is a trait\u003c/td>\u003ctd>ready, or ask again later. that is the whole trait.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">A state machine\u003c/td>\u003ctd>you write straight lines. the compiler writes the states.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">It cannot move\u003c/td>\u003ctd>you read Pin in signatures. you rarely write it.\u003c/td>\u003c/tr>\u003c/tbody>\u003c/table>\u003c/div>","slides":[{"type":"cover","title":"Async Rust","notes":["\u003cb>Episode 12.\u003c/b> the finale: futures, .await, tokio, and overlapping every wait.","\u003cb>Covers:\u003c/b> The Rust Programming Language · Chapter 17 (2024 ed.)"]},{"type":"divider","img":"","kicker":"Chapter · Book · Ch 17","title":"Why async","notes":["Chapter break: \u003cb>Why async\u003c/b>.","Your program spends its life waiting. This chapter puts a clock on that waiting, then shows the same five requests running 4.8x faster on a single thread."],"composed":"\u003cdiv class=\"txt\">\u003cdiv class=\"txt-kicker\">Chapter\u003c/div>\u003ch1 class=\"txt-title\">Why async\u003c/h1>\u003cp class=\"txt-lead\">Your program spends its life waiting. This chapter puts a clock on that waiting, then shows the same five requests running 4.8x faster on a single thread.\u003c/p>\u003c/div>"},{"type":"image","img":"img/SceneWaiting.webp","kicker":"Book · Ch 17","title":"Mostly waiting","notes":["Here is one network call. Your program asks for a cat fact, and then it waits, about a second. Of that second, the CPU work is about a millisecond. The rest is your program sitting still.","\u003cb>Waiting dominates.\u003c/b> Roughly 1ms of work against roughly 999ms of waiting, per request.","\u003cb>Do it five times in a row\u003c/b> and that is 5.21 seconds of your life, and almost none of it is work.","\u003cb>Async is how you stop paying for the waiting.\u003c/b>"],"remember":"waiting is not work. stop paying for it."},{"type":"image","img":"img/SceneSequentialCost.webp","kicker":"Book · §17.1","title":"One after another","notes":["This is the naive program: one fetch function, called five times in a loop, each turn waiting for the last.","\u003cb>The \u003ccode>.await\u003c/code> inside the loop is the blocking line.\u003c/b> Stop here; nothing else happens until the fact arrives.","\u003cb>Five requests, five waits, 5.21 seconds.\u003c/b> The program is right, and it is five times slower than it needs to be."],"remember":"correct, and five times slower than it needs to be."},{"type":"image","img":"img/SceneSpeedDemo.webp","kicker":"Book · Ch 17","title":"Two timelines","notes":["The same five requests, arranged two ways. Sequential: each bar starts only when the one above it finishes. Concurrent: all five start together, because waiting is the one thing that stacks.","\u003cb>4.8x faster.\u003c/b> Same code, same requests, same single thread.","\u003cb>That is the whole episode in one picture.\u003c/b>"],"remember":"same code, same thread. five waits at once."},{"type":"image","img":"img/SceneThreadsVsAsync.webp","kicker":"Book · §17.6","title":"Threads vs tasks","notes":["Last episode you spawned threads, so a fair question: why not spawn five threads and call it done? Because a thread and a task are not the same tool.","\u003cb>A waiting task costs nothing.\u003c/b> Thousands fit on one thread.","\u003cb>Threads split CPU work. Async overlaps waiting.\u003c/b> Most servers need the second one."],"remember":"threads for cpu. async for i/o."},{"type":"divider","img":"","kicker":"Chapter · Book · §17.1","title":"async and .await","notes":["Chapter break: \u003cb>async and .await\u003c/b>.","Two keywords, one new mental model: an \u003ccode>async fn\u003c/code> hands back a plan, not an answer, and \u003ccode>.await\u003c/code> marks the spots where that plan can pause."],"composed":"\u003cdiv class=\"txt\">\u003cdiv class=\"txt-kicker\">Chapter\u003c/div>\u003ch1 class=\"txt-title\">async and .await\u003c/h1>\u003cp class=\"txt-lead\">Two keywords, one new mental model: an \u003ccode>async fn\u003c/code> hands back a plan, not an answer, and \u003ccode>.await\u003c/code> marks the spots where that plan can pause.\u003c/p>\u003c/div>"},{"type":"image","img":"img/SceneAsyncFn.webp","kicker":"Book · §17.1","title":"The async keyword","notes":["One keyword. Put \u003ccode>async\u003c/code> in front of \u003ccode>fn\u003c/code>, and the function changes what it hands back.","\u003cb>You wrote \u003ccode>Result&lt;String, ..&gt;\u003c/code>\u003c/b>, but calling this does not give you a Result. It gives you a future that will produce one.","\u003cb>Your Result is still in there:\u003c/b> it arrives as the future&#39;s \u003ccode>Output\u003c/code>.","\u003cb>async is a promise about later.\u003c/b> The body has not run yet."],"remember":"async fn returns a plan, not an answer."},{"type":"image","img":"img/SceneAwait.webp","kicker":"Book · §17.1","title":"Where it pauses","notes":["Inside the function there are two waits: one for the response, one for the text. \u003ccode>.await\u003c/code> marks a spot the function can stop at.","\u003cb>The first \u003ccode>.await\u003c/code> says:\u003c/b> the server has not answered yet, so put me down and run something else. The task is parked; the thread moves on.","\u003cb>When the bytes arrive\u003c/b>, the runtime picks the function back up on the exact line it stopped on, same locals and all.","\u003cb>The \u003ccode>?\u003c/code> still works the way it did in episode five.\u003c/b> Errors go up."],"remember":".await means pause here, not stop everything."},{"type":"image","img":"img/SceneLazyFuture.webp","kicker":"Book · §17.1","title":"Nothing runs yet","notes":["This line looks like it starts a network request. It does not. Nothing has left your computer.","\u003cb>In other languages the call would already be in flight.\u003c/b> In Rust you are holding a value that has not started.","\u003cb>The work starts on the \u003ccode>.await\u003c/code>\u003c/b>, and not one moment before. That is what lazy means here.","\u003cb>Forget the await and the compiler tells you outright:\u003c/b> futures do nothing unless awaited."],"remember":"futures do nothing unless awaited."},{"type":"image","img":"img/SceneFutureTrait.webp","kicker":"Book · §17.5","title":"Future is a trait","notes":["\u003ccode>Future\u003c/code> is not magic syntax. It is a trait, like the ones you wrote in episode six, with one real method on it.","\u003cb>\u003ccode>poll\u003c/code> is the runtime asking one question:\u003c/b> are you finished, or should I come back later?","\u003cb>The answer is one of two things:\u003c/b> \u003ccode>Ready\u003c/code> with your value inside, or \u003ccode>Pending\u003c/code>.","\u003cb>Your async fn is a future.\u003c/b> \u003ccode>.await\u003c/code> is you handing it to the runtime to poll. (\u003ccode>Pin\u003c/code> keeps it in place; next scene.)"],"remember":"ready, or ask again later. that is the whole trait."},{"type":"image","img":"img/SceneStateMachine.webp","kicker":"Book · §17.5","title":"A state machine","notes":["So what is the compiler actually building? Take your function and mark every \u003ccode>.await\u003c/code> in it. Each one is a place the function can stop, and the compiler turns the whole body into states.","\u003cb>The states for \u003ccode>fetch_fact\u003c/code>:\u003c/b> start, waiting on \u003ccode>get\u003c/code>, waiting on \u003ccode>text\u003c/code>, done. \u003ccode>poll\u003c/code> returning \u003ccode>Pending\u003c/code> loops on the waiting states.","\u003cb>The state holds your local variables\u003c/b> (\u003ccode>id\u003c/code>, \u003ccode>body\u003c/code>), so when it resumes the function still knows where it was.","\u003cb>You never write this.\u003c/b> You write straight-line code and get the machine for free."],"remember":"you write straight lines. the compiler writes the states."},{"type":"image","img":"img/ScenePinning.webp","kicker":"Book · §17.5 Pin","title":"It cannot move","notes":["Remember the state that held your locals? Sometimes one of those locals points at another one, and that is why \u003ccode>Pin\u003c/code> exists.","\u003cb>Move that struct to a new address\u003c/b> and the string moves with it, but the internal pointer does not. Broken.","\u003cb>\u003ccode>Pin\u003c/code> is the promise it will not move.\u003c/b> A promise, not a lock.","\u003cb>Where you meet it:\u003c/b> reading signatures, and \u003ccode>Box::pin\u003c/code> when you put futures in a collection. You read \u003ccode>Pin\u003c/code>; you rarely write it."],"remember":"you read Pin in signatures. you rarely write it."},{"type":"divider","img":"","kicker":"Chapter · Tokio · tutorial","title":"Runtimes","notes":["Chapter break: \u003cb>Runtimes\u003c/b>.","Somebody has to poll the future, and Rust ships no one to do it. You pick a runtime. This chapter is the two errors that teach you why, and the two-line Tokio setup."],"composed":"\u003cdiv class=\"txt\">\u003cdiv class=\"txt-kicker\">Chapter\u003c/div>\u003ch1 class=\"txt-title\">Runtimes\u003c/h1>\u003cp class=\"txt-lead\">Somebody has to poll the future, and Rust ships no one to do it. You pick a runtime. This chapter is the two errors that teach you why, and the two-line Tokio setup.\u003c/p>\u003c/div>"},{"type":"image","img":"img/SceneNoRuntime.webp","kicker":"Book · §17.1","title":"Two errors, day one","notes":["Try to await in a normal \u003ccode>main\u003c/code>, and the compiler stops you. Make \u003ccode>main\u003c/code> async, and it stops you again, for the opposite reason. Both errors show up before you have added a runtime.","\u003cb>The real question underneath both:\u003c/b> who polls the future?","\u003cb>Rust does not ship that something.\u003c/b> You pick it, and it is called a runtime."],"remember":"no runtime, no async."},{"type":"image","img":"img/SceneWhyTokio.webp","kicker":"Tokio","title":"What a runtime is","notes":["A runtime is three jobs in one crate, and none of them are mysterious.","\u003cb>Rust ships no runtime on purpose:\u003c/b> a web server and a microcontroller need different ones.","\u003cb>Tokio is the one most people pick\u003c/b>, used by AWS, Discord, and Cloudflare."],"remember":"no runtime in std. you add the one you want."},{"type":"image","img":"img/SceneTokioMain.webp","kicker":"Tokio · #[tokio::main]","title":"The tokio setup","notes":["Two steps, and your main can await. First the dependency, with the full feature set while you are learning. Then one attribute above \u003ccode>main\u003c/code>.","\u003cb>The attribute is not new syntax.\u003c/b> It wraps your body in a runtime and blocks on it.","\u003cb>One macro, and the whole rest of the episode works.\u003c/b>"],"remember":"one attribute. main can await."},{"type":"image","img":"img/SceneTokioSleep.webp","kicker":"Tokio · time::sleep","title":"The smallest wait","notes":["Sleeping is the smallest possible version of waiting, so it is the easiest place to see the difference between holding a thread and yielding it.","\u003cb>Tokio&#39;s sleep is a future.\u003c/b> \u003ccode>.await\u003c/code> on it and your task steps aside for half a second.","\u003cb>The thread is free that whole time.\u003c/b> Other tasks run on it, and yours comes back when the timer fires.","\u003cb>Remember this one.\u003c/b> It comes back later as the gotcha everybody hits."],"remember":"yield the thread. never hold it."},{"type":"divider","img":"","kicker":"Chapter · Book · §17.2-17.3","title":"Concurrent tasks","notes":["Chapter break: \u003cb>Concurrent tasks\u003c/b>.","Many waits, one wall clock. Join a fixed pair, join a whole batch, spawn background tasks, connect them with channels, race them, and give them deadlines."],"composed":"\u003cdiv class=\"txt\">\u003cdiv class=\"txt-kicker\">Chapter\u003c/div>\u003ch1 class=\"txt-title\">Concurrent tasks\u003c/h1>\u003cp class=\"txt-lead\">Many waits, one wall clock. Join a fixed pair, join a whole batch, spawn background tasks, connect them with channels, race them, and give them deadlines.\u003c/p>\u003c/div>"},{"type":"image","img":"img/SceneJoinMacro.webp","kicker":"Book · §17.2","title":"Both at once","notes":["Here is the slow way, spelled out: two facts, two awaits, one after the other, 2.10s. The join macro takes both futures at once and awaits them together.","\u003cb>You get a tuple back, in the order you asked for\u003c/b>, and it finishes when the slower one finishes.","\u003cb>No new threads.\u003c/b> One task, holding two waits at the same time."],"remember":"one task. two waits. one wall clock."},{"type":"image","img":"img/SceneJoinAll.webp","kicker":"Book · §17.3","title":"Drive them all","notes":["The join macro is for a fixed handful. When the count is a number you compute, you need \u003ccode>join_all\u003c/code>.","\u003cb>Map over the ids and call \u003ccode>fetch_fact\u003c/code> on each.\u003c/b> Nothing runs yet; this is a collection of plans (iterators, ep.07).","\u003cb>\u003ccode>join_all\u003c/code> drives every one of them to the end.\u003c/b>","\u003cb>One vec of results comes back\u003c/b>, in the order you started them."],"remember":"n futures in. one vec out."},{"type":"image","img":"img/SceneSpawn.webp","kicker":"Tokio · spawn","title":"Start it, walk away","notes":["\u003ccode>join!\u003c/code> waits right here. Sometimes you want the work started and your code to keep going. \u003ccode>tokio::spawn\u003c/code> hands the future to the runtime as its own task.","\u003cb>It starts immediately\u003c/b>, whether you are watching or not. Unlike a bare future, a spawned task runs on its own.","\u003cb>You get back a handle.\u003c/b> Do your other work, then await the handle when you actually need the answer.","\u003cb>Two question marks:\u003c/b> one for the fetch, one for the task itself, which could have panicked before it answered."],"remember":"spawn starts it. the handle collects it."},{"type":"image","img":"img/SceneSpawnVsJoin.webp","kicker":"Book · §17.6","title":"Join vs spawn","notes":["You have two ways to run things at once now, and they are not the same tool. Pick by how long the work lives."],"remember":"join to wait. spawn to leave."},{"type":"image","img":"img/SceneAsyncChannels.webp","kicker":"Tokio · sync::mpsc","title":"Tasks that talk","notes":["You sent messages between threads in episode eleven. Tasks do the same thing, with an await on it. This is also where \u003ccode>async move\u003c/code> earns its keep.","\u003cb>The channel has a buffer (32)\u003c/b>, and sending waits for room: \u003ccode>send\u003c/code> is a future too.","\u003cb>\u003ccode>async move\u003c/code> hands each task its own clone\u003c/b> of the sender, so it owns what it uses.","\u003cb>Drop the original sender\u003c/b> or the loop below waits forever, the same trip-up as episode eleven."],"remember":"every sender gone, then the loop ends."},{"type":"image","img":"img/SceneSelectRace.webp","kicker":"Book · §17.3","title":"First one wins","notes":["\u003ccode>join!\u003c/code> waits for everything. Sometimes you only want whichever answer arrives first. \u003ccode>select!\u003c/code> takes branches: each one is a future, and a body that runs if that future wins.","\u003cb>Here the fetch races a half-second sleep.\u003c/b> Whichever finishes first runs its body.","\u003cb>The loser is dropped where it stands.\u003c/b> It does not finish quietly in the background. Cancellation surprises people; expect it."],"remember":"one winner. the other stops mid step."},{"type":"image","img":"img/SceneTimeout.webp","kicker":"Tokio · time::timeout","title":"Give it a deadline","notes":["A request that never answers is worse than one that fails. You already have the parts: race the fetch against a sleep. That is exactly what Tokio&#39;s \u003ccode>timeout\u003c/code> is.","\u003cb>One call:\u003c/b> a duration, and the future you want to limit.","\u003cb>You get a \u003ccode>Result\u003c/code>.\u003c/b> \u003ccode>Ok\u003c/code> means it finished in time, \u003ccode>Err\u003c/code> means it ran out. Errors are values, still."],"remember":"a deadline is a race you already know how to write."},{"type":"image","img":"img/SceneYieldStarvation.webp","kicker":"Tokio · task::yield_now","title":"Nobody preempts you","notes":["Async is cooperative. A task keeps the thread until it hits an await, and not one moment sooner. So a loop with no await inside it never lets go.","\u003cb>The other tasks are ready, and they wait anyway.\u003c/b> One hog starves the whole lane.","\u003cb>\u003ccode>yield_now()\u003c/code> is an await that does nothing\u003c/b> except hand the runtime back for a moment. Same work, same thread, and now everybody gets a turn."],"remember":"await is the handoff. no await, no sharing."},{"type":"divider","img":"","kicker":"Chapter · reqwest + tokio","title":"The real demo","notes":["Chapter break: \u003cb>The real demo\u003c/b>.","The whole program, and the clock. Every piece already showed up once; now it is forty lines, one await, and 5.21s becoming 1.08s in a terminal."],"composed":"\u003cdiv class=\"txt\">\u003cdiv class=\"txt-kicker\">Chapter\u003c/div>\u003ch1 class=\"txt-title\">The real demo\u003c/h1>\u003cp class=\"txt-lead\">The whole program, and the clock. Every piece already showed up once; now it is forty lines, one await, and 5.21s becoming 1.08s in a terminal.\u003c/p>\u003c/div>"},{"type":"image","img":"img/SceneDemoProgram.webp","kicker":"reqwest + tokio","title":"The whole program","notes":["Here is the finished thing, top to bottom. One worker function, one shaping line in main, one await.","\u003cb>The worker:\u003c/b> one async fn, two awaits inside, a Result coming out the other end.","\u003cb>The shape lives in main:\u003c/b> build five futures from the ids, hand the batch to \u003ccode>join_all\u003c/code>, await once.","\u003cb>Each item you print is the \u003ccode>Result\u003c/code> your fetch handed back.\u003c/b>"],"remember":"one await. five facts."},{"type":"image","img":"img/SceneDemoRun.webp","kicker":"cargo run","title":"Run it twice","notes":["Same five fetches, two shapes. Run the sequential version first and watch the facts land one at a time. Then the concurrent one: all five land together, in one burst.","\u003cb>5.21 seconds:\u003c/b> a second of waiting, five times over, exactly like the timeline said.","\u003cb>1.08 seconds, 4.8x faster.\u003c/b> That is the whole point of the episode, on one screen. (Notice the concurrent facts arrive out of order.)"],"remember":"five waits became one wait."},{"type":"image","img":"img/SceneStreams.webp","kicker":"Book · §17.4","title":"One result at a time","notes":["\u003ccode>join_all\u003c/code> gives you everything at the end. Sometimes you want each result the moment it arrives. A stream is an iterator that awaits.","\u003cb>\u003ccode>buffer_unordered(5)\u003c/code> says:\u003c/b> run five at a time, and hand me each one as soon as it is done.","\u003cb>The loop reads like a normal \u003ccode>while let\u003c/code>\u003c/b>, with one await in it. Same idea as episode seven, plus a pause.","\u003cb>Three possible answers per poll:\u003c/b> another item, no more items, or not yet. A future only had the last two."],"remember":"a stream is an iterator that awaits."},{"type":"divider","img":"","kicker":"Chapter · Beyond the book","title":"Gotchas","notes":["Chapter break: \u003cb>Gotchas\u003c/b>.","The ones everybody hits once: blocking inside async, mixing runtimes, \u003ccode>Send\u003c/code> showing up in a task, async in traits, and knowing when not to use async at all."],"composed":"\u003cdiv class=\"txt\">\u003cdiv class=\"txt-kicker\">Chapter\u003c/div>\u003ch1 class=\"txt-title\">Gotchas\u003c/h1>\u003cp class=\"txt-lead\">The ones everybody hits once: blocking inside async, mixing runtimes, \u003ccode>Send\u003c/code> showing up in a task, async in traits, and knowing when not to use async at all.\u003c/p>\u003c/div>"},{"type":"image","img":"img/SceneBlockingGotcha.webp","kicker":"Tokio · spawn_blocking","title":"Never block the lane","notes":["This is the mistake everybody makes once: a normal sleep, sitting inside an async function.","\u003cb>\u003ccode>std::thread::sleep\u003c/code> does not yield anything.\u003c/b> It holds the thread for a full second, and every task parked on that thread stops with it. One task freezes the whole lane.","\u003cb>Tokio&#39;s sleep hands the thread back\u003c/b> and the other tasks keep moving.","\u003cb>For CPU work that cannot yield\u003c/b>, hand it to \u003ccode>spawn_blocking\u003c/code> instead."],"remember":"never block inside async. spawn_blocking for real cpu work."},{"type":"image","img":"img/SceneRuntimeMismatch.webp","kicker":"Tokio","title":"One runtime only","notes":["Second gotcha: you copy an example that uses a different executor, and everything compiles fine. Then it panics at runtime, with a message that reads like nonsense until you know this.","\u003cb>The future came from Tokio.\u003c/b> It wants Tokio&#39;s reactor to watch its socket, and that executor does not have one.","\u003cb>Pick a runtime for the program, start it once, and stay inside it.\u003c/b>"],"remember":"pick one runtime. then stay inside it."},{"type":"image","img":"img/SceneSendSync.webp","kicker":"Book · §17.6","title":"Tasks must be Send","notes":["You met \u003ccode>Send\u003c/code> and \u003ccode>Sync\u003c/code> last episode. They show up here in one specific place: the bound on \u003ccode>tokio::spawn\u003c/code>.","\u003cb>spawn may move your task to another thread\u003c/b>, so everything it holds across an await has to be safe to move.","\u003cb>An \u003ccode>Rc\u003c/code> held across the await fails.\u003c/b> Swap it for an \u003ccode>Arc\u003c/code> and it compiles: the same fix as episode eleven."],"remember":"rc stays home. arc can travel."},{"type":"image","img":"img/SceneAsyncTrait.webp","kicker":"async-trait crate","title":"Traits want async","notes":["One last rough edge. You will want an async function inside a trait, and since Rust 1.75 that compiles. What it will not do is work behind a \u003ccode>dyn\u003c/code> trait object.","\u003cb>When you need the trait object\u003c/b>, the \u003ccode>async-trait\u003c/code> crate rewrites the method for you, turning the body into a boxed future.","\u003cb>Name it, reach for it when you need it, move on.\u003c/b>"],"remember":"async in traits: yes. dyn async: async-trait."},{"type":"image","img":"img/SceneWhenAsync.webp","kicker":"Book · Ch 17","title":"When to go async","notes":["The closing decision, and the last teaching table of Series 1. Three rows, one question: what is your program doing while it waits?","\u003cb>Waiting on the network, a disk, another service?\u003c/b> Async: one thread, hundreds of open waits.","\u003cb>Real math across cores?\u003c/b> Threads, and everything from episode eleven still applies.","\u003cb>Fast enough already?\u003c/b> A plain function. No runtime needed."],"remember":"async is for waiting. not for working."},{"type":"quote","img":"","kicker":"Takeaway","title":"The big idea","notes":["The whole episode, and the series close, in one line:","Threads for CPU. Async for I/O. Await without blocking: that is the modern Rust pattern."],"composed":"\u003cdiv class=\"txt txt-quote\">\u003cdiv class=\"txt-kicker\">Takeaway\u003c/div>\u003cp class=\"txt-quote-text\">Threads for CPU. Async for I/O. Await without blocking: that is the modern Rust pattern.\u003c/p>\u003cp class=\"txt-lead\">The whole episode, and the series close, in one line:\u003c/p>\u003c/div>"},{"type":"cheatsheet","title":"Cheatsheet recap (1/3)","notes":["Recap: one line per idea, in order. Good place to pause for questions.","\u003cb>Maps to:\u003c/b> The Rust Programming Language, Chapter 17 (2024 edition), plus the Tokio tutorial.","\u003cb>Practice:\u003c/b> no Rustlings folder for this one. Rebuild the five-fetch demo from memory instead, then time both shapes. Series 2 picks up from here."],"composed":"\u003cdiv class=\"ck\">\u003ch2>Cheatsheet \u003cspan class=\"accent\">recap\u003c/span> \u003cspan class=\"ck-part\">1 / 3\u003c/span>\u003c/h2>\u003cp class=\"sub\">One line per idea, in order. The pause-for-questions slide.\u003c/p>\u003ctable>\u003cthead>\u003ctr>\u003cth>Idea\u003c/th>\u003cth>Remember\u003c/th>\u003c/tr>\u003c/thead>\u003ctbody>\u003ctr>\u003ctd class=\"idea\">Mostly waiting\u003c/td>\u003ctd>waiting is not work. stop paying for it.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">One after another\u003c/td>\u003ctd>correct, and five times slower than it needs to be.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Two timelines\u003c/td>\u003ctd>same code, same thread. five waits at once.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Threads vs tasks\u003c/td>\u003ctd>threads for cpu. async for i/o.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">The async keyword\u003c/td>\u003ctd>async fn returns a plan, not an answer.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Where it pauses\u003c/td>\u003ctd>.await means pause here, not stop everything.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Nothing runs yet\u003c/td>\u003ctd>futures do nothing unless awaited.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Future is a trait\u003c/td>\u003ctd>ready, or ask again later. that is the whole trait.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">A state machine\u003c/td>\u003ctd>you write straight lines. the compiler writes the states.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">It cannot move\u003c/td>\u003ctd>you read Pin in signatures. you rarely write it.\u003c/td>\u003c/tr>\u003c/tbody>\u003c/table>\u003c/div>"},{"type":"cheatsheet","title":"Cheatsheet recap (2/3)","notes":["Recap, continued."],"composed":"\u003cdiv class=\"ck\">\u003ch2>Cheatsheet \u003cspan class=\"accent\">recap\u003c/span> \u003cspan class=\"ck-part\">2 / 3\u003c/span>\u003c/h2>\u003cp class=\"sub\">One line per idea, in order. The pause-for-questions slide.\u003c/p>\u003ctable>\u003cthead>\u003ctr>\u003cth>Idea\u003c/th>\u003cth>Remember\u003c/th>\u003c/tr>\u003c/thead>\u003ctbody>\u003ctr>\u003ctd class=\"idea\">Two errors, day one\u003c/td>\u003ctd>no runtime, no async.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">What a runtime is\u003c/td>\u003ctd>no runtime in std. you add the one you want.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">The tokio setup\u003c/td>\u003ctd>one attribute. main can await.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">The smallest wait\u003c/td>\u003ctd>yield the thread. never hold it.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Both at once\u003c/td>\u003ctd>one task. two waits. one wall clock.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Drive them all\u003c/td>\u003ctd>n futures in. one vec out.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Start it, walk away\u003c/td>\u003ctd>spawn starts it. the handle collects it.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Join vs spawn\u003c/td>\u003ctd>join to wait. spawn to leave.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Tasks that talk\u003c/td>\u003ctd>every sender gone, then the loop ends.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">First one wins\u003c/td>\u003ctd>one winner. the other stops mid step.\u003c/td>\u003c/tr>\u003c/tbody>\u003c/table>\u003c/div>"},{"type":"cheatsheet","title":"Cheatsheet recap (3/3)","notes":["Recap, continued."],"composed":"\u003cdiv class=\"ck\">\u003ch2>Cheatsheet \u003cspan class=\"accent\">recap\u003c/span> \u003cspan class=\"ck-part\">3 / 3\u003c/span>\u003c/h2>\u003cp class=\"sub\">One line per idea, in order. The pause-for-questions slide.\u003c/p>\u003ctable>\u003cthead>\u003ctr>\u003cth>Idea\u003c/th>\u003cth>Remember\u003c/th>\u003c/tr>\u003c/thead>\u003ctbody>\u003ctr>\u003ctd class=\"idea\">Give it a deadline\u003c/td>\u003ctd>a deadline is a race you already know how to write.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Nobody preempts you\u003c/td>\u003ctd>await is the handoff. no await, no sharing.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">The whole program\u003c/td>\u003ctd>one await. five facts.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Run it twice\u003c/td>\u003ctd>five waits became one wait.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">One result at a time\u003c/td>\u003ctd>a stream is an iterator that awaits.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Never block the lane\u003c/td>\u003ctd>never block inside async. spawn_blocking for real cpu work.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">One runtime only\u003c/td>\u003ctd>pick one runtime. then stay inside it.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Tasks must be Send\u003c/td>\u003ctd>rc stays home. arc can travel.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">Traits want async\u003c/td>\u003ctd>async in traits: yes. dyn async: async-trait.\u003c/td>\u003c/tr>\u003ctr>\u003ctd class=\"idea\">When to go async\u003c/td>\u003ctd>async is for waiting. not for working.\u003c/td>\u003c/tr>\u003c/tbody>\u003c/table>\u003c/div>"}]};
+  var SLIDES = DATA.slides;
+  function stripT(s){ return (s || '').replace(/<[^>]+>/g, ''); }
+
+  // ---- element refs ----
+  var deck = document.getElementById('deck');
+  var scaler = document.getElementById('scaler');
+  var viewport = document.getElementById('viewport');
+  var bar = document.getElementById('bar');
+  var curEl = document.getElementById('cur');
+  var totalEl = document.getElementById('total');
+  var ctitle = document.getElementById('ctitle');
+  var notes = document.getElementById('notes');
+  var notesInner = document.getElementById('notesInner');
+  var grid = document.getElementById('grid');
+  var gridInner = document.getElementById('gridInner');
+  var btnNotes = document.getElementById('btnNotes');
+  var btnGrid = document.getElementById('btnGrid');
+  var btnFull = document.getElementById('btnFull');
+  var prevBtn = document.getElementById('prev');
+  var nextBtn = document.getElementById('next');
+
+  var NOTES_KEY = 'rfz_slides_notes';
+  var idx = 0;
+  var notesOpen = false;
+  try { notesOpen = localStorage.getItem(NOTES_KEY) === '1'; } catch(e){}
+
+  totalEl.textContent = SLIDES.length;
+
+  function bodyHTML(s){
+    if (s.type === 'cover') return DATA.cover;
+    if (s.type === 'cheatsheet') return s.composed || DATA.cheat;
+    if (s.composed) return s.composed;
+    return '<img class="full" src="' + s.img + '" alt="' + stripT(s.title) + '" />';
+  }
+
+  function notesHTML(s){
+    var pts = (s.notes || []).map(function(n){ return '<li>' + n + '</li>'; }).join('');
+    var html = '';
+    if (s.kicker) html += '<div class="n-kicker">' + s.kicker + '</div>';
+    html += '<h2 class="n-title">' + (s.title || '') + '</h2>';
+    if (pts) html += '<ul class="n-points">' + pts + '</ul>';
+    else html += '<p class="n-empty">No notes for this slide.</p>';
+    if (s.remember) html += '<div class="n-remember"><span>Remember</span>' + s.remember + '</div>';
+    return html;
+  }
+
+  function fit(){
+    var availW = viewport.clientWidth;
+    var availH = viewport.clientHeight;
+    var scale = Math.min(availW / 1280, availH / 720) * 0.955;
+    if (!isFinite(scale) || scale <= 0) scale = 0.1;
+    deck.style.transform = 'scale(' + scale + ')';
+    scaler.style.width = (1280 * scale) + 'px';
+    scaler.style.height = (720 * scale) + 'px';
+  }
+
+  function render(){
+    var s = SLIDES[idx];
+    deck.innerHTML = bodyHTML(s);
+    notesInner.innerHTML = notesHTML(s);
+    curEl.textContent = (idx + 1);
+    ctitle.innerHTML = s.title || '';
+    bar.style.width = (((idx + 1) / SLIDES.length) * 100) + '%';
+    prevBtn.disabled = (idx === 0);
+    nextBtn.disabled = (idx === SLIDES.length - 1);
+    var hash = '#' + (idx + 1);
+    if (location.hash !== hash) {
+      try { history.replaceState(null, '', hash); } catch(e){ location.hash = hash; }
+    }
+    updateGridCurrent();
+    fit();
+  }
+
+  function go(n){
+    var t = Math.max(0, Math.min(SLIDES.length - 1, n));
+    if (t === idx) return;
+    idx = t;
+    render();
+  }
+  function next(){ go(idx + 1); }
+  function prev(){ go(idx - 1); }
+
+  function setNotes(open){
+    notesOpen = open;
+    notes.classList.toggle('open', open);
+    btnNotes.classList.toggle('on', open);
+    try { localStorage.setItem(NOTES_KEY, open ? '1' : '0'); } catch(e){}
+    setTimeout(fit, 200);
+  }
+  function toggleNotes(){ setNotes(!notesOpen); }
+
+  function setGrid(open){
+    grid.classList.toggle('open', open);
+    btnGrid.classList.toggle('on', open);
+    if (open) updateGridCurrent();
+  }
+  function toggleGrid(){ setGrid(!grid.classList.contains('open')); }
+
+  function updateGridCurrent(){
+    var kids = gridInner.children;
+    for (var i = 0; i < kids.length; i++){
+      kids[i].classList.toggle('current', i === idx);
+    }
+  }
+
+  function buildGrid(){
+    var html = '';
+    for (var i = 0; i < SLIDES.length; i++){
+      var s = SLIDES[i];
+      var inner;
+      if (s.type === 'cover') inner = '<div class="composed"><div class="big">' + DATA.coverBig + '</div></div>';
+      else if (s.type === 'cheatsheet') inner = '<div class="composed"><div class="big">Cheatsheet <span class="accent">recap</span></div></div>';
+      else if (s.composed) inner = '<div class="composed"><div class="big">' + (s.title || '') + '</div></div>';
+      else inner = '<img src="' + s.img + '" alt="" loading="lazy" />';
+      html += '<div class="thumb" data-i="' + i + '" title="' + stripT(s.title) + '">' + inner + '<span class="num">' + (i + 1) + '</span></div>';
+    }
+    gridInner.innerHTML = html;
+  }
+
+  function toggleFull(){
+    var el = document.documentElement;
+    if (!document.fullscreenElement){
+      (el.requestFullscreen || el.webkitRequestFullscreen || function(){}).call(el);
+    } else {
+      (document.exitFullscreen || document.webkitExitFullscreen || function(){}).call(document);
+    }
+  }
+
+  // ---- events ----
+  nextBtn.addEventListener('click', next);
+  prevBtn.addEventListener('click', prev);
+  btnNotes.addEventListener('click', toggleNotes);
+  btnGrid.addEventListener('click', toggleGrid);
+  btnFull.addEventListener('click', toggleFull);
+  document.getElementById('gridClose').addEventListener('click', function(){ setGrid(false); });
+
+  deck.addEventListener('click', next);
+
+  gridInner.addEventListener('click', function(e){
+    var t = e.target.closest('.thumb');
+    if (!t) return;
+    go(parseInt(t.getAttribute('data-i'), 10));
+    setGrid(false);
+  });
+
+  document.addEventListener('keydown', function(e){
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ' || k === 'Spacebar'){ e.preventDefault(); next(); }
+    else if (k === 'ArrowLeft' || k === 'PageUp'){ e.preventDefault(); prev(); }
+    else if (k === 'Home'){ e.preventDefault(); go(0); }
+    else if (k === 'End'){ e.preventDefault(); go(SLIDES.length - 1); }
+    else if (k === 'n' || k === 'N'){ toggleNotes(); }
+    else if (k === 'g' || k === 'G'){ toggleGrid(); }
+    else if (k === 'f' || k === 'F'){ toggleFull(); }
+    else if (k === 'Escape'){ if (grid.classList.contains('open')) setGrid(false); }
+  });
+
+  // basic swipe
+  var sx = null;
+  viewport.addEventListener('touchstart', function(e){ sx = e.touches[0].clientX; }, {passive:true});
+  viewport.addEventListener('touchend', function(e){
+    if (sx === null) return;
+    var dx = e.changedTouches[0].clientX - sx;
+    if (Math.abs(dx) > 50){ dx < 0 ? next() : prev(); }
+    sx = null;
+  }, {passive:true});
+
+  window.addEventListener('resize', fit);
+  window.addEventListener('hashchange', function(){
+    var n = parseInt((location.hash || '').replace('#',''), 10);
+    if (!isNaN(n) && (n - 1) !== idx) go(n - 1);
+  });
+
+  // ---- init ----
+  (function start(){
+    var n = parseInt((location.hash || '').replace('#',''), 10);
+    if (!isNaN(n)) idx = Math.max(0, Math.min(SLIDES.length - 1, n - 1));
+    buildGrid();
+    setNotes(notesOpen);
+    render();
+  })();
+})();
+</script>
+</body>
+</html>
